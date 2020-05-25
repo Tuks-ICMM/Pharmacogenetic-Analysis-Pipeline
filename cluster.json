@@ -1,0 +1,10 @@
+{
+    "__default__": {
+        "cluster": "qsub",
+        "queue": "normal",
+        "nodes": 1,
+        "ppn": 28,
+        "walltime": "08:00:00",
+        "jobs": 4
+    }
+}
