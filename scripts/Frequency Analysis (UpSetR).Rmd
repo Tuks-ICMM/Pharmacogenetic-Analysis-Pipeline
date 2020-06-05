@@ -1,0 +1,1016 @@
+---
+title: "Frequency Analysis"
+author: "Graeme Ford"
+date: "30/07/2019"
+output: 
+  pdf_document: 
+    number_sections: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("F:/GitHub/Pharmacogenetics Snakemake/")
+library(tidyverse)
+library(UpSetR)
+library(grid)
+library(gridExtra)
+library(viridis)
+```
+
+In this document, I will be going through my dataset and analysing the frequency of variants within said dataset. To analyse this dataset however, I cant just run at it with a spade. I need to plan exactly what I want to know and what tools I have available to use that can answer these questions.
+
+1. I would like to know how my variants are spread accross populations:
+  i. How many are completely population spesific?
+  ii. How many are completely population un-spesific?
+  iii. How many are sub-population spesific?
+  iv. How many are population un-spesific?
+2. I would like to know how many of my variants are:
+  i. of allelic status
+  ii. of clinical significance status
+3. I would like to know if the diference in frequencies is statistically significant or not.
+
+So now that I have broken down exactly what I want to look at, lets discuss how I can go about determining these metrics.
+
+For number 1, I would like to identify population spesific and population unspesific variants. First off, to figure out how many variants are population spesific or un-spesific is completely doable in R. Using `Dplyr`, we can filter and compare multiple lists of populations to determine if a variant is present or absent in both or only one list. As for visualization, the first method that comes to mind is to use a Venn or Euler diagram to show the number of variants shared and unique. Unfortionately this isnt the best possible method as, realistically you can only easily show up to 4 categories before the Venn or Euler diagram quickly becomes unmanagable and hard to follow. For this, I will be using the `UpSetR` package to generate an intersection plot. To compare population and subpopulation, I can simply substitute the dataframe.
+
+For number 2, this is easily done using the `Dplyr` packages `mutate()` function with a conditional statement inside to create a new column and save a boolean entry depending on the value of another column. This can work for both allelic status and clinical significance status.
+
+For number 3, we will finally be delving into some statistics. Normally, in this case senario, you would use a statistic like Chi-Squared which looks at the distribution of frequencies. Essentially this type of statistic would pRoduce a p-value indicating weather or not there is dependance between your values in question, or if it is due to random chance. I.e. the p-value will tell me if the difference in frequencies is due to random chance or sampling, or if there is some factor at play influencing them. Unfortionately, Chi-Squared is not the most ideal candidate. For this, I will be using Fishers-Exact test as it is more robust than Chi-Squared and more sutible for inferring to larger populations.
+
+# Calculate dataset overlap:
+## Load raw dataset/s:
+
+Step one is to load the datasets, but because of the way `PLINK` actually calculates Stratified Frequency reports, every SNP is represented in every sub-pop, even if the count is `0`. TO be honest, I'm not really interested in graphing that right now so I am going to use a `dplyr` pipe to filter out all the SNP's in the report that are listed with a Minor Allele Count of `0`.
+
+
+```{r Load Cluster Info}
+clusterInfo <- read.table("../rawData/subPopCluster", sep = "", header = FALSE)
+```
+
+```{r Load Data}
+ALL_1_SUPER_Frqx <- read.table("../Final/SUPER/ALL_CYP2A6_SUPER.frq.strat", 
+                       sep = "", 
+                       header = TRUE) %>% filter(MAC != 0)
+ALL_1_SUPER_POS <- read.table("../Final/SUPER/ALL_CYP2A6_SUPER.bim", 
+                       sep = "", 
+                       header = FALSE) %>% select(V2, V4)
+ALL_2_SUPER_Frqx <- read.table("../Final/SUPER/ALL_CYP2B6_SUPER.frq.strat", 
+                       sep = "", 
+                       header = TRUE) %>% filter(MAC != 0)
+ALL_3_SUPER_Frqx <- read.table("../Final/SUPER/ALL_UGT2B7_SUPER.frq.strat", 
+                       sep = "", 
+                       header = TRUE) %>% filter(MAC != 0)
+
+ALL_1_SUB_Frqx <- read.table("../Final/SUB/ALL_CYP2A6_SUB.frq.strat", 
+                       sep = "", 
+                       header = TRUE) %>% filter(MAC != 0)
+ALL_2_SUB_Frqx <- read.table("../Final/SUB/ALL_CYP2B6_SUB.frq.strat", 
+                       sep = "", 
+                       header = TRUE) %>% filter(MAC != 0)
+ALL_3_SUB_Frqx <- read.table("../Final/SUB/ALL_UGT2B7_SUB.frq.strat", 
+                       sep = "", 
+                       header = TRUE) %>% filter(MAC != 0)
+
+Filter_Pops <- c("BAG" , "BAN" , "BAR" , "ETH" , "FUL" , "GAA" , "IGB" , "JOL" , "KAL" , "KIK" , "MAN" , "SOT" , "WOL" , "ZUL" , "COL" , "SOT" , "XHO" , "ESN" , "GWD" , "LWK" , "MSL" , "YRI")
+ALL_1_SUB_AFR <- ALL_1_SUB_Frqx %>% filter(CLST %in% Filter_Pops)
+ALL_2_SUB_AFR <- ALL_2_SUB_Frqx %>% filter(CLST %in% Filter_Pops)
+ALL_3_SUB_AFR <- ALL_3_SUB_Frqx %>% filter(CLST %in% Filter_Pops)
+
+print("Count data for variants identified in each Super Population")
+summary(ALL_1_SUPER_Frqx$CLST)
+summary(ALL_2_SUPER_Frqx$CLST)
+summary(ALL_3_SUPER_Frqx$CLST)
+print("Count data for 'ALLELES' identified in each Super Population")
+summary((ALL_1_SUPER_Frqx %>% filter(MAF >= 0.01))$CLST)
+summary((ALL_2_SUPER_Frqx %>% filter(MAF >= 0.01))$CLST)
+summary((ALL_3_SUPER_Frqx %>% filter(MAF >= 0.01))$CLST)
+print("Count data for 'CLINICALLY SIGNIFICANT ALLELES' identified in each Super Population")
+summary((ALL_1_SUPER_Frqx %>% filter(MAF >= 0.04))$CLST)
+summary((ALL_2_SUPER_Frqx %>% filter(MAF >= 0.04))$CLST)
+summary((ALL_3_SUPER_Frqx %>% filter(MAF >= 0.04))$CLST)
+
+print("Count data for variants identified in each SUB Population")
+summary(ALL_1_SUB_Frqx$CLST)
+summary(ALL_2_SUB_Frqx$CLST)
+summary(ALL_3_SUB_Frqx$CLST)
+print("Count data for 'ALLELES' identified in each SUB Population")
+summary((ALL_1_SUB_Frqx %>% filter(MAF >= 0.01))$CLST)
+summary((ALL_2_SUB_Frqx %>% filter(MAF >= 0.01))$CLST)
+summary((ALL_3_SUB_Frqx %>% filter(MAF >= 0.01))$CLST)
+print("Count data for 'CLINICALLY SIGNIFICANT ALLELES' identified in each SUB Population")
+summary((ALL_1_SUB_Frqx %>% filter(MAF >= 0.04))$CLST)
+summary((ALL_2_SUB_Frqx %>% filter(MAF >= 0.04))$CLST)
+summary((ALL_3_SUB_Frqx %>% filter(MAF >= 0.04))$CLST)
+
+SubPop <- read.table("../rawData/superPopCluster", header=FALSE)
+SuperPop <- read.table("../rawData/subPopCluster", header=FALSE)
+joinedPop <- left_join(SubPop, SuperPop, by=c("V1" = "V1")) %>% select(V1, V3.x, V3.y)
+summary(joinedPop)
+summary((joinedPop %>% filter(V3.y == "AFR")))
+```
+
+## Filter by sub-populations:
+
+So we have our non-zero datasets. Now, we need to filter them by subpopulation so we can compare them to figure ouut what overlaps and whats unique per population.
+
+```{r Filter out NaN}
+ALL_1_AFR_Frqx <- filter(ALL_1_SUPER_Frqx, CLST == "AFR")
+ALL_1_AMR_Frqx <- filter(ALL_1_SUPER_Frqx, CLST == "AMR")
+ALL_1_EUR_Frqx <- filter(ALL_1_SUPER_Frqx, CLST == "EUR")
+ALL_1_EAS_Frqx <- filter(ALL_1_SUPER_Frqx, CLST == "EAS")
+ALL_1_SAS_Frqx <- filter(ALL_1_SUPER_Frqx, CLST == "SAS")
+
+ALL_2_AFR_Frqx <- filter(ALL_2_SUPER_Frqx, CLST == "AFR")
+ALL_2_AMR_Frqx <- filter(ALL_2_SUPER_Frqx, CLST == "AMR")
+ALL_2_EUR_Frqx <- filter(ALL_2_SUPER_Frqx, CLST == "EUR")
+ALL_2_EAS_Frqx <- filter(ALL_2_SUPER_Frqx, CLST == "EAS")
+ALL_2_SAS_Frqx <- filter(ALL_2_SUPER_Frqx, CLST == "SAS")
+
+ALL_3_AFR_Frqx <- filter(ALL_3_SUPER_Frqx, CLST == "AFR")
+ALL_3_AMR_Frqx <- filter(ALL_3_SUPER_Frqx, CLST == "AMR")
+ALL_3_EUR_Frqx <- filter(ALL_3_SUPER_Frqx, CLST == "EUR")
+ALL_3_EAS_Frqx <- filter(ALL_3_SUPER_Frqx, CLST == "EAS")
+ALL_3_SAS_Frqx <- filter(ALL_3_SUPER_Frqx, CLST == "SAS")
+```
+
+## Calculate overlaps:
+
+Now we have filtered sets for each population. Lets make use of `semi-join` (overlaps) and `anti-join` (Uniques) to filter *SOME* of our different subsets so that we can begin vizualising our data in Venn or Euler diagrams.
+
+```{r Overlaps}
+ALL_1_AFR_coreOverlap <- semi_join(x = ALL_1_AFR_Frqx,y = ALL_1_EAS_Frqx, by = "SNP") %>% 
+  semi_join(y = ALL_1_AMR_Frqx, by = "SNP") %>% 
+  semi_join(y = ALL_1_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_SAS_Frqx, by = "SNP")
+ALL_1_AFR_coreAntilap <- anti_join(x = ALL_1_AFR_Frqx,y = ALL_1_EAS_Frqx, by = "SNP") %>% 
+  anti_join(y = ALL_1_AMR_Frqx, by = "SNP") %>% 
+  anti_join(y = ALL_1_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_SAS_Frqx, by = "SNP")
+
+ALL_1_AMR_coreOverlap <- semi_join(x = ALL_1_AMR_Frqx,y = ALL_1_EAS_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_AFR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_SAS_Frqx, by = "SNP")
+ALL_1_AMR_coreAntilap <- anti_join(x = ALL_1_AMR_Frqx,y = ALL_1_EAS_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_AFR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_SAS_Frqx, by = "SNP")
+
+ALL_1_EUR_coreOverlap <- semi_join(x = ALL_1_EUR_Frqx,y = ALL_1_EAS_Frqx, by = "SNP") %>% 
+  semi_join(y = ALL_1_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_AFR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_SAS_Frqx, by = "SNP")
+ALL_1_EUR_coreAntilap <- anti_join(x = ALL_1_EUR_Frqx,y = ALL_1_EAS_Frqx, by = "SNP") %>% 
+  anti_join(y = ALL_1_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_AFR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_SAS_Frqx, by = "SNP")
+
+ALL_1_EAS_coreOverlap <- semi_join(x = ALL_1_EAS_Frqx,y = ALL_1_AFR_Frqx, by = "SNP") %>% 
+  semi_join(y = ALL_1_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_SAS_Frqx, by = "SNP")
+ALL_1_EAS_coreAntilap <- anti_join(x = ALL_1_EAS_Frqx,y = ALL_1_AFR_Frqx, by = "SNP") %>% 
+  anti_join(y = ALL_1_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_SAS_Frqx, by = "SNP")
+
+ALL_1_SAS_coreOverlap <- semi_join(x = ALL_1_SAS_Frqx,y = ALL_1_EAS_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_1_AFR_Frqx, by = "SNP")
+ALL_1_SAS_coreAntilap <- anti_join(x = ALL_1_SAS_Frqx,y = ALL_1_EAS_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_1_AFR_Frqx, by = "SNP")
+```
+```{r saveTables, include=FALSE}
+# Now for gene 2:
+ALL_2_AFR_coreOverlap <- semi_join(x = ALL_2_AFR_Frqx,y = ALL_2_EAS_Frqx, by = "SNP") %>% 
+  semi_join(y = ALL_2_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_SAS_Frqx, by = "SNP")
+ALL_2_AFR_coreAntilap <- anti_join(x = ALL_2_AFR_Frqx,y = ALL_2_EAS_Frqx, by = "SNP") %>% 
+  anti_join(y = ALL_2_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_SAS_Frqx, by = "SNP")
+
+ALL_2_AMR_coreOverlap <- semi_join(x = ALL_2_AMR_Frqx,y = ALL_2_EAS_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_AFR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_SAS_Frqx, by = "SNP")
+ALL_2_AMR_coreAntilap <- anti_join(x = ALL_2_AMR_Frqx,y = ALL_2_EAS_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_AFR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_SAS_Frqx, by = "SNP")
+
+ALL_2_EUR_coreOverlap <- semi_join(x = ALL_2_EUR_Frqx,y = ALL_2_EAS_Frqx, by = "SNP") %>% 
+  semi_join(y = ALL_2_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_AFR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_SAS_Frqx, by = "SNP")
+ALL_2_EUR_coreAntilap <- anti_join(x = ALL_2_EUR_Frqx,y = ALL_2_EAS_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_AFR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_SAS_Frqx, by = "SNP")
+
+ALL_2_EAS_coreOverlap <- semi_join(x = ALL_2_EAS_Frqx,y = ALL_2_AFR_Frqx, by = "SNP") %>% 
+  semi_join(y = ALL_2_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_SAS_Frqx, by = "SNP")
+ALL_2_EAS_coreAntilap <- anti_join(x = ALL_2_EAS_Frqx,y = ALL_2_AFR_Frqx, by = "SNP") %>% 
+  anti_join(y = ALL_2_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_SAS_Frqx, by = "SNP")
+
+ALL_2_SAS_coreOverlap <- semi_join(x = ALL_2_SAS_Frqx,y = ALL_2_EAS_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_2_AFR_Frqx, by = "SNP")
+ALL_2_SAS_coreAntilap <- anti_join(x = ALL_2_SAS_Frqx,y = ALL_2_EAS_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_2_AFR_Frqx, by = "SNP")
+
+# Gene 3:
+ALL_3_AFR_coreOverlap <- semi_join(x = ALL_3_AFR_Frqx,y = ALL_3_EAS_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_SAS_Frqx, by = "SNP")
+ALL_3_AFR_coreAntilap <- anti_join(x = ALL_3_AFR_Frqx,y = ALL_3_EAS_Frqx, by = "SNP") %>% 
+  anti_join(y = ALL_3_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_SAS_Frqx, by = "SNP")
+
+ALL_3_AMR_coreOverlap <- semi_join(x = ALL_3_AMR_Frqx,y = ALL_3_EAS_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_AFR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_SAS_Frqx, by = "SNP")
+ALL_3_AMR_coreAntilap <- anti_join(x = ALL_3_AMR_Frqx,y = ALL_3_EAS_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_AFR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_SAS_Frqx, by = "SNP")
+
+ALL_3_EUR_coreOverlap <- semi_join(x = ALL_3_EUR_Frqx,y = ALL_3_EAS_Frqx, by = "SNP") %>% 
+  semi_join(y = ALL_3_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_AFR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_SAS_Frqx, by = "SNP")
+ALL_3_EUR_coreAntilap <- anti_join(x = ALL_3_EUR_Frqx,y = ALL_3_EAS_Frqx, by = "SNP") %>% 
+  anti_join(y = ALL_3_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_AFR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_SAS_Frqx, by = "SNP")
+
+ALL_3_EAS_coreOverlap <- semi_join(x = ALL_3_EAS_Frqx,y = ALL_3_AFR_Frqx, by = "SNP") %>% 
+  semi_join(y = ALL_3_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_SAS_Frqx, by = "SNP")
+ALL_3_EAS_coreAntilap <- anti_join(x = ALL_3_EAS_Frqx,y = ALL_3_AFR_Frqx, by = "SNP") %>% 
+  anti_join(y = ALL_3_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_SAS_Frqx, by = "SNP")
+
+ALL_3_SAS_coreOverlap <- semi_join(x = ALL_3_SAS_Frqx,y = ALL_3_EAS_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_AMR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_EUR_Frqx, by = "SNP") %>%
+  semi_join(y = ALL_3_AFR_Frqx, by = "SNP")
+ALL_3_SAS_coreAntilap <- anti_join(x = ALL_3_SAS_Frqx,y = ALL_3_EAS_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_AMR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_EUR_Frqx, by = "SNP") %>%
+  anti_join(y = ALL_3_AFR_Frqx, by = "SNP")
+```
+```{r Save Tables, include=FALSE}
+write.table(ALL_1_AFR_coreAntilap, "ALL_1_AFR_coreAntilap.txt", sep = "\t")
+write.table(ALL_1_AMR_coreAntilap, "ALL_1_AMR_coreAntilap.txt", sep = "\t")
+write.table(ALL_1_EUR_coreAntilap, "ALL_1_EUR_coreAntilap.txt", sep = "\t")
+write.table(ALL_1_EAS_coreAntilap, "ALL_1_EAS_coreAntilap.txt", sep = "\t")
+write.table(ALL_1_SAS_coreAntilap, "ALL_1_SAS_coreAntilap.txt", sep = "\t")
+write.table(ALL_2_AFR_coreAntilap, "ALL_2_AFR_coreAntilap.txt", sep = "\t")
+write.table(ALL_2_AMR_coreAntilap, "ALL_2_AMR_coreAntilap.txt", sep = "\t")
+write.table(ALL_2_EUR_coreAntilap, "ALL_2_EUR_coreAntilap.txt", sep = "\t")
+write.table(ALL_2_EAS_coreAntilap, "ALL_2_EAS_coreAntilap.txt", sep = "\t")
+write.table(ALL_2_SAS_coreAntilap, "ALL_2_SAS_coreAntilap.txt", sep = "\t")
+write.table(ALL_3_AFR_coreAntilap, "ALL_3_AFR_coreAntilap.txt", sep = "\t")
+write.table(ALL_3_AMR_coreAntilap, "ALL_3_AMR_coreAntilap.txt", sep = "\t")
+write.table(ALL_3_EUR_coreAntilap, "ALL_3_EUR_coreAntilap.txt", sep = "\t")
+write.table(ALL_3_EAS_coreAntilap, "ALL_3_EAS_coreAntilap.txt", sep = "\t")
+write.table(ALL_3_SAS_coreAntilap, "ALL_3_SAS_coreAntilap.txt", sep = "\t")
+```
+## Graph the Overlaps:
+
+Ok, so thats done... buuuuuuuut that's not all the possible overlaps for our data. there are a *LOT* more that we will need to do before we can even begin to build a Venn or Euler diagram... well, theres actually a better way to represent this data and it involves less work for us too!
+
+For this we will be using a package in R called `UpSetR`, which plots UpSet interaction plots like so:
+
+```{r Generate Plots}
+# To begin, we need to pass UpSetR a list of our categories so it can do its magic:
+listInput1 <- list(
+  AFR = as.vector(ALL_1_AFR_Frqx$SNP), 
+  AMR = as.vector(ALL_1_AMR_Frqx$SNP),
+  EUR = as.vector(ALL_1_EUR_Frqx$SNP), 
+  EAS = as.vector(ALL_1_EAS_Frqx$SNP), 
+  SAS = as.vector(ALL_1_SAS_Frqx$SNP)
+  )
+
+# Next we plot the list:
+plot1 <- upset(
+  fromList(listInput1),
+  nintersects = 100,
+  order.by = "freq",
+  group.by = "sets",
+  sets = c("AFR", "AMR", "EUR", "EAS", "SAS"),
+  keep.order = TRUE,
+  text.scale = c(5, 3, 5, 3, 3, 3.5),
+  point.size = 6,
+  line.size = 3,
+  mainbar.y.label = "No. of variants",
+  sets.x.label = "Variant count per population"
+  )
+plot1
+
+listInput2 <- list(
+  AFR = ALL_2_AFR_Frqx$SNP, 
+  AMR = ALL_2_AMR_Frqx$SNP,
+  EUR = ALL_2_EUR_Frqx$SNP, 
+  EAS = ALL_2_EAS_Frqx$SNP,
+  SAS = ALL_2_SAS_Frqx$SNP
+  )
+plot2 <- upset(
+  fromList(listInput2),
+  nintersects = 100,
+  order.by = "freq",
+  group.by = "sets",
+  sets = c("AFR", "AMR", "EUR", "EAS", "SAS"),
+  keep.order = TRUE,
+  text.scale = c(5, 3, 5, 3, 3, 3.5),
+  point.size = 6,
+  line.size = 3,
+  mainbar.y.label = "No. of variants",
+  sets.x.label = "Variant count per population"
+)
+plot2
+
+listInput3 <- list(
+  AFR = ALL_3_AFR_Frqx$SNP, 
+  AMR = ALL_3_AMR_Frqx$SNP,
+  EUR = ALL_3_EUR_Frqx$SNP, 
+  EAS = ALL_3_EAS_Frqx$SNP,
+  SAS = ALL_3_SAS_Frqx$SNP
+  )
+plot3 <- upset(
+  fromList(listInput3),
+  nintersects = 100,
+  order.by = "freq",
+  group.by = "sets",
+  sets = c("AFR", "AMR", "EUR", "EAS", "SAS"),
+  keep.order = TRUE,
+  text.scale = c(5, 3, 5, 3, 3, 3.5),
+  point.size = 6,
+  line.size = 3,
+  mainbar.y.label = "No. of variants",
+  sets.x.label = "Variant count per population"
+)
+plot3
+```
+```{r Save Plots, include=FALSE}
+pdf("../Figures/SUPER/Intersection Plot CYP2A6.pdf", onefile = FALSE, width = 40, height = 10)
+plot1
+dev.off()
+pdf("../Figures/SUPER/Intersection Plot CYP2B6.pdf", onefile = FALSE, width = 40, height = 10)
+plot2
+dev.off()
+pdf("../Figures/SUPER/Intersection Plot UGT2B7.pdf", onefile = FALSE, width = 40, height = 10)
+plot3
+dev.off()
+```
+
+Ok good. Now we need to do the same thing for Sub-Populations, so lets do that quickly:
+
+```{r, Subpopulation UpSetR plots}
+
+c("BAG", "BAN", "BAR", "ETH", "FUL", "GAA", "IGB", "JOL", "KAL", "KIK", "MAN", "SOT", "WOL", "ZUL", "COL", "SOT", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI")
+
+listInput1_SubPop <- list(
+  BAG = as.vector(filter(ALL_1_SUB_Frqx, CLST == "BAG")$SNP),
+  BAN = as.vector(filter(ALL_1_SUB_Frqx, CLST == "BAN")$SNP),
+  BAR = as.vector(filter(ALL_1_SUB_Frqx, CLST == "BAR")$SNP),
+  ETH = as.vector(filter(ALL_1_SUB_Frqx, CLST == "ETH")$SNP),
+  FUL = as.vector(filter(ALL_1_SUB_Frqx, CLST == "FUL")$SNP),
+  GAA = as.vector(filter(ALL_1_SUB_Frqx, CLST == "GAA")$SNP),
+  IGB = as.vector(filter(ALL_1_SUB_Frqx, CLST == "IGB")$SNP),
+  JOL = as.vector(filter(ALL_1_SUB_Frqx, CLST == "JOL")$SNP),
+  KAL = as.vector(filter(ALL_1_SUB_Frqx, CLST == "KAL")$SNP),
+  KIK = as.vector(filter(ALL_1_SUB_Frqx, CLST == "KIK")$SNP),
+  MAN = as.vector(filter(ALL_1_SUB_Frqx, CLST == "MAN")$SNP),
+  SOT = as.vector(filter(ALL_1_SUB_Frqx, CLST == "SOT")$SNP),
+  WOL = as.vector(filter(ALL_1_SUB_Frqx, CLST == "WOL")$SNP),
+  ZUL = as.vector(filter(ALL_1_SUB_Frqx, CLST == "ZUL")$SNP),
+  COL = as.vector(filter(ALL_1_SUB_Frqx, CLST == "COL")$SNP),
+  XHO = as.vector(filter(ALL_1_SUB_Frqx, CLST == "XHO")$SNP),
+  ACB = as.vector(filter(ALL_1_SUB_Frqx, CLST == "ACB")$SNP),
+  ASW = as.vector(filter(ALL_1_SUB_Frqx, CLST == "ASW")$SNP),
+  ESN = as.vector(filter(ALL_1_SUB_Frqx, CLST == "ESN")$SNP),
+  GWD = as.vector(filter(ALL_1_SUB_Frqx, CLST == "GWD")$SNP),
+  LWK = as.vector(filter(ALL_1_SUB_Frqx, CLST == "LWK")$SNP),
+  MSL = as.vector(filter(ALL_1_SUB_Frqx, CLST == "MSL")$SNP),
+  YRI = as.vector(filter(ALL_1_SUB_Frqx, CLST == "YRI")$SNP)
+  )
+listInput1_SubPop
+
+# Next we plot the list:
+plot1_SubPop <- upset(
+  fromList(listInput1_SubPop),
+  nintersects = NA,
+  order.by = "freq",
+  group.by = "sets",
+  sets = c("GAA", "SOT", "COL", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI"),
+  keep.order = TRUE,
+  text.scale = c(5, 3, 5, 3, 3, 3.5),
+  point.size = 6,
+  line.size = 3,
+  mainbar.y.label = "No. of variants",
+  sets.x.label = "Variant count per population"
+  )
+plot1_SubPop
+
+listInput2_SubPop <- list(
+  BAG = as.vector(filter(ALL_2_SUB_Frqx, CLST == "BAG")$SNP),
+  BAN = as.vector(filter(ALL_2_SUB_Frqx, CLST == "BAN")$SNP),
+  BAR = as.vector(filter(ALL_2_SUB_Frqx, CLST == "BAR")$SNP),
+  ETH = as.vector(filter(ALL_2_SUB_Frqx, CLST == "ETH")$SNP),
+  FUL = as.vector(filter(ALL_2_SUB_Frqx, CLST == "FUL")$SNP),
+  GAA = as.vector(filter(ALL_2_SUB_Frqx, CLST == "GAA")$SNP),
+  IGB = as.vector(filter(ALL_2_SUB_Frqx, CLST == "IGB")$SNP),
+  JOL = as.vector(filter(ALL_2_SUB_Frqx, CLST == "JOL")$SNP),
+  KAL = as.vector(filter(ALL_2_SUB_Frqx, CLST == "KAL")$SNP),
+  KIK = as.vector(filter(ALL_2_SUB_Frqx, CLST == "KIK")$SNP),
+  MAN = as.vector(filter(ALL_2_SUB_Frqx, CLST == "MAN")$SNP),
+  SOT = as.vector(filter(ALL_2_SUB_Frqx, CLST == "SOT")$SNP),
+  WOL = as.vector(filter(ALL_2_SUB_Frqx, CLST == "WOL")$SNP),
+  ZUL = as.vector(filter(ALL_2_SUB_Frqx, CLST == "ZUL")$SNP),
+  COL = as.vector(filter(ALL_2_SUB_Frqx, CLST == "COL")$SNP),
+  SOT = as.vector(filter(ALL_2_SUB_Frqx, CLST == "SOT")$SNP),
+  XHO = as.vector(filter(ALL_2_SUB_Frqx, CLST == "XHO")$SNP),
+  ACB = as.vector(filter(ALL_2_SUB_Frqx, CLST == "ACB")$SNP),
+  ASW = as.vector(filter(ALL_2_SUB_Frqx, CLST == "ASW")$SNP),
+  ESN = as.vector(filter(ALL_2_SUB_Frqx, CLST == "ESN")$SNP),
+  GWD = as.vector(filter(ALL_2_SUB_Frqx, CLST == "GWD")$SNP),
+  LWK = as.vector(filter(ALL_2_SUB_Frqx, CLST == "LWK")$SNP),
+  MSL = as.vector(filter(ALL_2_SUB_Frqx, CLST == "MSL")$SNP),
+  YRI = as.vector(filter(ALL_2_SUB_Frqx, CLST == "YRI")$SNP)
+  )
+plot2_SubPop <- upset(
+  fromList(listInput2_SubPop),
+  nintersects = NA,
+  order.by = "freq",
+  group.by = "sets",
+  sets = c("BAG", "BAN", "BAR", "ETH", "FUL", "GAA", "IGB", "JOL", "KAL", "KIK", "MAN", "SOT", "WOL", "ZUL", "COL", "SOT", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI"),
+  keep.order = TRUE,
+  text.scale = c(5, 3, 5, 3, 3, 3.5),
+  point.size = 6,
+  line.size = 3,
+  mainbar.y.label = "No. of variants",
+  sets.x.label = "Variant count per population"
+)
+plot2_SubPop
+
+listInput3_SubPop <- list(
+  BAG = as.vector(filter(ALL_3_SUB_Frqx, CLST == "BAG")$SNP),
+  BAN = as.vector(filter(ALL_3_SUB_Frqx, CLST == "BAN")$SNP),
+  BAR = as.vector(filter(ALL_3_SUB_Frqx, CLST == "BAR")$SNP),
+  ETH = as.vector(filter(ALL_3_SUB_Frqx, CLST == "ETH")$SNP),
+  FUL = as.vector(filter(ALL_3_SUB_Frqx, CLST == "FUL")$SNP),
+  GAA = as.vector(filter(ALL_3_SUB_Frqx, CLST == "GAA")$SNP),
+  IGB = as.vector(filter(ALL_3_SUB_Frqx, CLST == "IGB")$SNP),
+  JOL = as.vector(filter(ALL_3_SUB_Frqx, CLST == "JOL")$SNP),
+  KAL = as.vector(filter(ALL_3_SUB_Frqx, CLST == "KAL")$SNP),
+  KIK = as.vector(filter(ALL_3_SUB_Frqx, CLST == "KIK")$SNP),
+  MAN = as.vector(filter(ALL_3_SUB_Frqx, CLST == "MAN")$SNP),
+  SOT = as.vector(filter(ALL_3_SUB_Frqx, CLST == "SOT")$SNP),
+  WOL = as.vector(filter(ALL_3_SUB_Frqx, CLST == "WOL")$SNP),
+  ZUL = as.vector(filter(ALL_3_SUB_Frqx, CLST == "ZUL")$SNP),
+  COL = as.vector(filter(ALL_3_SUB_Frqx, CLST == "COL")$SNP),
+  SOT = as.vector(filter(ALL_3_SUB_Frqx, CLST == "SOT")$SNP),
+  XHO = as.vector(filter(ALL_3_SUB_Frqx, CLST == "XHO")$SNP),
+  ACB = as.vector(filter(ALL_3_SUB_Frqx, CLST == "ACB")$SNP),
+  ASW = as.vector(filter(ALL_3_SUB_Frqx, CLST == "ASW")$SNP),
+  ESN = as.vector(filter(ALL_3_SUB_Frqx, CLST == "ESN")$SNP),
+  GWD = as.vector(filter(ALL_3_SUB_Frqx, CLST == "GWD")$SNP),
+  LWK = as.vector(filter(ALL_3_SUB_Frqx, CLST == "LWK")$SNP),
+  MSL = as.vector(filter(ALL_3_SUB_Frqx, CLST == "MSL")$SNP),
+  YRI = as.vector(filter(ALL_3_SUB_Frqx, CLST == "YRI")$SNP)
+  )
+plot3_SubPop <- upset(
+  fromList(listInput3_SubPop),
+  nintersects = NA,
+  order.by = "freq",
+  group.by = "sets",
+  sets = c("BAG", "BAN", "BAR", "ETH", "FUL", "GAA", "IGB", "JOL", "KAL", "KIK", "MAN", "SOT", "WOL", "ZUL", "COL", "SOT", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI"),
+  keep.order = TRUE,
+  text.scale = c(5, 3, 5, 3, 3, 3.5),
+  point.size = 6,
+  line.size = 3,
+  mainbar.y.label = "No. of variants",
+  sets.x.label = "Variant count per population",
+)
+plot3_SubPop
+```
+```{r Save SubPlots, include=FALSE}
+pdf("../Figures/SUB/Intersection Plot CYP2A6 SUB.pdf", onefile = FALSE, width = 40, height = 15)
+plot1_SubPop
+dev.off()
+pdf("../Figures/SUB/Intersection Plot CYP2B6 SUB.pdf", onefile = FALSE, width = 40, height = 40)
+plot2_SubPop
+dev.off()
+pdf("../Figures/SUB/Intersection Plot UGT2B7 SUB.pdf", onefile = FALSE, width = 40, height = 40)
+plot3_SubPop
+dev.off()
+```
+
+Aaaand thats how you can make some nice, pretty Interaction plots!
+
+# Identify alleles:
+
+## Plot raw data:
+
+first off, lets plot our raw data and see roughly what we're dealing with. For this, I am going to use a `geom_col()` graph to visualizze the SNP Minor Allele Frequency (MAF) as calculated in our dataset.
+
+```{r Noisy Plot}
+noisyPlot <- ggplot(
+  data = ALL_2_AFR_Frqx, 
+  mapping = aes(
+    x = SNP,
+    y = MAF))+
+  geom_col()+
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )+
+  labs(
+      title = "AFR Variant frequency (Unfiltered)",
+      x = "Variant"
+    )
+noisyPlot
+```
+
+## Filter out Alleles:
+
+ok so as expected when plotting raw data, its pretty messy and hard to read. For my study, I am only actually interested in Alleles, which are spesifically defined as SNP's which occure with a frequency of 1% or more in the given population. So with that in mind, lets filter out everything below 1% (0.1 in our data) and see what we get. I will be using the `dplyr` package to handle this.
+
+```{r Allele Filter}
+
+shareStatus <- function(df1, df2, df3){
+   ifelse(df1 %in% df2, "Unique", ifelse(df1 %in% df3, "Shared", "Semi-Shared"))
+}
+clinSig <- function(df){
+  ifelse(df >= 0.04, TRUE, FALSE)
+}
+
+
+isUniqueAFR <- as.data.frame(
+  shareStatus(
+    ALL_1_AFR_Frqx$SNP, 
+    ALL_1_AFR_coreAntilap$SNP, 
+    ALL_1_AFR_coreOverlap$SNP)) %>% 
+  rename("Unique" = "shareStatus(ALL_1_AFR_Frqx$SNP, ALL_1_AFR_coreAntilap$SNP, ALL_1_AFR_coreOverlap$SNP)")
+isUniqueAMR <- as.data.frame(
+  shareStatus(
+    ALL_1_AMR_Frqx$SNP,
+    ALL_1_AMR_coreAntilap$SNP,
+    ALL_1_AMR_coreOverlap$SNP)) %>%
+  rename("Unique" = "shareStatus(ALL_1_AMR_Frqx$SNP, ALL_1_AMR_coreAntilap$SNP, ALL_1_AMR_coreOverlap$SNP)")
+isUniqueEUR <- as.data.frame(
+  shareStatus(
+    ALL_1_EUR_Frqx$SNP,
+    ALL_1_EUR_coreAntilap$SNP, 
+    ALL_1_EUR_coreOverlap$SNP)) %>% 
+  rename("Unique" = "shareStatus(ALL_1_EUR_Frqx$SNP, ALL_1_EUR_coreAntilap$SNP, ALL_1_EUR_coreOverlap$SNP)")
+isUniqueEAS <- as.data.frame(
+  shareStatus(
+    ALL_1_EAS_Frqx$SNP,
+    ALL_1_EAS_coreAntilap$SNP, 
+    ALL_1_EAS_coreOverlap$SNP)) %>% 
+  rename("Unique" = "shareStatus(ALL_1_EAS_Frqx$SNP, ALL_1_EAS_coreAntilap$SNP, ALL_1_EAS_coreOverlap$SNP)")
+isUniqueSAS <- as.data.frame(
+  shareStatus(
+    ALL_1_SAS_Frqx$SNP,
+    ALL_1_SAS_coreAntilap$SNP,
+    ALL_1_SAS_coreOverlap$SNP)) %>%
+  rename("Unique" = "shareStatus(ALL_1_SAS_Frqx$SNP, ALL_1_SAS_coreAntilap$SNP, ALL_1_SAS_coreOverlap$SNP)")
+
+ALL_1_AFR_Alleles <- ALL_1_AFR_Frqx %>% 
+  cbind(isUniqueAFR) %>% 
+  filter(MAF >= 0.01) %>%  
+  mutate(Population = "AFR") 
+ALL_1_AMR_Alleles <- ALL_1_AMR_Frqx %>%
+  cbind(isUniqueAMR) %>%
+  filter(MAF >= 0.01) %>%
+  mutate(Population = "AMR")
+ALL_1_EUR_Alleles <- ALL_1_EUR_Frqx %>% 
+  cbind(isUniqueEUR) %>%
+  filter(MAF >= 0.01) %>%
+  mutate(Population = "EUR")
+ALL_1_EAS_Alleles <- ALL_1_EAS_Frqx %>% 
+  cbind(isUniqueEAS) %>%
+  filter(MAF >= 0.01) %>% 
+  mutate(Population = "EAS")
+ALL_1_SAS_Alleles <- ALL_1_SAS_Frqx %>%
+  cbind(isUniqueSAS) %>%
+  filter(MAF >= 0.01) %>%
+  mutate(Population = "SAS")
+
+ALL_1_Alleles <- rbind (ALL_1_AFR_Alleles, ALL_1_AMR_Alleles, ALL_1_EUR_Alleles, ALL_1_EAS_Alleles, ALL_1_SAS_Alleles) %>% left_join(ALL_1_SUPER_POS, by = c("SNP" = "V2"))
+ALL_1_Alleles$V4 <- as.factor(ALL_1_Alleles$V4)
+ALL_1_Alleles$ClinSig <- clinSig(ALL_1_Alleles$MAF)
+
+AllelePlot1 <- ggplot(
+  data = ALL_1_Alleles, 
+  mapping = aes(
+    x = V4,
+    y = MAF))+
+  geom_col(
+    mapping = aes(
+    fill = Unique),
+    position = "dodge", alpha = 0.85)+
+  scale_fill_viridis_d()+
+  theme(
+    title = element_text(face = "bold", size = 25),
+    axis.title.x = element_text(face = "bold", size = 16),
+    axis.title.y = element_text(face = "bold", size = 16),
+    axis.text.x = element_blank(),
+    strip.text = element_text(size = 16),
+    legend.title = element_text(face = "bold")
+  )+
+  geom_point(
+    data = subset(ALL_1_Alleles, MAF >= 0.04),
+    mapping = aes(
+      shape = ClinSig),
+    alpha = 0.85,
+    size = 2)+
+  labs(
+      title = "CYP2A6 Allele frequency",
+      fill = "Population\nOverlap",
+      shape = "Clinicaly\nSignificant",
+      x = "Variant"
+    )+
+  scale_shape_manual(
+    values = c(17)
+  )+
+  scale_y_sqrt()+
+  scale_x_discrete()+
+  facet_grid(Population~.)
+
+AllelePlot1
+
+isUniqueAFR2 <- as.data.frame(
+  shareStatus(
+    ALL_2_AFR_Frqx$SNP, 
+    ALL_2_AFR_coreAntilap$SNP, 
+    ALL_2_AFR_coreOverlap$SNP)) %>% 
+  rename("Unique" = "shareStatus(ALL_2_AFR_Frqx$SNP, ALL_2_AFR_coreAntilap$SNP, ALL_2_AFR_coreOverlap$SNP)")
+isUniqueAMR2 <- as.data.frame(
+  shareStatus(
+    ALL_2_AMR_Frqx$SNP,
+    ALL_2_AMR_coreAntilap$SNP,
+    ALL_2_AMR_coreOverlap$SNP)) %>%
+  rename("Unique" = "shareStatus(ALL_2_AMR_Frqx$SNP, ALL_2_AMR_coreAntilap$SNP, ALL_2_AMR_coreOverlap$SNP)")
+isUniqueEUR2 <- as.data.frame(
+  shareStatus(
+    ALL_2_EUR_Frqx$SNP,
+    ALL_2_EUR_coreAntilap$SNP, 
+    ALL_2_EUR_coreOverlap$SNP)) %>% 
+  rename("Unique" = "shareStatus(ALL_2_EUR_Frqx$SNP, ALL_2_EUR_coreAntilap$SNP, ALL_2_EUR_coreOverlap$SNP)")
+isUniqueEAS2 <- as.data.frame(
+  shareStatus(
+    ALL_2_EAS_Frqx$SNP,
+    ALL_2_EAS_coreAntilap$SNP, 
+    ALL_2_EAS_coreOverlap$SNP)) %>% 
+  rename("Unique" = "shareStatus(ALL_2_EAS_Frqx$SNP, ALL_2_EAS_coreAntilap$SNP, ALL_2_EAS_coreOverlap$SNP)")
+isUniqueSAS2 <- as.data.frame(
+  shareStatus(
+    ALL_2_SAS_Frqx$SNP,
+    ALL_2_SAS_coreAntilap$SNP,
+    ALL_2_SAS_coreOverlap$SNP)) %>%
+  rename("Unique" = "shareStatus(ALL_2_SAS_Frqx$SNP, ALL_2_SAS_coreAntilap$SNP, ALL_2_SAS_coreOverlap$SNP)")
+
+ALL_2_AFR_Alleles <- ALL_2_AFR_Frqx %>% 
+  cbind(isUniqueAFR2) %>% 
+  filter(MAF >= 0.01) %>%  
+  mutate(Population = "AFR") 
+ALL_2_AMR_Alleles <- ALL_2_AMR_Frqx %>%
+  cbind(isUniqueAMR2) %>%
+  filter(MAF >= 0.01) %>%
+  mutate(Population = "AMR")
+ALL_2_EUR_Alleles <- ALL_2_EUR_Frqx %>% 
+  cbind(isUniqueEUR2) %>%
+  filter(MAF >= 0.01) %>%
+  mutate(Population = "EUR")
+ALL_2_EAS_Alleles <- ALL_2_EAS_Frqx %>% 
+  cbind(isUniqueEAS2) %>%
+  filter(MAF >= 0.01) %>% 
+  mutate(Population = "EAS")
+ALL_2_SAS_Alleles <- ALL_2_SAS_Frqx %>%
+  cbind(isUniqueSAS2) %>%
+  filter(MAF >= 0.01) %>%
+  mutate(Population = "SAS")
+
+ALL_2_Alleles <- rbind (ALL_2_AFR_Alleles, ALL_2_AMR_Alleles, ALL_2_EUR_Alleles, ALL_2_EAS_Alleles, ALL_2_SAS_Alleles)
+ALL_2_Alleles$ClinSig <- clinSig(ALL_2_Alleles$MAF)
+
+AllelePlot2 <- ggplot(
+  data = ALL_2_Alleles, 
+  mapping = aes(
+    x = SNP,
+    y = MAF))+
+  geom_col(
+    mapping = aes(
+    fill = Unique),
+    position = "dodge", alpha = 0.85)+
+  scale_fill_viridis_d()+
+  theme(
+    title = element_text(face = "bold", size = 25),
+    axis.title.x = element_text(face = "bold", size = 16),
+    axis.title.y = element_text(face = "bold", size = 16),
+    axis.text.x = element_blank(),
+    strip.text = element_text(size = 16),
+    legend.title = element_text(face = "bold")
+  )+
+  geom_point(
+    data = subset(ALL_2_Alleles, MAF >= 0.04),
+    mapping = aes(
+      shape = ClinSig),
+    alpha = 0.85,
+    size = 2)+
+  labs(
+      title = "CYP2B6 Allele frequency",
+      fill = "Population\nOverlap",
+      shape = "Clinicaly\nSignificant",
+      x = "Variant"
+    )+
+  scale_shape_manual(
+    values = c(17)
+  )+
+  scale_y_sqrt()+
+  facet_grid(Population~.)
+
+isUniqueAFR3 <- as.data.frame(
+  shareStatus(
+    ALL_3_AFR_Frqx$SNP, 
+    ALL_3_AFR_coreAntilap$SNP, 
+    ALL_3_AFR_coreOverlap$SNP)) %>% 
+  rename("Unique" = "shareStatus(ALL_3_AFR_Frqx$SNP, ALL_3_AFR_coreAntilap$SNP, ALL_3_AFR_coreOverlap$SNP)")
+isUniqueAMR3 <- as.data.frame(
+  shareStatus(
+    ALL_3_AMR_Frqx$SNP,
+    ALL_3_AMR_coreAntilap$SNP,
+    ALL_3_AMR_coreOverlap$SNP)) %>%
+  rename("Unique" = "shareStatus(ALL_3_AMR_Frqx$SNP, ALL_3_AMR_coreAntilap$SNP, ALL_3_AMR_coreOverlap$SNP)")
+isUniqueEUR3 <- as.data.frame(
+  shareStatus(
+    ALL_3_EUR_Frqx$SNP,
+    ALL_3_EUR_coreAntilap$SNP, 
+    ALL_3_EUR_coreOverlap$SNP)) %>% 
+  rename("Unique" = "shareStatus(ALL_3_EUR_Frqx$SNP, ALL_3_EUR_coreAntilap$SNP, ALL_3_EUR_coreOverlap$SNP)")
+isUniqueEAS3 <- as.data.frame(
+  shareStatus(
+    ALL_3_EAS_Frqx$SNP,
+    ALL_3_EAS_coreAntilap$SNP, 
+    ALL_3_EAS_coreOverlap$SNP)) %>% 
+  rename("Unique" = "shareStatus(ALL_3_EAS_Frqx$SNP, ALL_3_EAS_coreAntilap$SNP, ALL_3_EAS_coreOverlap$SNP)")
+isUniqueSAS3 <- as.data.frame(
+  shareStatus(
+    ALL_3_SAS_Frqx$SNP,
+    ALL_3_SAS_coreAntilap$SNP,
+    ALL_3_SAS_coreOverlap$SNP)) %>%
+  rename("Unique" = "shareStatus(ALL_3_SAS_Frqx$SNP, ALL_3_SAS_coreAntilap$SNP, ALL_3_SAS_coreOverlap$SNP)")
+
+ALL_3_AFR_Alleles <- ALL_3_AFR_Frqx %>%
+  cbind(isUniqueAFR3) %>% 
+  filter(MAF >= 0.01) %>%  
+  mutate(Population = "AFR") 
+ALL_3_AMR_Alleles <- ALL_3_AMR_Frqx %>%
+  cbind(isUniqueAMR3) %>%
+  filter(MAF >= 0.01) %>%
+  mutate(Population = "AMR")
+ALL_3_EUR_Alleles <- ALL_3_EUR_Frqx %>% 
+  cbind(isUniqueEUR3) %>%
+  filter(MAF >= 0.01) %>%
+  mutate(Population = "EUR")
+ALL_3_EAS_Alleles <- ALL_3_EAS_Frqx %>% 
+  cbind(isUniqueEAS3) %>%
+  filter(MAF >= 0.01) %>% 
+  mutate(Population = "EAS")
+ALL_3_SAS_Alleles <- ALL_3_SAS_Frqx %>%
+  cbind(isUniqueSAS3) %>%
+  filter(MAF >= 0.01) %>%
+  mutate(Population = "SAS")
+
+ALL_3_Alleles <- rbind (ALL_3_AFR_Alleles, ALL_3_AMR_Alleles, ALL_3_EUR_Alleles, ALL_3_EAS_Alleles, ALL_3_SAS_Alleles)
+ALL_3_Alleles$ClinSig <- clinSig(ALL_3_Alleles$MAF)
+
+AllelePlot3 <- ggplot(
+  data = ALL_3_Alleles, 
+  mapping = aes(
+    x = SNP,
+    y = MAF))+
+  geom_col(
+    mapping = aes(
+    fill = Unique),
+    position = "dodge", alpha = 0.85)+
+  scale_fill_viridis_d()+
+  theme(
+    title = element_text(face = "bold", size = 25),
+    axis.title.x = element_text(face = "bold", size = 16),
+    axis.title.y = element_text(face = "bold", size = 16),
+    axis.text.x = element_blank(),
+    strip.text = element_text(size = 16),
+    legend.title = element_text(face = "bold")
+  )+
+  geom_point(
+    data = subset(ALL_3_Alleles, MAF >= 0.04),
+    mapping = aes(
+      shape = ClinSig),
+    alpha = 0.85,
+    size = 2)+
+  labs(
+      title = "UGT2B7 Allele frequency",
+      fill = "Population\nOverlap",
+      shape = "Clinicaly\nSignificant",
+      x = "Variant"
+    )+
+  scale_shape_manual(
+    values = c(17)
+  )+
+  scale_y_sqrt()+
+  facet_grid(Population~.)
+
+
+AllelePlot1
+AllelePlot2
+AllelePlot3
+
+
+dataSource <- c('e! Ensemble', 'UCSC Genome Browser', 'NCBI Genome Browser')
+CYP2A6_START <- c(41349443, 41349443, 41349441)
+CYP2A6_STOP <- c(41356352, 41356352, 41356360)
+CYP2B6_START <- c(41497204, 41497204, 41497138)
+CYP2B6_STOP <- c(41524303, 41524301, 41524308)
+UGT2B7_START <- c(69917081, 69962193, 69955190)
+UGT2B7_STOP <- c(69978705, 69978705, 69978705)
+
+bp_Pos_Sources <- data.frame(dataSource, CYP2A6_START, CYP2A6_STOP, CYP2B6_START, CYP2B6_STOP, UGT2B7_START, UGT2B7_STOP)
+# 
+# ALL_1_BP <- full_join(ALL_1_SUPER_Frqx, ALL_1_Frqx_Pos, by=c('SNP'='V2')) %>% rename('BP_Position' = 'V1')
+# ALL_2_BP <- full_join(ALL_2_SUPER_Frqx, ALL_2_Frqx_Pos, by=c('SNP'='V2')) %>% rename('BP_Position' = 'V1')
+# ALL_3_BP <- full_join(ALL_3_SUPER_Frqx, ALL_3_Frqx_Pos, by=c('SNP'='V2')) %>% rename('BP_Position' = 'V1')
+# 
+# ggplot()+
+#   geom_violin(
+#     data = ALL_1_BP,
+#     mapping = aes(
+#       x = MAC,
+#       y = BP_Position
+#       )
+#     )+
+#   coord_flip()
+# ggplot()+
+#   geom_violin(
+#     data = ALL_2_BP,
+#     mapping = aes(
+#       x = MAC,
+#       y = BP_Position
+#       )
+#     )+
+#   coord_flip()
+# ggplot()+
+#   geom_violin(
+#     data = ALL_3_BP,
+#     mapping = aes(
+#       x = MAC,
+#       y = BP_Position
+#       )
+#     )+
+#   coord_flip()x
+```
+``` {r Save More Plots, include=FALSE}
+ggsave("../Figures/SUPER/CYP2A6 Alleles.png", plot = AllelePlot1, units="mm", width = 500, height = 200, dpi = 300)
+ggsave("../Figures/SUPER/CYP2B6 Alleles.png", plot = AllelePlot2, units="mm", width = 500, height = 200, dpi = 300)
+ggsave("../Figures/SUPER/UGT2B7 Alleles.png", plot = AllelePlot3, units="mm", width = 500, height = 200, dpi = 300)
+```
+```{r, SubAllele Plot}
+ALL_1_Alleles_SUB <- filter(ALL_1_SUB_Frqx, MAF >= 0.01)
+ALL_2_Alleles_SUB <- filter(ALL_2_SUB_Frqx, MAF >= 0.01)
+ALL_3_Alleles_SUB <- filter(ALL_3_SUB_Frqx, MAF >= 0.01)
+c("BAG", "BAN", "BAR", "ETH", "FUL", "GAA", "IGB", "JOL", "KAL", "KIK", "MAN", "SOT", "WOL", "ZUL", "COL", "SOT", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI")
+c("GAA", "SOT", "COL", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI")
+
+ALL_1_Conserved <- ALL_1_Alleles_SUB %>% filter(CLST == c("GAA", "SOT", "COL", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI"))
+ALL_2_Conserved <- ALL_2_Alleles_SUB %>% filter(CLST == c("BAG", "BAN", "BAR", "ETH", "FUL", "GAA", "IGB", "JOL", "KAL", "KIK", "MAN", "SOT", "WOL", "ZUL", "COL", "SOT", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI"))
+ALL_3_Conserved <- ALL_3_Alleles_SUB %>% filter(CLST == c("BAG", "BAN", "BAR", "ETH", "FUL", "GAA", "IGB", "JOL", "KAL", "KIK", "MAN", "SOT", "WOL", "ZUL", "COL", "SOT", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI"))
+
+
+ALL_1_Unique <- ALL_1_Alleles_SUB %>% filter(CLST == c("GAA", "SOT", "COL", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI"))
+ALL_2_Unique <- ALL_2_Alleles_SUB %>% filter(CLST == c("BAG", "BAN", "BAR", "ETH", "FUL", "GAA", "IGB", "JOL", "KAL", "KIK", "MAN", "SOT", "WOL", "ZUL", "COL", "SOT", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI"))
+ALL_3_Unique <- ALL_3_Alleles_SUB %>% filter(CLST == c("BAG", "BAN", "BAR", "ETH", "FUL", "GAA", "IGB", "JOL", "KAL", "KIK", "MAN", "SOT", "WOL", "ZUL", "COL", "SOT", "XHO", "ESN", "GWD", "LWK", "MSL", "YRI"))
+
+AllelePlot1_Sub
+```
+# Calculate Fst Values:
+
+Ok so lastly, I would like to compare the variant frequencies found against the other 4 super populations and calculate a Fishers Exact test score to determine if their frequencies are significantly different from eachother or not.
+
+There are a few ceavats with this. Namely, I would like to automate the process and make it iterate through an entire dataframe. WIth that in mind, I do need to know a few things such as which variants are present in at least 1 or more populations. To do that I will be using the `Dplyr` packages `*_join()` functions. 
+
+First up, lets simplify our work and create some new dataframes for each population containing only the data (A.k.a. MAF) we need. (This will make more sense later on)
+
+```{r Simplify MAF Df\'s}
+
+AFR_1_MAC <- data.frame(ALL_1_AFR_Frqx$SNP, ALL_1_AFR_Frqx$MAC) %>% 
+  rename("SNP_ID" = "ALL_1_AFR_Frqx.SNP") %>% 
+  rename ("AFR" = "ALL_1_AFR_Frqx.MAC") %>% 
+  cbind(ALL_1_AFR_Frqx$NCHROBS) %>%
+  rename('AFR_COUNT' = 'ALL_1_AFR_Frqx$NCHROBS')
+AMR_1_MAC <- data.frame(ALL_1_AMR_Frqx$SNP, ALL_1_AMR_Frqx$MAC) %>% 
+  rename("SNP_ID" = "ALL_1_AMR_Frqx.SNP") %>% 
+  rename ("AMR" = "ALL_1_AMR_Frqx.MAC") %>% 
+  cbind(ALL_1_AMR_Frqx$NCHROBS) %>%
+  rename('AMR_COUNT' = 'ALL_1_AMR_Frqx$NCHROBS')
+EUR_1_MAC <- data.frame(ALL_1_EUR_Frqx$SNP, ALL_1_EUR_Frqx$MAC) %>% 
+  rename("SNP_ID" = "ALL_1_EUR_Frqx.SNP") %>% 
+  rename ("EUR" = "ALL_1_EUR_Frqx.MAC") %>% 
+  cbind(ALL_1_EUR_Frqx$NCHROBS) %>%
+  rename('EUR_COUNT' = 'ALL_1_EUR_Frqx$NCHROBS')
+EAS_1_MAC <- data.frame(ALL_1_EAS_Frqx$SNP, ALL_1_EAS_Frqx$MAC) %>% 
+  rename("SNP_ID" = "ALL_1_EAS_Frqx.SNP") %>% 
+  rename ("EAS" = "ALL_1_EAS_Frqx.MAC") %>% 
+  cbind(ALL_1_EAS_Frqx$NCHROBS) %>%
+  rename('EAS_COUNT' = 'ALL_1_EAS_Frqx$NCHROBS')
+SAS_1_MAC <- data.frame(ALL_1_SAS_Frqx$SNP, ALL_1_SAS_Frqx$MAC) %>% 
+  rename("SNP_ID" = "ALL_1_SAS_Frqx.SNP") %>% 
+  rename ("SAS" = "ALL_1_SAS_Frqx.MAC") %>% 
+  cbind(ALL_1_SAS_Frqx$NCHROBS) %>%
+  rename('SAS_COUNT' = 'ALL_1_SAS_Frqx$NCHROBS')
+```
+
+Ok, next up, we need to compare these tables to eachother and basically figure out if variant n is present in at least one (or more) other dataframe that we just made (1) and then following that, we need to add in that variants MAF as a new column at the correct location (2). Lucky for us, since this is a suprprizingly common task (Look at SQL), theres a set of `Dplyr` functions just for this:
+
+```{r Use Dplyr join functions}
+# First up, we need to generate our table in the format we want it.
+AFR_AMR_1_MAC <- inner_join(AFR_1_MAC, AMR_1_MAC, by='SNP_ID')
+AFR_EUR_1_MAC <- inner_join(AFR_1_MAC, EUR_1_MAC, by='SNP_ID')
+AFR_EAS_1_MAC <- inner_join(AFR_1_MAC, EAS_1_MAC, by='SNP_ID')
+AFR_SAS_1_MAC <- inner_join(AFR_1_MAC, SAS_1_MAC, by='SNP_ID')
+
+# Next, lets define a reusable function to generate a 2x2 matrix and run Fishers-Exact Test on the matrix:
+FishersComparison <- function(a,b,c,d){
+  data <- matrix(c(a,b,c,d),ncol=2)
+  c(p = fisher.test(data)$p.value,
+    OR = fisher.test(data)$estimate)
+}
+
+#Next, lets apply it to each combination of our dataframe: (Warning, this is going to get repetative)
+RunFishers <- function (df, m11, m12, m21, m22){
+  # Lets generate our column names first:
+  name1 <- paste0(as.name(m11), "_P_", as.name(m21))
+  name2 <- paste0(as.name(m11), "_ESTIMATE_", as.name(m21))
+  
+  df <- df %>% rowwise() %>% mutate(
+    # Use the !! to force R to evaluate variable to its value:
+    !!name1 := FishersComparison(
+      !!as.name(m11),
+      (!!as.name(m12)-!!as.name(m11)),
+      !!as.name(m21),
+      (!!as.name(m22)-!!as.name(m21))
+    )[[1]],
+    !!name2 := FishersComparison(
+      !!as.name(m11),
+      (!!as.name(m12)-!!as.name(m11)),
+      !!as.name(m21),
+      (!!as.name(m22)-!!as.name(m21))
+    )[[2]]
+  )
+  return(df)
+}
+
+AFR_AMR_1_MAC <- RunFishers(AFR_AMR_1_MAC, 'AFR', 'AFR_COUNT', 'AMR', 'AMR_COUNT')
+AFR_EUR_1_MAC <- RunFishers(AFR_EUR_1_MAC, 'AFR', 'AFR_COUNT', 'EUR', 'EUR_COUNT')
+AFR_EAS_1_MAC <- RunFishers(AFR_EAS_1_MAC, 'AFR', 'AFR_COUNT', 'EAS', 'EAS_COUNT')
+AFR_SAS_1_MAC <- RunFishers(AFR_SAS_1_MAC, 'AFR', 'AFR_COUNT', 'SAS', 'SAS_COUNT')
+
+AFR_EUR
+
+#ALL_1_MAC <- ALL_1_MAC %>% 
+#    rowwise() %>% 
+#    mutate(
+#      AFR_P_AMR=FishersComparison(
+#        AFR, 
+#        (AFR_COUNT-AFR),
+#        AMR,
+#        (AMR_COUNT-AMR))[[1]],
+#      AFR_ESTIMATE_AMR=FishersComparison(
+#        AFR,
+#        (AFR_COUNT-AFR),
+#        AMR,
+#      (AMR_COUNT-AMR))[[2]]
+#      )
+
+```
+
+# The end...

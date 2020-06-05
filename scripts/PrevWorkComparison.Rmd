@@ -1,0 +1,220 @@
+---
+title: "Previous Work Comparison"
+author: "Graeme Ford and Antionette Colic"
+date: "26/09/2019"
+output: 
+  pdf_document: 
+    number_sections: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# setwd("~/Google Drive/OneDrive - University of Pretoria/University of Pretoria/2020 - Masters/Python-Graphs/")
+setwd("F:/GitHub/Pharmacogenetics Snakemake/")
+library(tidyverse)
+library(openxlsx)
+```
+
+
+In this document, I will be comparing my results and findings to that of Mrs. Antionette Colic who did similar foundation work to my own. So before anything else, lets import that now:
+
+``` {r Import Datasets}
+# Step one: Import Mrs. A. Colic's findings:
+Colic_CYP2A6 <- read.xlsx("../rawData/Colic.xlsx", sheet="CYP2A6")
+Ford_CYP2A6 <- read.table("../Final/SUPER/ALL_CYP2A6_SUPER.frq.strat", sep = "", header = TRUE)
+Colic_CYP2B6 <- read.xlsx("../rawData/Colic.xlsx", sheet="CYP2B6")
+Ford_CYP2B6 <- read.table("../Final/SUPER/ALL_CYP2B6_SUPER.frq.strat", sep = "", header = TRUE)
+Colic_UGT2B7 <- read.xlsx("../rawData/Colic.xlsx", sheet="UGT2B7")
+Ford_UGT2B7 <- read.table("../Final/SUPER/ALL_UGT2B7_SUPER.frq.strat", sep = "", header = TRUE)
+
+# Step two: We need to make sure everything imported as the correct data-type (Otherwise R will kick up annoying errors):
+Colic_CYP2A6$Variant.Identifier <- as.character(Colic_CYP2A6$Variant.Identifier)
+Colic_CYP2B6$Variant.Identifier <- as.character(Colic_CYP2B6$Variant.Identifier)
+Colic_UGT2B7$Variant.Identifier <- as.character(Colic_UGT2B7$Variant.Identifier)
+
+# Step 3: Now we need to trim down the df to only the columns we need, otherwise they will get in the way
+Ford_CYP2A6 <- Ford_CYP2A6 %>% select(SNP, CLST, MAC, NCHROBS)
+Ford_CYP2B6 <- Ford_CYP2B6 %>% select(SNP, CLST, MAC, NCHROBS)
+Ford_UGT2B7 <- Ford_UGT2B7 %>% select(SNP, CLST, MAC, NCHROBS)
+
+# Step 4: Lets re-format our table to make it directly comparable with Mrs. Colic's:
+Ford_1_pre <- Ford_CYP2A6 %>% select(SNP, CLST, MAC) %>% spread(CLST,MAC)
+Ford_2_pre <- Ford_CYP2B6 %>% select(SNP, CLST, MAC) %>% spread(CLST,MAC)
+Ford_3_pre <- Ford_UGT2B7 %>% select(SNP, CLST, MAC) %>% spread(CLST,MAC)
+
+# SideStory: We need to do the same process for the Observation counts as spread cant 'spread' multiple variables at a time, only one. One easy way around this is to perform two `spead()`'s and use a `Dplyr` Join function to merge the two into one workable dataframe.
+Ford_1_Count_pre <- Ford_CYP2A6 %>% select(SNP,CLST, NCHROBS) %>% spread(CLST,NCHROBS)
+Ford_2_Count_pre <- Ford_CYP2B6 %>% select(SNP,CLST, NCHROBS) %>% spread(CLST,NCHROBS)
+Ford_3_Count_pre <- Ford_UGT2B7 %>% select(SNP,CLST, NCHROBS) %>% spread(CLST,NCHROBS)
+
+# Step 5: Lastly, I just need to convert the SNP ID's to string from factor:
+Ford_1_pre$SNP <- as.character(Ford_1_pre$SNP)
+Ford_2_pre$SNP <- as.character(Ford_2_pre$SNP)
+Ford_3_pre$SNP <- as.character(Ford_3_pre$SNP)
+Ford_1_Count_pre$SNP <- as.character(Ford_1_Count_pre$SNP)
+Ford_2_Count_pre$SNP <- as.character(Ford_2_Count_pre$SNP)
+Ford_3_Count_pre$SNP <- as.character(Ford_3_Count_pre$SNP)
+```
+
+First off, I will need to calculate Fishers-Exact scores for all of my data points (Hence why I needed to work with the count data as well in the above snippet). Lets turn Fishers into a function that can do that for each entry. I'm thinking a function that can assemble each row's entries into a 2x2 matrix using the Count data from above and then run Fishers test on the matrix. Lets do that now:
+
+```{r Fishers Calculations}
+Colic_1 <- Colic_CYP2A6 %>% select(Variant.Identifier, African.vs.European, African.vs.East.Asian)
+Colic_2 <- Colic_CYP2B6 %>% select(Variant.Identifier, African.vs.European, African.vs.East.Asian)
+Colic_3 <- Colic_UGT2B7 %>% select(Variant.Identifier, African.vs.European, African.vs.East.Asian)
+
+# First, lets define a reusable function to generate a 2x2 matrix and run Fishers-Exact Test on the matrix:
+FishersComparison <- function(a,b,c,d){
+  data <- matrix(c(a,b,c,d),ncol=2)
+  c(p = fisher.test(data)$p.value,
+    OR = fisher.test(data)$estimate)
+}
+
+#Next, lets make a function that can apply our Fishers-Matrix function to each row of our dataframe for a set combination:
+RunFishers <- function (df, m11, m12, m21, m22){
+  # Lets generate our column names first:
+  name1 <- paste0(as.name(m11), "_P_", as.name(m21))
+  name2 <- paste0(as.name(m11), "_OR_", as.name(m21))
+  
+  df <- df %>% rowwise() %>% mutate(
+    # Use the !! to force R to evaluate variable to its value:
+    !!name1 := FishersComparison(
+      !!as.name(m11),
+      (!!as.name(m12)-!!as.name(m11)),
+      !!as.name(m21),
+      (!!as.name(m22)-!!as.name(m21))
+    )[[1]],
+    !!name2 := FishersComparison(
+      !!as.name(m11),
+      (!!as.name(m12)-!!as.name(m11)),
+      !!as.name(m21),
+      (!!as.name(m22)-!!as.name(m21))
+    )[[2]]
+  )
+  return(df)
+}
+
+# Now we can use it!
+Ford_1_ready <- full_join(Ford_1_Count_pre, Ford_1_pre, by = "SNP", suffix = c(".count",""))
+Ford_1_AFR_EUR <- RunFishers(Ford_1_ready, "AFR", "AFR.count", "EUR", "EUR.count")
+Ford_1_AFR_AMR <- RunFishers(Ford_1_ready, "AFR", "AFR.count", "AMR", "AMR.count")
+Ford_1_AFR_EAS <- RunFishers(Ford_1_ready, "AFR", "AFR.count", "EAS", "EAS.count")
+Ford_1_AFR_SAS <- RunFishers(Ford_1_ready, "AFR", "AFR.count", "SAS", "SAS.count")
+
+view(Ford_1_ready)
+
+Ford_2_ready <- full_join(Ford_2_Count_pre, Ford_2_pre, by = "SNP", suffix = c(".count",""))
+Ford_2_AFR_EUR <- RunFishers(Ford_2_ready, "AFR", "AFR.count", "EUR", "EUR.count")
+Ford_2_AFR_AMR <- RunFishers(Ford_2_ready, "AFR", "AFR.count", "AMR", "AMR.count")
+Ford_2_AFR_EAS <- RunFishers(Ford_2_ready, "AFR", "AFR.count", "EAS", "EAS.count")
+Ford_2_AFR_SAS <- RunFishers(Ford_2_ready, "AFR", "AFR.count", "SAS", "SAS.count")
+
+Ford_3_ready <- full_join(Ford_3_Count_pre, Ford_3_pre, by = "SNP", suffix = c(".count",""))
+Ford_3_AFR_EUR <- RunFishers(Ford_3_ready, "AFR", "AFR.count", "EUR", "EUR.count")
+Ford_3_AFR_AMR <- RunFishers(Ford_3_ready, "AFR", "AFR.count", "AMR", "AMR.count")
+Ford_3_AFR_EAS <- RunFishers(Ford_3_ready, "AFR", "AFR.count", "EAS", "EAS.count")
+Ford_3_AFR_SAS <- RunFishers(Ford_3_ready, "AFR", "AFR.count", "SAS", "SAS.count")
+
+# Now lets join these bad boys up into one workable table:
+Ford_1_ALL <- full_join(Ford_1_AFR_EUR, Ford_1_AFR_EAS) %>% full_join(Ford_1_AFR_AMR) %>% full_join(Ford_1_AFR_SAS)
+Ford_2_ALL <- full_join(Ford_2_AFR_EUR, Ford_2_AFR_EAS)%>% full_join(Ford_2_AFR_AMR) %>% full_join(Ford_2_AFR_SAS)
+Ford_3_ALL <- full_join(Ford_3_AFR_EUR, Ford_3_AFR_EAS)%>% full_join(Ford_3_AFR_AMR) %>% full_join(Ford_3_AFR_SAS)
+
+
+ALL_1 <- left_join(Ford_1_ALL, Colic_1, by = c("SNP" = "Variant.Identifier"))
+ALL_2 <- left_join(Ford_2_ALL, Colic_2, by = c("SNP" = "Variant.Identifier"))
+ALL_3 <- left_join(Ford_3_ALL, Colic_3, by = c("SNP" = "Variant.Identifier"))
+
+Filteres1 <- read.table("../data/Mrs. Colic Comparison/1000g_CYP2A6_CLEANED.bim", sep="", header = FALSE)
+Filteres2 <- read.table("../data/Mrs. Colic Comparison/1000g_CYP2B6_CLEANED.bim", sep="", header = FALSE)
+Filteres3 <- read.table("../data/Mrs. Colic Comparison/1000g_UGT2B7_CLEANED.bim", sep="", header = FALSE)
+
+semi_join(Filteres1, Colic_1, by = c("V2" = "Variant.Identifier"))
+semi_join(Filteres2, Colic_2, by = c("V2" = "Variant.Identifier"))
+semi_join(Filteres3, Colic_3, by = c("V2" = "Variant.Identifier"))
+
+anti_join(Colic_CYP2A6, Filteres1, by = c("Variant.Identifier" = "V2"))
+anti_join(Colic_CYP2B6, Filteres2, by = c("Variant.Identifier" = "V2"))
+anti_join(Colic_UGT2B7, Filteres3, by = c("Variant.Identifier" = "V2"))
+
+# Lets see how many variants come back significant for pop differences:
+filter(Ford_1_ALL, AFR_P_EUR > 0.05)
+filter(Ford_2_ALL, AFR_P_EUR > 0.05)
+filter(Ford_3_ALL, AFR_P_EUR > 0.05)
+filter(Ford_1_ALL, AFR_P_EUR > 0.05 & AFR_OR_EUR < 1)
+filter(Ford_2_ALL, AFR_P_EUR > 0.05 & AFR_OR_EUR < 1)
+filter(Ford_3_ALL, AFR_P_EUR > 0.05 & AFR_OR_EUR < 1)
+filter(Ford_1_ALL, AFR_P_EUR > 0.05 & AFR_OR_EUR >= 1)
+filter(Ford_2_ALL, AFR_P_EUR > 0.05 & AFR_OR_EUR >= 1)
+filter(Ford_3_ALL, AFR_P_EUR > 0.05 & AFR_OR_EUR >= 1)
+
+filter(Ford_1_ALL, AFR_P_AMR > 0.05)
+filter(Ford_2_ALL, AFR_P_AMR > 0.05)
+filter(Ford_3_ALL, AFR_P_AMR > 0.05)
+filter(Ford_1_ALL, AFR_P_AMR > 0.05 & AFR_OR_AMR < 1)
+filter(Ford_2_ALL, AFR_P_AMR > 0.05 & AFR_OR_AMR < 1)
+filter(Ford_3_ALL, AFR_P_AMR > 0.05 & AFR_OR_AMR < 1)
+filter(Ford_1_ALL, AFR_P_AMR > 0.05 & AFR_OR_AMR >= 1)
+filter(Ford_2_ALL, AFR_P_AMR > 0.05 & AFR_OR_AMR >= 1)
+filter(Ford_3_ALL, AFR_P_AMR > 0.05 & AFR_OR_AMR >= 1)
+
+filter(Ford_1_ALL, AFR_P_EAS > 0.05)
+filter(Ford_2_ALL, AFR_P_EAS > 0.05)
+filter(Ford_3_ALL, AFR_P_EAS > 0.05)
+filter(Ford_1_ALL, AFR_P_EAS > 0.05 & AFR_OR_EAS < 1)
+filter(Ford_2_ALL, AFR_P_EAS > 0.05 & AFR_OR_EAS < 1)
+filter(Ford_3_ALL, AFR_P_EAS > 0.05 & AFR_OR_EAS < 1)
+filter(Ford_1_ALL, AFR_P_EAS > 0.05 & AFR_OR_EAS >= 1)
+filter(Ford_2_ALL, AFR_P_EAS > 0.05 & AFR_OR_EAS >= 1)
+filter(Ford_3_ALL, AFR_P_EAS > 0.05 & AFR_OR_EAS >= 1)
+
+filter(Ford_1_ALL, AFR_P_SAS > 0.05)
+filter(Ford_2_ALL, AFR_P_SAS > 0.05)
+filter(Ford_3_ALL, AFR_P_SAS > 0.05)
+filter(Ford_1_ALL, AFR_P_SAS > 0.05 & AFR_OR_SAS < 1)
+filter(Ford_2_ALL, AFR_P_SAS > 0.05 & AFR_OR_SAS < 1)
+filter(Ford_3_ALL, AFR_P_SAS > 0.05 & AFR_OR_SAS < 1)
+filter(Ford_1_ALL, AFR_P_SAS > 0.05 & AFR_OR_SAS >= 1)
+filter(Ford_2_ALL, AFR_P_SAS > 0.05 & AFR_OR_SAS >= 1)
+filter(Ford_3_ALL, AFR_P_SAS > 0.05 & AFR_OR_SAS >= 1)
+
+```
+```{r Save Fishers Tables}
+write.table(
+  (select(Ford_1_ALL, SNP, AFR_P_EUR, AFR_OR_EUR, AFR_P_EAS, AFR_OR_EAS, AFR_P_AMR, AFR_OR_AMR, AFR_P_SAS, AFR_OR_SAS)), "../data/Fishers/Fishers_1.csv", row.names = F, quote = F, sep = "\t")
+write.table(
+  (select(Ford_2_ALL, SNP, AFR_P_EUR, AFR_OR_EUR, AFR_P_EAS, AFR_OR_EAS, AFR_P_AMR, AFR_OR_AMR, AFR_P_SAS, AFR_OR_SAS)), "../data/Fishers/Fishers_2.csv", row.names = F, quote = F, sep = "\t")
+write.table(
+  (select(Ford_3_ALL, SNP, AFR_P_EUR, AFR_OR_EUR, AFR_P_EAS, AFR_OR_EAS, AFR_P_AMR, AFR_OR_AMR, AFR_P_SAS, AFR_OR_SAS)), "../data/Fishers/Fishers_3.csv", row.names = F, quote = F, sep = "\t")
+```
+
+To start off with, I would like to compare my calculated Fishers-Exact Test p-vales and findings to hers (See the Frequency Analysis Document). Before I can do that however, I first need to figure out to what degree her and my datasets overlap. Since her data included Phase 3 1000 Genomes Project data and mine included two addittional sets of data, it is entirely possible that there are variants identified in my dataset that were simply never in her dataset, in which case I cannot compare them. What I am more interested in for this step however, is the degree of similarity between our datasets, as a large portion of it should in theory be the same. If they are very different, that in itself is a red flag.
+
+```{r Dataset Overlap}
+
+# As a double check for our reformatting from earlier (Which SHOULD have gotten rid of most if not all duplicates), lets search for duplicates:
+duplicated(Ford_1_Count_pre$SNP)
+duplicated(Colic_1$Variant.Identifier)
+
+#First, lets use `semi_join()` to get a list of the SNP's that are shared, and `anti_join()` to get a list of SNP's that are not:
+semi_join(Ford_1_Count_pre, Colic_CYP2A6, by = c("SNP" = "Variant.Identifier"))
+anti_join(Ford_1, Colic_CYP2A6, by = c("SNP" = "Variant.Identifier"))
+
+# Now, lets actually do the join:
+Join_1 <- inner_join(Ford_1, Colic_CYP2A6, by = c("SNP" = "Variant.Identifier"))
+
+head(Colic_CYP2A6)
+head(Ford_CYP2A6)
+duplicated(Ford_CYP2A6$SNP)
+```
+```{r Calculate gene 2 & 3, include=FALSE}
+Colic_2 <- Colic_CYP2B6 %>% select(Variant.Identifier, African.vs.European, African.vs.East.Asian)
+Colic_3 <- Colic_UGT2B7 %>% select(Variant.Identifier, African.vs.European, African.vs.East.Asian)
+
+semi_join(Ford_2, Colic_2, by = c("SNP" = "Variant.Identifier"))
+anti_join(Ford_2, Colic_2, by = c("SNP" = "Variant.Identifier"))
+semi_join(Ford_3, Colic_3, by = c("SNP" = "Variant.Identifier"))
+anti_join(Ford_3, Colic_3, by = c("SNP" = "Variant.Identifier"))
+```
+
+# The End...

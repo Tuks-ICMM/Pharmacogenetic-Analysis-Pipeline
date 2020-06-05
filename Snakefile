@@ -270,6 +270,7 @@ rule ALL_ANNOTATE:
         module load gatk-4.0.12.0
         gatk VariantAnnotator -V {input} -R /apps/bcbio/genomes/Hsapiens/hg38/seq/hg38.fa.gz -D /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O Intermediates/ANNOTATE/ALL_{wildcards.location}_PRE_SED.vcf
         sed -r -e 's/^chr([0-9]{{1,2}})\\t([0-9]+)\\t[0-9]{{1,2}}:[0-9]+[A-Z]{{1}}-[A-Z]{{1}};(rs[0-9]+)/chr\\1\\t\\2\\t\\3/g' Intermediates/ANNOTATE/ALL_{wildcards.location}_PRE_SED.vcf > Intermediates/ANNOTATE/ALL_{wildcards.location}_ANNOTATED.vcf
+        cp Intermediates/ANNOTATE/ALL_{wildcards.location}_ANNOTATED.vcf Final/ALL_{wildcards.location}.vcf
         """
 
 rule ALL_ANALYZE_SUPER:
