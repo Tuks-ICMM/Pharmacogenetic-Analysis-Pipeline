@@ -24,33 +24,34 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="JupyterTrust" id="f67ddb3c-8e27-42ad-9041-e46c6a577d48" />
+  <component name="JupyterTrust" id="f7dc2a9b-2c4e-4411-be83-f2fa61f214fa" />
   <component name="ProjectId" id="1cSFjsm4Swh7sSaBmXUrHmUn2b9" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/rawData" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="org.jetbrains.r.configuration.RSettingsProjectConfigurable" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/Final" />
+      <recent name="F:\GitHub\Pharmacogenetics Snakemake" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="F:\GitHub\Pharmacogenetics Snakemake\rawData" />
       <recent name="F:\GitHub\Pharmacogenetics Snakemake\Final" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="F:\GitHub\Pharmacogenetics Snakemake" />
     </key>
   </component>
   <component name="SvnConfiguration">
@@ -77,11 +78,18 @@
       <workItem from="1591345881955" duration="4556000" />
       <workItem from="1591355398736" duration="3144000" />
       <workItem from="1591358613032" duration="6192000" />
+      <workItem from="1591452582535" duration="238000" />
+      <workItem from="1591526831610" duration="6013000" />
+      <workItem from="1591535210300" duration="288000" />
+      <workItem from="1591535523156" duration="340000" />
+      <workItem from="1591535890880" duration="787000" />
+      <workItem from="1591539084593" duration="1206000" />
+      <workItem from="1591540453737" duration="3023000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="2" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="INCLUDE_TEXT_INTO_SHELF" value="false" />
@@ -102,42 +110,51 @@
       <screen x="-1920" y="0" width="1920" height="1040" />
     </state>
     <state x="-1920" y="0" key="FileDocumentManager.FileCacheConflict/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1591181397459" />
-    <state width="1877" height="261" key="GridCell.Tab.0.bottom" timestamp="1591358623901">
-      <screen x="-1920" y="0" width="1920" height="1040" />
+    <state width="1236" height="165" key="GridCell.Tab.0.bottom" timestamp="1591543288561">
+      <screen x="0" y="23" width="1280" height="693" />
     </state>
     <state width="1877" height="261" key="GridCell.Tab.0.bottom/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1591358623901" />
-    <state width="1877" height="261" key="GridCell.Tab.0.center" timestamp="1591358623901">
-      <screen x="-1920" y="0" width="1920" height="1040" />
+    <state width="1236" height="165" key="GridCell.Tab.0.bottom/0.23.1280.693@0.23.1280.693" timestamp="1591543288561" />
+    <state width="1236" height="165" key="GridCell.Tab.0.center" timestamp="1591543288554">
+      <screen x="0" y="23" width="1280" height="693" />
     </state>
     <state width="1877" height="261" key="GridCell.Tab.0.center/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1591358623901" />
-    <state width="1877" height="261" key="GridCell.Tab.0.left" timestamp="1591358623901">
-      <screen x="-1920" y="0" width="1920" height="1040" />
+    <state width="1236" height="165" key="GridCell.Tab.0.center/0.23.1280.693@0.23.1280.693" timestamp="1591543288554" />
+    <state width="1236" height="165" key="GridCell.Tab.0.left" timestamp="1591543288548">
+      <screen x="0" y="23" width="1280" height="693" />
     </state>
     <state width="1877" height="261" key="GridCell.Tab.0.left/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1591358623901" />
-    <state width="1877" height="261" key="GridCell.Tab.0.right" timestamp="1591358623901">
-      <screen x="-1920" y="0" width="1920" height="1040" />
+    <state width="1236" height="165" key="GridCell.Tab.0.left/0.23.1280.693@0.23.1280.693" timestamp="1591543288548" />
+    <state width="1236" height="165" key="GridCell.Tab.0.right" timestamp="1591543288560">
+      <screen x="0" y="23" width="1280" height="693" />
     </state>
     <state width="1877" height="261" key="GridCell.Tab.0.right/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1591358623901" />
-    <state width="1877" height="326" key="GridCell.Tab.1.bottom" timestamp="1591176309175">
-      <screen x="-1920" y="0" width="1920" height="1040" />
+    <state width="1236" height="165" key="GridCell.Tab.0.right/0.23.1280.693@0.23.1280.693" timestamp="1591543288560" />
+    <state width="1236" height="206" key="GridCell.Tab.1.bottom" timestamp="1591533433007">
+      <screen x="0" y="23" width="1280" height="693" />
     </state>
     <state width="1877" height="326" key="GridCell.Tab.1.bottom/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1591176309175" />
-    <state width="1877" height="326" key="GridCell.Tab.1.center" timestamp="1591176309174">
-      <screen x="-1920" y="0" width="1920" height="1040" />
+    <state width="1236" height="206" key="GridCell.Tab.1.bottom/0.23.1280.693@0.23.1280.693" timestamp="1591533433007" />
+    <state width="1236" height="206" key="GridCell.Tab.1.center" timestamp="1591533433006">
+      <screen x="0" y="23" width="1280" height="693" />
     </state>
     <state width="1877" height="326" key="GridCell.Tab.1.center/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1591176309174" />
-    <state width="1877" height="326" key="GridCell.Tab.1.left" timestamp="1591176309174">
-      <screen x="-1920" y="0" width="1920" height="1040" />
+    <state width="1236" height="206" key="GridCell.Tab.1.center/0.23.1280.693@0.23.1280.693" timestamp="1591533433006" />
+    <state width="1236" height="206" key="GridCell.Tab.1.left" timestamp="1591533433005">
+      <screen x="0" y="23" width="1280" height="693" />
     </state>
     <state width="1877" height="326" key="GridCell.Tab.1.left/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1591176309174" />
-    <state width="1877" height="326" key="GridCell.Tab.1.right" timestamp="1591176309174">
-      <screen x="-1920" y="0" width="1920" height="1040" />
+    <state width="1236" height="206" key="GridCell.Tab.1.left/0.23.1280.693@0.23.1280.693" timestamp="1591533433005" />
+    <state width="1236" height="206" key="GridCell.Tab.1.right" timestamp="1591533433006">
+      <screen x="0" y="23" width="1280" height="693" />
     </state>
     <state width="1877" height="326" key="GridCell.Tab.1.right/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1591176309174" />
-    <state x="-1459" y="162" key="SettingsEditor" timestamp="1591355435201">
-      <screen x="-1920" y="0" width="1920" height="1040" />
+    <state width="1236" height="206" key="GridCell.Tab.1.right/0.23.1280.693@0.23.1280.693" timestamp="1591533433006" />
+    <state x="283" y="23" key="SettingsEditor" timestamp="1591541861953">
+      <screen x="0" y="23" width="1280" height="693" />
     </state>
     <state x="-1459" y="162" key="SettingsEditor/0.0.1920.1040/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1591355435201" />
+    <state x="283" y="23" key="SettingsEditor/0.23.1280.693@0.23.1280.693" timestamp="1591541861953" />
     <state width="968" height="528" key="XDebugger.FullValuePopup" timestamp="1591176645358">
       <screen x="-1920" y="0" width="1920" height="1040" />
     </state>

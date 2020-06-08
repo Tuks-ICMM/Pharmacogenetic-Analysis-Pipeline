@@ -9,8 +9,8 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-# setwd("~/Google Drive/OneDrive - University of Pretoria/University of Pretoria/2020 - Masters/Python-Graphs/")
-setwd("F:/GitHub/Pharmacogenetics Snakemake/")
+setwd("/Users/graemeford/Documents/Pharmacogenetics Snakemake/")
+#setwd("F:/GitHub/Pharmacogenetics Snakemake/")
 library(tidyverse)
 library(openxlsx)
 ```
@@ -18,27 +18,29 @@ library(openxlsx)
 
 In this document, I will be comparing my results and findings to that of Mrs. Antionette Colic who did similar foundation work to my own. So before anything else, lets import that now:
 
-``` {r Import Datasets}
-# Step one: Import Mrs. A. Colic's findings:
-Colic_CYP2A6 <- read.xlsx("../rawData/Colic.xlsx", sheet="CYP2A6")
-Ford_CYP2A6 <- read.table("../Final/SUPER/ALL_CYP2A6_SUPER.frq.strat", sep = "", header = TRUE)
-Colic_CYP2B6 <- read.xlsx("../rawData/Colic.xlsx", sheet="CYP2B6")
-Ford_CYP2B6 <- read.table("../Final/SUPER/ALL_CYP2B6_SUPER.frq.strat", sep = "", header = TRUE)
-Colic_UGT2B7 <- read.xlsx("../rawData/Colic.xlsx", sheet="UGT2B7")
-Ford_UGT2B7 <- read.table("../Final/SUPER/ALL_UGT2B7_SUPER.frq.strat", sep = "", header = TRUE)
+```{r Import Datasets}
+# Step 1: Import Mrs. A. Colic's findings:
+Ford_CYP2A6 <- read.table("../Final/SUPER/ALL_CYP2A6_SUPER.frq.strat", sep = "", header = TRUE) %>% rename(Variant = SNP)
+Ford_CYP2B6 <- read.table("../Final/SUPER/ALL_CYP2B6_SUPER.frq.strat", sep = "", header = TRUE) %>% rename(Variant = SNP)
+Ford_UGT2B7 <- read.table("../Final/SUPER/ALL_UGT2B7_SUPER.frq.strat", sep = "", header = TRUE) %>% rename(Variant = SNP)
 
-# Step two: We need to make sure everything imported as the correct data-type (Otherwise R will kick up annoying errors):
-Colic_CYP2A6$Variant.Identifier <- as.character(Colic_CYP2A6$Variant.Identifier)
-Colic_CYP2B6$Variant.Identifier <- as.character(Colic_CYP2B6$Variant.Identifier)
-Colic_UGT2B7$Variant.Identifier <- as.character(Colic_UGT2B7$Variant.Identifier)
+Colic_CYP2A6 <- read.xlsx("../rawData/Colic.xlsx", sheet="CYP2A6") %>% rename(Variant = Variant.Identifier)
+Colic_CYP2B6 <- read.xlsx("../rawData/Colic.xlsx", sheet="CYP2B6") %>% rename(Variant = Variant.Identifier)
+Colic_UGT2B7 <- read.xlsx("../rawData/Colic.xlsx", sheet="UGT2B7") %>% rename(Variant = Variant.Identifier)
+
+Colic_CYP2A6$Variant.Identifier
+# Step 2: We need to make sure everything imported as the correct data-type (Otherwise R will kick up annoying errors):
+Colic_CYP2A6$Variant <- as.character(Colic_CYP2A6$Variant)
+Colic_CYP2B6$Variant <- as.character(Colic_CYP2B6$Variant)
+Colic_UGT2B7$Variant <- as.character(Colic_UGT2B7$Variant)
 
 # Step 3: Now we need to trim down the df to only the columns we need, otherwise they will get in the way
-Ford_CYP2A6 <- Ford_CYP2A6 %>% select(SNP, CLST, MAC, NCHROBS)
-Ford_CYP2B6 <- Ford_CYP2B6 %>% select(SNP, CLST, MAC, NCHROBS)
-Ford_UGT2B7 <- Ford_UGT2B7 %>% select(SNP, CLST, MAC, NCHROBS)
+Ford_CYP2A6 <- Ford_CYP2A6 %>% select(Variant, CLST, A1, A2, MAC, NCHROBS)
+Ford_CYP2B6 <- Ford_CYP2B6 %>% select(Variant, CLST, A1, A2, MAC, NCHROBS)
+Ford_UGT2B7 <- Ford_UGT2B7 %>% select(Variant, CLST, A1, A2, MAC, NCHROBS)
 
 # Step 4: Lets re-format our table to make it directly comparable with Mrs. Colic's:
-Ford_1_pre <- Ford_CYP2A6 %>% select(SNP, CLST, MAC) %>% spread(CLST,MAC)
+Ford_1_pre <- Ford_CYP2A6 %>% select(Variant, CLST, MAC) %>% spread(key='Variant', CLST,MAC)
 Ford_2_pre <- Ford_CYP2B6 %>% select(SNP, CLST, MAC) %>% spread(CLST,MAC)
 Ford_3_pre <- Ford_UGT2B7 %>% select(SNP, CLST, MAC) %>% spread(CLST,MAC)
 
