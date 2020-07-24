@@ -126,3 +126,5 @@ dmypy.json
 # Analysis-related outputs:
 Intermediates
 Final
+
+.DS_Store
