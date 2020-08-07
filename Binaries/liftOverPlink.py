@@ -22,13 +22,13 @@ from string import Template
 
 
 def die(msg):
-    print msg
+    print(msg)
     sys.exit(2)
 
 def myopen(fn):
     # First, create the output file:
-    outputFile = open(fn, "a+")
-    outputFile.close()
+    # outputFile = open(fn, "a+")
+    # outputFile.close()
     try:
         h = gzip.open(fn)
         ln = h.read(2) # read arbitrary bytes so check if @param fn is a gzipped file
@@ -39,7 +39,7 @@ def myopen(fn):
     return gzip.open(fn)
 
 def map2bed(fin, fout):
-    print "Converting MAP file to UCSC BED file..."
+    print("Converting MAP file to UCSC BED file...")
     fo = open(fout, 'w')
     for ln in myopen(fin):
         chrom, rs, mdist, pos = ln.split()
@@ -53,7 +53,7 @@ def map2bed(fin, fout):
 LIFTED_SET = set()
 UNLIFTED_SET = set()
 def liftBed(fin, fout, funlifted, chainFile, liftOverPath):
-    print "Lifting BED file..."
+    print("Lifting BED file...")
     params = dict()
     params['LIFTOVER_BIN'] = liftOverPath
     params['OLD'] = fin
@@ -74,7 +74,7 @@ def liftBed(fin, fout, funlifted, chainFile, liftOverPath):
     return True
 
 def bed2map(fin, fout):
-    print "Converting lifted BED file back to MAP..."
+    print("Converting lifted BED file back to MAP...")
     fo = open(fout, 'w')
     for ln in myopen(fin):
         chrom, pos0, pos1, rs = ln.split()
@@ -101,21 +101,23 @@ def liftPed(fin, fout, fOldMap):
     #    use PLINK to do this job using --exclude
     # 2. alternatively, we can write our own method
     # we will use method 2
-    marker = [i.strip().split()[1] for i in open(fOldMap)]
+    marker = [i.strip().split()[1] for i in myopen(fOldMap)]
+    print("Number of markers processed: " + str(len(marker)))
     flag = map(lambda x: x not in UNLIFTED_SET, marker)
     # print marker[:10]
     # print flag[:10]
     fo = open(fout, 'w')
-    print "Updating PED file..."
+    print("Updating PED file...")
     for ln in myopen(fin):
         f = ln.strip().split()
         l = len(f)
-        f = f[:6] + [ f[i*2] + ' '+f[i*2 +1] for i in xrange(3, l/2 )]
+        f = f[:6] + [ f[i*2] + ' '+f[i*2 +1] for i in range(3, l/2 )]
         fo.write('\t'.join(f[:6]))
         fo.write('\t')
         if len(f[6:]) != len(flag):
             die('Inconsistent length of ped and map files')
         newMarker = [m for i, m in enumerate(f[6:]) if flag[i]]
+        print("Markers lifted: " + str(len([m for i, m in enumerate(f[6:]) if flag[i]])))
         fo.write('\t'.join(newMarker))
         fo.write('\n')
         #print marker[:10]
@@ -124,9 +126,9 @@ def liftPed(fin, fout, fOldMap):
 
 def makesure(result, succ_msg, fail_msg = "ERROR"):
     if result:
-        print 'SUCC: ', succ_msg
+        print('SUCC: ', succ_msg)
     else:
-        print 'FAIL: ', fail_msg
+        print('FAIL: ', fail_msg)
         sys.exit(2)
 
 if __name__ == '__main__':
@@ -169,7 +171,7 @@ if __name__ == '__main__':
       liftOverPath = args.liftOverExecutable
     else:
       liftOverPath = "liftOver"
-
+    
     newBed = args.prefix + '.bed'
     unlifted = args.prefix + '.unlifted'
     makesure(liftBed(oldBed, newBed, unlifted, args.chainFile, liftOverPath),
@@ -189,6 +191,6 @@ if __name__ == '__main__':
         makesure(liftPed(args.pedFile, newPed, args.mapFile),
                  'liftPed succ')
 
-    print "cleaning up BED files..."
+    print("cleaning up BED files...")
     os.remove(newBed)
     os.remove(oldBed)

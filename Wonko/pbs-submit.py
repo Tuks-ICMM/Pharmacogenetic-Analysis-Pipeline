@@ -76,11 +76,11 @@ resourceparams=""
 extras=""
 
 
-if args.depend:
-	for m in set(args.depend.split(" ")):
-		depend = depend + ":" + m.replace(".wonko.bi.up.ac.za", "")
-if depend:
-	depend = " -W \"depend=afterok" + depend + "\""
+# if args.depend:
+# 	for m in set(args.depend.split(" ")):
+# 		depend = depend + ":" + m.replace(".wonko.bi.up.ac.za", "")
+# if depend:
+# 	depend = " -W \"depend=afterok" + depend + "\""
 
 if args.positional:
 	for m in args.positional:
@@ -110,7 +110,7 @@ if args.u: user = " -u " + args.u
 if args.v: ev = " -v " + args.v
 if args.V: eall = " -V"
 if args.w: wd = " -w " + args.w
-if args.W: add= " -W \"" + args.W + "\""
+# if args.W: add= " -W \"" + args.W + "\""
 
 nodes=""
 ppn=""
@@ -123,6 +123,8 @@ if "threads" in job_properties:
 if "resources" in job_properties:
     resources = job_properties["resources"]
     if "nodes" in resources: nodes="nodes=" + str(resources["nodes"])
+    if "cpus" in resources: ppn = "ppn=" +  str(resources["cpus"])
+    if "queue" in resources: q = " -q " + str(resource['queue'])
     if ppn and not nodes : nodes="nodes=1"
     if "mem" in resources: mem="mem=" + str(resources["mem"])
     if "walltime" in resources: walltime="walltime=" + str(resources["walltime"])

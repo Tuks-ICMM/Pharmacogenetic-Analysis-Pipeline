@@ -123,8 +123,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Dev Stuff:
+.DS_Store
+
 # Analysis-related outputs:
 Intermediates
 Final
-
-.DS_Store

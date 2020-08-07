@@ -68,23 +68,28 @@ rule LIFTOVER:
     Lift Variants onto same Reference build. Otherwise we cant merge them or analyse them in context of eachother.
     """
     input:
-        expand("rawData/{{sample}}.{extension}", extension=bExtensions)
+        expand("rawData/{{sample}}.{extension}.gz", extension=tExtensions)
         # expand("Intermediates/TRIM/ALL_{{location}}_READY.{extension}", extension=tExtensions)
 
     output:
-        expand("Intermediates/COLLATE/{sample}.{extension}", sample=wildcards.sample, extension=bExtensions)
+        expand("Intermediates/COLLATE/{{sample}}.{extension}", extension=bExtensions)
         # outMap="Intermediates/LIFTOVER/{sample}_LIFTED.map",
         # outPed="Intermediates/LIFTOVER/{sample}_LIFTED.ped",
         # exclusion="Intermediates/LIFTOVER/{sample}_EXCLUDE.dat"
 
     params:
-        prefix=lambda wildcards: f"Intermediates/LIFTOVER/{wildcards.sample}_PRE_FILTER",
-        prefix2=lambda wildcards: f"Intermediates/LIFTOVER/{wildcards.sample}_POST_FILTER",
-        prefix3=lambda wildcards: f"Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat",
+        prefix=lambda wildcards: f"Intermediates/LIFTOVER/{wildcards.sample}_LIFTED",
+        # prefix2=lambda wildcards: f"Intermediates/LIFTOVER/{wildcards.sample}_POST_FILTER",
+        exclusionList=lambda wildcards: f"Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat",
         chainFile="Binaries/hg19ToHg38.over.chain",
         LiftOver="Binaries/liftOverPlink.py",
         rmBadLifts="Binaries/rmBadLifts.py",
         sexes="rawData/1000g.sexes"
+
+    resources:
+        cpus=14,
+        nodes=1,
+        queue="normal",
 
     run:
         shell("echo 'Determining Liftover requirements now...'")
@@ -93,28 +98,19 @@ rule LIFTOVER:
             shell("module load liftover"),
             if config['samples'][wildcards.sample]['refGenome'] == "GRCh37" or config['samples'][wildcards.sample]['refGenome'] == "Hg19":
                 shell("echo 'Lifting from GRCh37 to GRCh38.'"),
-                shell("python {params.LiftOver} -e /apps/liftover/liftOver -m rawData/{wildcards.sample}.map -p rawData/{wildcards.sample}.ped -o {params.prefix} -c {params.chainFile}"),
-                shell("echo 'liftOver complete. Removing Bad lifts.'"),
-                shell("python {params.rmBadLifts} --map {params.prefix}.map --out Intermediates/LIFTOVER/{sample}_LIFTED.map --log {params.prefix2}.log"),
-                shell("echo 'Bad lifts removed.'"),
-                shell("cut -f 2 {params.prefix2}.log > {params.prefix3}"),
-                shell("chmod a+rwx {params.prefix3}"),
-                shell("cut -f 4 {params.prefix}.unlifted | sed '/^#/d' >> {params.prefix3}"),
-                shell("less {params.prefix3} | Intermediates/LIFTOVER/{sample}_EXCLUDE.dat"),
+                if not os.path.exists('Intermediates/LIFTOVER'):
+                    os.makedirs('Intermediates/LIFTOVER')
+                shell("module load liftover; python {params.LiftOver} -e liftover -m rawData/{wildcards.sample}.map -p rawData/{wildcards.sample}.ped -o {params.prefix} -c {params.chainFile}"),
+                shell("echo 'liftOver complete.'"),
+                shell("cut -f 4 {params.prefix}.unlifted | sed '/^#/d' >> {params.exclusionList}"),
                 shell("echo 'Exclusion list generated'")
-                if config['samples'][wildcards.sample]['requiresSexing']:
-                    shell("echo 'config.json file indicates sexing is required for {} dataset.'".format(wildcards.sample)),
-                    shell("awk 'NR==FNR{{a[$1]=$4;next}}{{ if (a[$1]!= 'NULL') {{ if (a[$1] == 'female') {{ $5=2; print }} else if (a[$1] == 'male') {{ $5=1; print }} else {{$5=0; print}}}}}}' {params.sexes} {params.prefix}.ped > Intermediates/LIFTOVER/{wildcards.sample}_LIFTED.ped"),
-                    shell("echo 'Sexing complete'")
-                else:
-                    shell("less {params.prefix}.ped > Intermediates/LIFTOVER/{wildcards.sample}_LIFTED.ped")
-                
-                shell("module load plink-2; plink2 --map Intermediates/LIFTOVER/{sample}_LIFTED.map --ped Intermediates/LIFTOVER/{wildcards.sample}_LIFTED.ped --set-all-var-ids @:#\$r-\$a --new-id-max-allele-len 40 truncate --out Intermediates/COLLATE/{wildcards.sample} --make-bed --keep-allele-order --exclude Intermediates/LIFTOVER/{sample}_EXCLUDE.dat")
+                shell("module load plink-1.9; plink --map Intermediates/LIFTOVER/{params.prefix}.map --ped Intermediates/LIFTOVER/{params.prefix}.ped --make-bed --keep-allele-order --out Intermediates/LIFTOVER/{params.prefix}_LIFTED"),
+                shell("module load plink-2; plink2 --bfile Intermediates/LIFTOVER/{params.prefix} --set-all-var-ids @:#\$r-\$a --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/COLLATE/{wildcards.sample} --make-bed --keep-allele-order --exclude Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat")
         # ToDo: Add conditionals for other human reference genome builds
         else:
             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
-            shell("cp Intermediates/TRIM/{wildcards.sample}_READY.map Intermediates/LIFTOVER/{wildcards.sample}_LIFTED.map"),
-            shell("cp Intermediates/TRIM/{wildcards.sample}_READY.ped Intermediates/LIFTOVER/{wildcards.sample}_LIFTED.ped"),
+            shell("cp rawData/{wildcards.sample}.map Intermediates/COLLATE/{wildcards.sample}_LIFTED.map"),
+            shell("cp rawData/{wildcards.sample}.ped Intermediates/COLLATE/{wildcards.sample}_LIFTED.ped"),
             shell("touch Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat")
 
 
@@ -123,7 +119,7 @@ rule ALL_COLLATE:
     Collate Datasets together into 1 psudo-dataset for downstream analysis.
     """
     input:
-        expand("Intermediates/COLLATE/{{sample}}.{extension}", extension=bExtensions)
+        expand("Intermediates/COLLATE/{sample}.{extension}", sample=samples, extension=bExtensions)
         # inMap="Intermediates/LIFTOVER/{sample}_LIFTED.map",
         # inPed="Intermediates/LIFTOVER/{sample}_LIFTED.ped",
         # exclusion="Intermediates/LIFTOVER/{sample}_EXCLUDE.dat"
@@ -205,7 +201,8 @@ rule ALL_ANNOTATE:
         # "Intermediates/FILTER/ALL_{location}_FILTERED.vcf"
 
     output:
-        "Intermediates/ANNOTATE/ALL_ANNOTATED.vcf"
+        "Intermediates/ANNOTATE/ALL_ANNOTATED.vcf",
+        expand("Intermediates/ANNOTATE/ALL_ANNOTATED.{extension}", extension=bExtensions)
 
     shell:
         """
@@ -215,6 +212,7 @@ rule ALL_ANNOTATE:
         gatk VariantAnnotator -V Intermediates/COLLATE/ALL.vcf -R /apps/bcbio/genomes/Hsapiens/hg38/seq/hg38.fa.gz -D /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O Intermediates/ANNOTATE/ALL_PRE_SED.vcf
         sed -r -e 's/^chr([0-9]{{1,2}})\\t([0-9]+)\\t[0-9]{{1,2}}:[0-9]+[A-Z]{{1}}-[A-Z]{{1}};(rs[0-9]+)/chr\\1\\t\\2\\t\\3/g' Intermediates/ANNOTATE/ALL_PRE_SED.vcf > Intermediates/ANNOTATE/ALL_ANNOTATED.vcf
         cp Intermediates/ANNOTATE/ALL_ANNOTATED.vcf Final/ALL.vcf
+        plink --vcf Intermediates/ANNOTATE/ALL_ANOTATED.vcf --keep-allele-order --make-bed --out Intermediates/ANNOTATE/ALL_ANNOTATED
         """
 
 
@@ -226,11 +224,11 @@ rule Admixture:
         "Intermediates/ANNOTATE/ALL_ANNOTATED.vcf"
 
     output:
-        "Intermediates/Admixture/ALL.5.Q"
+        "Intermediates/Admixture/ALL.5.Q",
         "Intermediates/Admixture/ALL.5.P"
 
     params:
-        out_name = "Intermediates/Admixture/ALL"
+        out_name = "Intermediates/Admixture/ALL",
         smartPCA = "Binaries/EIG-7.2.1/bin/"
 
     shell:
@@ -247,7 +245,7 @@ rule TRIM_AND_NAME:
     Trim the whole-genome psudo-datasets down to several regions of interest for Variant analysis and Variant effect prediction.
     """
     input:
-        expand("rawData/ALL.{extension}", extension=bExtensions)
+        expand("Intermediates/ANNOTATE/ALL_ANNOTATED.{extension}", extension=bExtensions)
 
     output:
         expand("Intermediates/TRIM/ALL_{{location}}_READY.{extension}", extension=tExtensions)
@@ -486,24 +484,24 @@ rule ALL_FILTER:
         sed -r -e 's/##contig=<ID=chr19,length=[0-9]+>/##contig=<ID=chr19,length=58617616>/' -e 's/##contig=<ID=chr4,length=[0-9]+>/##contig=<ID=chr4,length=190214555>/' Intermediates/FILTER/ALL_{wildcards.location}_PRE_SED.vcf > Intermediates/FILTER/ALL_{wildcards.location}_FILTERED.vcf
         """
 
-rule ALL_ANNOTATE:
-    input:
-        "Intermediates/FILTER/ALL_{location}_FILTERED.vcf"
+# rule ALL_ANNOTATE:
+#     input:
+#         "Intermediates/FILTER/ALL_{location}_FILTERED.vcf"
 
-    output:
-        "Intermediates/ANNOTATE/ALL_{location}_ANNOTATED.vcf"
+#     output:
+#         "Intermediates/ANNOTATE/ALL_{location}_ANNOTATED.vcf"
 
-    shell:
-        """
-        module load gatk-4.0.12.0
-        gatk VariantAnnotator -V {input} -R /apps/bcbio/genomes/Hsapiens/hg38/seq/hg38.fa.gz -D /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O Intermediates/ANNOTATE/ALL_{wildcards.location}_PRE_SED.vcf
-        sed -r -e 's/^chr([0-9]{{1,2}})\\t([0-9]+)\\t[0-9]{{1,2}}:[0-9]+[A-Z]{{1}}-[A-Z]{{1}};(rs[0-9]+)/chr\\1\\t\\2\\t\\3/g' Intermediates/ANNOTATE/ALL_{wildcards.location}_PRE_SED.vcf > Intermediates/ANNOTATE/ALL_{wildcards.location}_ANNOTATED.vcf
-        cp Intermediates/ANNOTATE/ALL_{wildcards.location}_ANNOTATED.vcf Final/ALL_{wildcards.location}.vcf
-        """
+#     shell:
+#         """
+#         module load gatk-4.0.12.0
+#         gatk VariantAnnotator -V {input} -R /apps/bcbio/genomes/Hsapiens/hg38/seq/hg38.fa.gz -D /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O Intermediates/ANNOTATE/ALL_{wildcards.location}_PRE_SED.vcf
+#         sed -r -e 's/^chr([0-9]{{1,2}})\\t([0-9]+)\\t[0-9]{{1,2}}:[0-9]+[A-Z]{{1}}-[A-Z]{{1}};(rs[0-9]+)/chr\\1\\t\\2\\t\\3/g' Intermediates/ANNOTATE/ALL_{wildcards.location}_PRE_SED.vcf > Intermediates/ANNOTATE/ALL_{wildcards.location}_ANNOTATED.vcf
+#         cp Intermediates/ANNOTATE/ALL_{wildcards.location}_ANNOTATED.vcf Final/ALL_{wildcards.location}.vcf
+#         """
 
 rule ALL_ANALYZE_SUPER:
     input:
-        vcf="Intermediates/ANNOTATE/ALL_{location}_ANNOTATED.vcf",
+        vcf="Intermediates/FILTER/ALL_{location}_FILTERED.vcf",
         popClusters="rawData/superPopCluster"
     
     output:
