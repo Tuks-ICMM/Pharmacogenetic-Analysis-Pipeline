@@ -124,7 +124,6 @@ if "resources" in job_properties:
     resources = job_properties["resources"]
     if "nodes" in resources: nodes="nodes=" + str(resources["nodes"])
     if "cpus" in resources: ppn = "ppn=" +  str(resources["cpus"])
-    if "queue" in resources: q = " -q " + str(resource['queue'])
     if ppn and not nodes : nodes="nodes=1"
     if "mem" in resources: mem="mem=" + str(resources["mem"])
     if "walltime" in resources: walltime="walltime=" + str(resources["walltime"])

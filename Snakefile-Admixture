@@ -68,7 +68,7 @@ rule LIFTOVER:
     Lift Variants onto same Reference build. Otherwise we cant merge them or analyse them in context of eachother.
     """
     input:
-        expand("rawData/{{sample}}.{extension}.gz", extension=tExtensions)
+        expand("rawData/{{sample}}.{extension}", extension=tExtensions)
         # expand("Intermediates/TRIM/ALL_{{location}}_READY.{extension}", extension=tExtensions)
 
     output:
