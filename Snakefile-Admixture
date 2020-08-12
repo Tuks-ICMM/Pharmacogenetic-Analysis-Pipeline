@@ -1,12 +1,9 @@
 import os
 
+# DEFINE CONFIG FILE FOR SNAKEMAKE:
 configfile: "config.json"
 
-def get_sec(time_str):
-    """Get Seconds from time."""
-    h, m, s = time_str.split(':')
-    return int(h) * 3600 + int(m) * 60 + int(s)
-
+# DEFINE CONTEXT-VARIABLES:
 finalExtensions=['frq.strat', 'fst', 'imiss', 'ld', 'missing.hap', 'hwe', 'het', 'ibc']
 locations=list(config['locations'].keys())
 samples=list(config['samples'].keys())
@@ -15,49 +12,12 @@ subPop=set(config['clusters']['SUB'])
 bExtensions=["bed", "bim", "fam"]
 tExtensions=["map", "ped"]
 
-# Function Definitions:
-def get_prev(input) -> str:
-    print(input.filename)
-    new = ""
-    for i in input.filename:
-        if i == "-":
-            new += "-"
-        else:
-            pass
 
-    large = max(new.split(), key=len)
-    print(input.filename.split(large))
-    extensions = [".bed", ".bim", ".fam"]
-    return ("Intermediates/" + x + y for x in input.filename.split(large) for y in extensions)
-
-def getFinalName(datasets: list) -> str:
-    hold = ""
-    batch_a = list()
-    batch_b = list()
-    final = list(datasets)
-
-
-    c = 0
-    while len(final) > 1:
-        if len(final) % 2 > 0:
-            hold = final[-1]
-            del final[-1]
-            batch_a = final[::2]
-            batch_b = final[1::2]
-            final = [hold]
-        else:
-            batch_a = final[::2]
-            batch_b = final[1::2]
-            final = []
-        
-        c += 1
-        for i,j in zip(batch_a, batch_b):
-            # Merge files
-            final.append(f"{i}{'-' * c}{j}")
-    return str(final[0])
-
-
+# BEGIN DEFINING RULES:
 rule all:
+    """
+    Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
+    """
     input:
         expand("Final/SUB/ALL_{location}_SUB.{extension}", extension=finalExtensions, location=locations),
         expand("Final/SUPER/ALL_{location}_SUPER.{extension}", extension=finalExtensions, location=locations)
@@ -69,17 +29,12 @@ rule LIFTOVER:
     """
     input:
         expand("rawData/{{sample}}.{extension}", extension=tExtensions)
-        # expand("Intermediates/TRIM/ALL_{{location}}_READY.{extension}", extension=tExtensions)
 
     output:
         expand("Intermediates/COLLATE/{{sample}}.{extension}", extension=bExtensions)
-        # outMap="Intermediates/LIFTOVER/{sample}_LIFTED.map",
-        # outPed="Intermediates/LIFTOVER/{sample}_LIFTED.ped",
-        # exclusion="Intermediates/LIFTOVER/{sample}_EXCLUDE.dat"
 
     params:
         prefix=lambda wildcards: f"Intermediates/LIFTOVER/{wildcards.sample}_LIFTED",
-        # prefix2=lambda wildcards: f"Intermediates/LIFTOVER/{wildcards.sample}_POST_FILTER",
         exclusionList=lambda wildcards: f"Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat",
         chainFile="Binaries/hg19ToHg38.over.chain",
         LiftOver="Binaries/liftOverPlink.py",
@@ -90,6 +45,7 @@ rule LIFTOVER:
         cpus=14,
         nodes=1,
         queue="normal",
+        walltime="30:00:00"
 
     run:
         shell("echo 'Determining Liftover requirements now...'")
@@ -104,14 +60,15 @@ rule LIFTOVER:
                 shell("echo 'liftOver complete.'"),
                 shell("cut -f 4 {params.prefix}.unlifted | sed '/^#/d' >> {params.exclusionList}"),
                 shell("echo 'Exclusion list generated'")
-                shell("module load plink-1.9; plink --map Intermediates/LIFTOVER/{params.prefix}.map --ped Intermediates/LIFTOVER/{params.prefix}.ped --make-bed --keep-allele-order --out Intermediates/LIFTOVER/{params.prefix}_LIFTED"),
-                shell("module load plink-2; plink2 --bfile Intermediates/LIFTOVER/{params.prefix} --set-all-var-ids @:#\$r-\$a --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/COLLATE/{wildcards.sample} --make-bed --keep-allele-order --exclude Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat")
+                shell("module load plink-1.9; plink --map {params.prefix}.map --ped {params.prefix}.ped --allow-extra-chr --make-bed --keep-allele-order --out {params.prefix}"),
+                shell("module load plink-2; plink2 --bfile {params.prefix} --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/COLLATE/{wildcards.sample} --make-bed --keep-allele-order --exclude Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat")
         # ToDo: Add conditionals for other human reference genome builds
         else:
             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
             shell("cp rawData/{wildcards.sample}.map Intermediates/COLLATE/{wildcards.sample}_LIFTED.map"),
             shell("cp rawData/{wildcards.sample}.ped Intermediates/COLLATE/{wildcards.sample}_LIFTED.ped"),
             shell("touch Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat")
+            shell("echo '{wildcards.sample}' >> Intermediates/COLLATE/merge_list")
 
 
 rule ALL_COLLATE:
@@ -119,77 +76,25 @@ rule ALL_COLLATE:
     Collate Datasets together into 1 psudo-dataset for downstream analysis.
     """
     input:
-        expand("Intermediates/COLLATE/{sample}.{extension}", sample=samples, extension=bExtensions)
-        # inMap="Intermediates/LIFTOVER/{sample}_LIFTED.map",
-        # inPed="Intermediates/LIFTOVER/{sample}_LIFTED.ped",
-        # exclusion="Intermediates/LIFTOVER/{sample}_EXCLUDE.dat"
-        # expand("rawData/{{sample}}.{extension}", extension=bExtensions)
-        # expand("Intermediates/CLEAN/{sample}_{{location}}_CLEANED.{extension}", extension=bExtensions, sample=samples)
+        expand("Intermediates/COLLATE/{sample}.{extension}", sample=samples, extension=bExtensions),
+        merge_list="Intermediates/COLLATE/merge_list"
     
     output:
         expand("Intermediates/COLLATE/ALL.{extension}", extension=bExtensions)
-        #filter(lambda fn: all(e in fn for e in cond2), fns)
-        #expand("Intermediates/ALL_{{location}}.{extension}", extension=['bed', 'bim', 'fam'])
 
     params:
         prefix = "ALL_PRE_COLLATE",
         prefix2 = "ALL_MERGE",
-        prefix3 = "ALL_SUBFILTERED",
-        #prefix4 = "ALL_1_COLLATED"
-        #prevFile1 = "Intermediates/COLLATE_{wildcards.location}/" + str(lambda wildcards: get_prev(wildcards.filename)[0]),
-        #prevFile2 = "Intermediates/COLLATE_{wildcards.location}/" + str(lambda wildcards: get_prev(wildcards.filename)[1])
+        prefix3 = "ALL_SUBFILTERED"
+
+    resources:
+        cpus=28,
+        nodes=1,
+        queue="long",
+        walltime="30:00:00"
 
     run:
-        for i in samples:
-            shell(f"cp rawData/{wildcards.sample}.bed Intermediates/COLLATE/{i}.bed"),
-            shell(f"cp rawData/{wildcards.sample}.bim Intermediates/COLLATE/{i}.bim"),
-            shell(f"cp rawData/{wildcards.sample}.fam Intermediates/COLLATE/{i}.fam"),
-        datasets = list(config["samples"])
-        outputs = datasets
-        c = 0
-        while len(datasets) > 1:
-            datasets = outputs
-            outputs = datasets
-            hold = ''
-            outputName = ''
-            c+=1
-            if len(datasets) % 2 > 0:
-                hold = datasets.pop(-1)
-                batch_a = datasets[::2]
-                batch_b = datasets[1::2]
-                for i,j in zip(batch_a, batch_b):
-                    outputName = f"{i}{'-' * c}{j}"
-                    shell(f"/apps/plink-1.9/plink --bfile Intermediates/COLLATE/{i} --bmerge Intermediates/COLLATE/{j} --make-bed --keep-allele-order --out Intermediates/COLLATE/{outputName}")
-                    del outputs[outputs.index(i)]
-                    del outputs[outputs.index(j)]
-                    outputs.append(outputName)
-                outputs.append(hold)
-            else:
-                batch_a = datasets[::2]
-                batch_b = datasets[1::2]
-                for i,j in zip(batch_a, batch_b):
-                    outputName = f"{i}{'-' * c}{j}"
-                    try:
-                        shell(f"/apps/plink-1.9/plink --bfile Intermediates/COLLATE/{i} --bmerge Intermediates/COLLATE/{j} --make-bed --keep-allele-order --out Intermediates/COLLATE/{outputName}")
-                    except:
-                        print("Tri-Allelic variants found.")
-                        if os.path.exists(f"Intermediates/COLLATE/{outputName}-merge.missnp"):
-                            print(f"Pulling SNP's from 'Intermediates/COLLATE/{outputName}-merge.missnp'")
-                            snps = list()
-                            with open(f"Intermediates/COLLATE/{outputName}-merge.missnp", "r") as file:
-                                for line in file:
-                                    snps.append(line.strip())
-                            exclCMD= ",".join(map(str, snps))
-                            print(f"Tri-Allelic Variants Identified: {exclCMD}")
-                            shell(f"/apps/plink-1.9/plink --bfile Intermediates/COLLATE/{i} --make-bed --keep-allele-order --exclude-snps {exclCMD} --out Intermediates/COLLATE/{i}-FILTERED")
-                            shell(f"/apps/plink-1.9/plink --bfile Intermediates/COLLATE/{j} --make-bed --keep-allele-order --exclude-snps {exclCMD} --out Intermediates/COLLATE/{j}-FILTERED")
-                            shell(f"/apps/plink-1.9/plink --bfile Intermediates/COLLATE/{i}-FILTERED --bmerge Intermediates/COLLATE/{j}-FILTERED --make-bed --keep-allele-order --out Intermediates/COLLATE/{outputName}")
-                    del outputs[outputs.index(str(i))]
-                    del outputs[outputs.index(str(j))]
-                    outputs.append(outputName)
-        fileSet = set([os.path.splitext(file)[0] for file in os.listdir(f"Intermediates/COLLATE/") if all(stringToMatch in file for stringToMatch in config["samples"]) and "merge" not in file])
-        for i,j in zip(list(fileSet) * 3, bExtensions):
-            shell(f"mv Intermediates/COLLATE/{i}.{j} Intermediates/COLLATE/ALL.{j}")
+        shell("module load plink-1.9; plink --keep-allele-order --merge-list {input.merge_list} --make-bed --out ALL")
 
 
 rule ALL_ANNOTATE:
@@ -203,6 +108,12 @@ rule ALL_ANNOTATE:
     output:
         "Intermediates/ANNOTATE/ALL_ANNOTATED.vcf",
         expand("Intermediates/ANNOTATE/ALL_ANNOTATED.{extension}", extension=bExtensions)
+    
+    resources:
+        cpus=28,
+        nodes=1,
+        queue="normal",
+        walltime="30:00:00"
 
     shell:
         """
@@ -230,6 +141,12 @@ rule Admixture:
     params:
         out_name = "Intermediates/Admixture/ALL",
         smartPCA = "Binaries/EIG-7.2.1/bin/"
+    
+    resources:
+        cpus=28,
+        nodes=1,
+        queue="long",
+        walltime="30:00:00"
 
     shell:
         """
@@ -254,6 +171,12 @@ rule TRIM_AND_NAME:
         fromBP = lambda wildcards: config["locations"][wildcards.location]["GRCh37"]["from"],
         toBP = lambda wildcards: config["locations"][wildcards.location]["GRCh37"]["to"],
         chr = lambda wildcards: config["locations"][wildcards.location]["GRCh37"]["chromosome"]
+    
+    resources:
+        cpus=10,
+        nodes=1,
+        queue="normal",
+        walltime="30:00:00"
 
     shell:
         """
@@ -263,219 +186,23 @@ rule TRIM_AND_NAME:
         plink2 --bfile Intermediates/TRIM/ALL_{wildcards.location}_TRIMMED --set-all-var-ids @:#\$r-\$a --new-id-max-allele-len 40 truncate  --make-bed --out Intermediates/TRIM/ALL_{wildcards.location}_NAMED
         plink --bfile Intermediates/TRIM/ALL_{wildcards.location}_NAMED --keep-allele-order --recode --out Intermediates/TRIM/ALL_{wildcards.location}_READY
         """
-        # plink --bfile rawData/{wildcards.sample} --chr {params.chr} --set-missing-var-ids @_# --make-bed --keep-allele-order --from-bp {params.fromBP} --to-bp {params.toBP} --out Intermediates/TRIM/{wildcards.sample}_{wildcards.location}_TRIMMED
-        # plink2 --bfile Intermediates/TRIM/{wildcards.sample}_{wildcards.location}_TRIMMED --set-all-var-ids @:#\$r-\$a --new-id-max-allele-len 40 truncate  --make-bed --out Intermediates/TRIM/{wildcards.sample}_{wildcards.location}_NAMED
-        # plink --bfile Intermediates/TRIM/{wildcards.sample}_{wildcards.location}_NAMED --keep-allele-order --recode --out Intermediates/TRIM/{wildcards.sample}_{wildcards.location}_READY
 
 
-#/********* LiftOverPlink (LIFTOVER) *********/
-
-# rule LIFTOVER:
-#     input:
-#         expand("Intermediates/TRIM/ALL_{{location}}_READY.{extension}", extension=tExtensions)
-
-#     output:
-#         outMap="Intermediates/LIFTOVER/ALL_{location}_LIFTED.map",
-#         outPed="Intermediates/LIFTOVER/ALL_{location}_LIFTED.ped",
-#         exclusion="Intermediates/LIFTOVER/ALL_{location}_EXCLUDE.dat"
-
-#     params:
-#         prefix=lambda wildcards: "Intermediates/LIFTOVER/ALL_{}_PRE_FILTER".format(wildcards.location),
-#         prefix2=lambda wildcards: "Intermediates/LIFTOVER/ALL_{}_POST_FILTER".format(wildcards.location),
-#         prefix3=lambda wildcards: "Intermediates/LIFTOVER/ALL_{}_EXCLUDE.dat".format(wildcards.location),
-#         chainFile="Binaries/hg19ToHg38.over.chain",
-#         LiftOver="Binaries/liftOverPlink.py",
-#         rmBadLifts="Binaries/rmBadLifts.py",
-#         sexes="rawData/1000g.sexes"
-
-#     run:
-#         shell("echo 'Determining Liftover requirements now...'")
-#         if config['samples'][wildcards.sample]['refGenome'] != "GRCh38":
-#             shell("echo 'Liftover required. All datasets have been mapped to {}'".format(config['samples'][wildcards.sample]['refGenome'])),
-#             shell("module load liftover"),
-#             if config['samples'][wildcards.sample]['refGenome'] == "GRCh37" or config['samples'][wildcards.sample]['refGenome'] == "Hg19":
-#                 shell("echo 'Lifting from GRCh37 to GRCh38.'"),
-#                 shell("python {params.LiftOver} -e /apps/liftover/liftOver -m Intermediates/TRIM/{wildcards.sample}_{wildcards.location}_READY.map -p Intermediates/TRIM/{wildcards.sample}_{wildcards.location}_READY.ped -o {params.prefix} -c {params.chainFile}"),
-#                 shell("echo 'liftOver complete. Removing Bad lifts.'"),
-#                 shell("python {params.rmBadLifts} --map {params.prefix}.map --out {output.outMap} --log {params.prefix2}.log"),
-#                 shell("echo 'Bad lifts removed.'"),
-#                 shell("cut -f 2 {params.prefix2}.log > {params.prefix3}"),
-#                 shell("chmod a+rwx {params.prefix3}"),
-#                 shell("cut -f 4 {params.prefix}.unlifted | sed '/^#/d' >> {params.prefix3}"),
-#                 shell("less {params.prefix3} | {output.exclusion}"),
-#                 shell("echo 'Exclusion list generated'")
-#                 if config['samples'][wildcards.sample]['requiresSexing']:
-#                     shell("echo 'config.json file indicates sexing is required for {} dataset.'".format(wildcards.sample)),
-#                     shell("awk 'NR==FNR{{a[$1]=$4;next}}{{ if (a[$1]!= 'NULL') {{ if (a[$1] == 'female') {{ $5=2; print }} else if (a[$1] == 'male') {{ $5=1; print }} else {{$5=0; print}}}}}}' {params.sexes} {params.prefix}.ped > Intermediates/LIFTOVER/{wildcards.sample}_{wildcards.location}_LIFTED.ped"),
-#                     shell("echo 'Sexing complete'")
-#                 else:
-#                     shell("less {params.prefix}.ped > Intermediates/LIFTOVER/{wildcards.sample}_{wildcards.location}_LIFTED.ped")
-#         # ToDo: Add conditionals for other human reference genome builds
-#         else:
-#             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
-#             shell("cp Intermediates/TRIM/{wildcards.sample}_{wildcards.location}_READY.map Intermediates/LIFTOVER/{wildcards.sample}_{wildcards.location}_LIFTED.map"),
-#             shell("cp Intermediates/TRIM/{wildcards.sample}_{wildcards.location}_READY.ped Intermediates/LIFTOVER/{wildcards.sample}_{wildcards.location}_LIFTED.ped"),
-#             shell("touch Intermediates/LIFTOVER/{wildcards.sample}_{wildcards.location}_EXCLUDE.dat")
-
-
-# rule CLEAN:
-#     input:
-#         mapFile="Intermediates/LIFTOVER/{sample}_{location}_LIFTED.map",
-#         pedFile="Intermediates/LIFTOVER/{sample}_{location}_LIFTED.ped",
-#         exclude="Intermediates/LIFTOVER/{sample}_{location}_EXCLUDE.dat"
-
-#     output:
-#         expand("Intermediates/CLEAN/{{sample}}_{{location}}_CLEANED.{extension}", extension=['bed', 'bim', 'fam'])
-
-#     shell:
-#         """
-#         module load plink-1.9
-#         plink --map {input.mapFile} --ped {input.pedFile} --out Intermediates/CLEAN/{wildcards.sample}_{wildcards.location}_CLEANED --make-bed --keep-allele-order --exclude {input.exclude}
-#         """
-
-# rule FST:
-#     label 'CYP2A6Analysis'
-#     label 'normalQueue'
-
-#     input:
-#     set file(BEDFile), file(BIMFile), file(FAMFile) from G_1_cleaned_1
-#     file SubPop from G_1_PLINK_SUBPOP
-    
-#     output:
-    
-#     script:
-#     """
-#     module load plink-1.9
-#     plink --bed {BEDFile} --bim {BIMFile} --fam {FAMFile} --within {SubPop} --fst --out 5-G_1_SUBFST
-#     """
-# def get_prev(input):
-#     print(input.filename)
-#     new = ""
-#     for i in input.filename:
-#         if i == "-":
-#             new += "-"
-#         else:
-#             pass
-
-#     large = max(new.split(), key=len)
-#     print(input.filename.split(large))
-#     extensions = [".bed", ".bim", ".fam"]
-#     return ("Intermediates/" + x + y for x in input.filename.split(large) for y in extensions)
-
-# def getFinalName(datasets: list) -> str:
-#     hold = ""
-#     batch_a = list()
-#     batch_b = list()
-#     final = list(datasets)
-
-
-#     c = 0
-#     while len(final) > 1:
-#         if len(final) % 2 > 0:
-#             hold = final[-1]
-#             del final[-1]
-#             batch_a = final[::2]
-#             batch_b = final[1::2]
-#             final = [hold]
-#         else:
-#             batch_a = final[::2]
-#             batch_b = final[1::2]
-#             final = []
-        
-#         c += 1
-#         for i,j in zip(batch_a, batch_b):
-#             # Merge files
-#             final.append(f"{i}{'-' * c}{j}")
-#     return str(final[0])
-
-# rule ALL_COLLATE:
-#     input:
-#         #get_prev
-#         expand("Intermediates/CLEAN/{sample}_{{location}}_CLEANED.{extension}", extension=bExtensions, sample=samples),
-#         #supPopClusters="rawData/superPopCluster",
-#         #subPopClusters="rawData/subPopCluster",
-    
-#     output:
-#         expand("Intermediates/COLLATE_{{location}}/ALL_{{location}}.{extension}", extension=bExtensions)
-#         #filter(lambda fn: all(e in fn for e in cond2), fns)
-#         #expand("Intermediates/ALL_{{location}}.{extension}", extension=['bed', 'bim', 'fam'])
-
-#     params:
-#         prefix = "ALL_1_PRE_COLLATE",
-#         prefix2 = "ALL_1_MERGE",
-#         prefix3 = "ALL_1_SUBFILTERED",
-#         #prefix4 = "ALL_1_COLLATED"
-#         prevFile1 = "Intermediates/COLLATE_{wildcards.location}/" + str(lambda wildcards: get_prev(wildcards.filename)[0]),
-#         prevFile2 = "Intermediates/COLLATE_{wildcards.location}/" + str(lambda wildcards: get_prev(wildcards.filename)[1])
-
-#     run:
-#         for i in samples:
-#             shell(f"cp Intermediates/CLEAN/{i}_{wildcards.location}_CLEANED.bed Intermediates/COLLATE_{wildcards.location}/{i}.bed"),
-#             shell(f"cp Intermediates/CLEAN/{i}_{wildcards.location}_CLEANED.bim Intermediates/COLLATE_{wildcards.location}/{i}.bim"),
-#             shell(f"cp Intermediates/CLEAN/{i}_{wildcards.location}_CLEANED.fam Intermediates/COLLATE_{wildcards.location}/{i}.fam"),
-#         datasets = list(config["samples"])
-#         outputs = datasets
-#         c = 0
-#         while len(datasets) > 1:
-#             datasets = outputs
-#             outputs = datasets
-#             hold = ''
-#             outputName = ''
-#             c+=1
-#             if len(datasets) % 2 > 0:
-#                 hold = datasets.pop(-1)
-#                 batch_a = datasets[::2]
-#                 batch_b = datasets[1::2]
-#                 for i,j in zip(batch_a, batch_b):
-#                     outputName = f"{i}{'-' * c}{j}"
-#                     shell(f"/apps/plink-1.9/plink --bfile Intermediates/COLLATE_{wildcards.location}/{i} --bmerge Intermediates/COLLATE_{wildcards.location}/{j} --make-bed --keep-allele-order --out Intermediates/COLLATE_{wildcards.location}/{outputName}")
-#                     del outputs[outputs.index(i)]
-#                     del outputs[outputs.index(j)]
-#                     outputs.append(outputName)
-#                 outputs.append(hold)
-#             else:
-#                 batch_a = datasets[::2]
-#                 batch_b = datasets[1::2]
-#                 for i,j in zip(batch_a, batch_b):
-#                     outputName = f"{i}{'-' * c}{j}"
-#                     try:
-#                         shell(f"/apps/plink-1.9/plink --bfile Intermediates/COLLATE_{wildcards.location}/{i} --bmerge Intermediates/COLLATE_{wildcards.location}/{j} --make-bed --keep-allele-order --out Intermediates/COLLATE_{wildcards.location}/{outputName}")
-#                     except:
-#                         print("Tri-Allelic variants found.")
-#                         if os.path.exists(f"Intermediates/COLLATE_{wildcards.location}/{outputName}-merge.missnp"):
-#                             print(f"Pulling SNP's from 'Intermediates/COLLATE_{wildcards.location}/{outputName}-merge.missnp'")
-#                             snps = list()
-#                             with open(f"Intermediates/COLLATE_{wildcards.location}/{outputName}-merge.missnp", "r") as file:
-#                                 for line in file:
-#                                     snps.append(line.strip())
-#                             exclCMD= ",".join(map(str, snps))
-#                             print(f"Tri-Allelic Variants Identified: {exclCMD}")
-#                             shell(f"/apps/plink-1.9/plink --bfile Intermediates/COLLATE_{wildcards.location}/{i} --make-bed --keep-allele-order --exclude-snps {exclCMD} --out Intermediates/COLLATE_{wildcards.location}/{i}-FILTERED")
-#                             shell(f"/apps/plink-1.9/plink --bfile Intermediates/COLLATE_{wildcards.location}/{j} --make-bed --keep-allele-order --exclude-snps {exclCMD} --out Intermediates/COLLATE_{wildcards.location}/{j}-FILTERED")
-#                             shell(f"/apps/plink-1.9/plink --bfile Intermediates/COLLATE_{wildcards.location}/{i}-FILTERED --bmerge Intermediates/COLLATE_{wildcards.location}/{j}-FILTERED --make-bed --keep-allele-order --out Intermediates/COLLATE_{wildcards.location}/{outputName}")
-#                     del outputs[outputs.index(str(i))]
-#                     del outputs[outputs.index(str(j))]
-#                     outputs.append(outputName)
-#         fileSet = set([os.path.splitext(file)[0] for file in os.listdir(f"Intermediates/COLLATE_{wildcards.location}/") if all(stringToMatch in file for stringToMatch in config["samples"]) and "merge" not in file])
-#         for i,j in zip(list(fileSet) * 3, bExtensions):
-#             shell(f"mv Intermediates/COLLATE_{wildcards.location}/{i}.{j} Intermediates/COLLATE_{wildcards.location}/ALL_{wildcards.location}.{j}")
-       
-        #module load plink-1.9
-        #plink --bfile {params.prevFile1} --bmerge {params.prevFile2} --exclude-snp rs199808813 --make-bed --keep-allele-order --out Intermediates/{wildcards.filename}
-       
-        #plink --bfile {params.prefix} --bmerge {input.sBed} {input.sBim} {input.sFam} --exclude-snp rs199808813 --make-bed --keep-allele-order --out {params.prefix2}
-        #plink --bfile {params.prefix2} --within {input.subPopClusters} --remove-cluster-names ASW ACB  --make-bed --keep-allele-order --out {params.prefix3}
-        #plink --bfile {params.prefix3} --make-bed --keep-allele-order --out Intermediates/ALL_{location}
-
-#/*All the *_FILTER processes must output VCF so that I can run through e! Ensembl's Variant Effect Predictor*/
 rule ALL_FILTER:
+    """
+    Filter out individuals missing 100% of their variant information (Safety Check).
+    """
     input:
         expand("Intermediates/TRIM/ALL_{{location}}_READY.{extension}", extension=tExtensions)
-        # expand("Intermediates/{finalName}.{extension}", extension=["bed", "bim", "fam"], finalName=getFinalName(config["samples"]))
-        # expand("Intermediates/COLLATE_{{location}}/ALL_{{location}}.{extension}", extension=bExtensions)
 
     output:
         "Intermediates/FILTER/ALL_{location}_FILTERED.vcf"
+    
+    resources:
+        cpus=10,
+        nodes=1,
+        queue="short",
+        walltime="03:00:00"
 
     shell:
         """
@@ -484,22 +211,10 @@ rule ALL_FILTER:
         sed -r -e 's/##contig=<ID=chr19,length=[0-9]+>/##contig=<ID=chr19,length=58617616>/' -e 's/##contig=<ID=chr4,length=[0-9]+>/##contig=<ID=chr4,length=190214555>/' Intermediates/FILTER/ALL_{wildcards.location}_PRE_SED.vcf > Intermediates/FILTER/ALL_{wildcards.location}_FILTERED.vcf
         """
 
-# rule ALL_ANNOTATE:
-#     input:
-#         "Intermediates/FILTER/ALL_{location}_FILTERED.vcf"
-
-#     output:
-#         "Intermediates/ANNOTATE/ALL_{location}_ANNOTATED.vcf"
-
-#     shell:
-#         """
-#         module load gatk-4.0.12.0
-#         gatk VariantAnnotator -V {input} -R /apps/bcbio/genomes/Hsapiens/hg38/seq/hg38.fa.gz -D /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O Intermediates/ANNOTATE/ALL_{wildcards.location}_PRE_SED.vcf
-#         sed -r -e 's/^chr([0-9]{{1,2}})\\t([0-9]+)\\t[0-9]{{1,2}}:[0-9]+[A-Z]{{1}}-[A-Z]{{1}};(rs[0-9]+)/chr\\1\\t\\2\\t\\3/g' Intermediates/ANNOTATE/ALL_{wildcards.location}_PRE_SED.vcf > Intermediates/ANNOTATE/ALL_{wildcards.location}_ANNOTATED.vcf
-#         cp Intermediates/ANNOTATE/ALL_{wildcards.location}_ANNOTATED.vcf Final/ALL_{wildcards.location}.vcf
-#         """
-
 rule ALL_ANALYZE_SUPER:
+    """
+    Perform Frequency analysis on super populations.
+    """
     input:
         vcf="Intermediates/FILTER/ALL_{location}_FILTERED.vcf",
         popClusters="rawData/superPopCluster"
@@ -510,6 +225,12 @@ rule ALL_ANALYZE_SUPER:
 
     params:
         prefix = 'ALL_{location}_SUPER'
+    
+    resources:
+        cpus=15,
+        nodes=1,
+        queue="normal",
+        walltime="30:00:00"
 
     run:
         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --freq --out Final/SUPER/{params.prefix}"),
@@ -523,22 +244,12 @@ rule ALL_ANALYZE_SUPER:
         shell("module load plink-1.9; plink --mind --geno --indep-pairwise 50 10 0.1 --vcf {input.vcf} --double-id --keep-allele-order --make-bed --out Final/SUPER/ALL_{wildcards.location}_SUPER"),
         shell("module load admixture-1.3.0; admixture --cv Final/SUPER/ALL_{wildcards.location}_SUPER.bed 5"),
         shell("mv ALL_{wildcards.location}_SUPER.5.* Final/SUPER/")
-        
-        # /*
-        # output:
-        # set file("*.bed"), file("*.bim"), file("*.fam") into ALL_1_SUPERPOP
-        # file "*.frq" into ALL_1_INITFREQ
-        # file "*.frq.strat" into ALL_1_FREQSTRAT
-
-        # plink --vcf {vcfFile} --double-id --within {popClusters} --keep-cluster-names EUR --make-bed --keep-allele-order --out {outPrefix}EUR
-        # plink --vcf {vcfFile} --double-id --within {popClusters} --keep-cluster-names EAS --make-bed --keep-allele-order --out {outPrefix}EAS
-        # plink --vcf {vcfFile} --double-id --within {popClusters} --keep-cluster-names AMR --make-bed --keep-allele-order --out {outPrefix}AMR
-        # plink --vcf {vcfFile} --double-id --within {popClusters} --keep-cluster-names SAS --make-bed --keep-allele-order --out {outPrefix}SAS
-        # plink --vcf {vcfFile} --double-id --within {popClusters} --keep-cluster-names AFR --make-bed --keep-allele-order --out {outPrefix}AFR
-        # */
 
 
 rule ALL_ANALYZE_SUB:
+    """
+    Perform frequency analysis on sub-populations.
+    """
     input:
         vcf="Intermediates/FILTER/ALL_{location}_FILTERED.vcf",
         popClusters="rawData/subPopCluster"
@@ -549,6 +260,12 @@ rule ALL_ANALYZE_SUB:
 
     params:
         prefix = 'ALL_{location}_SUB'
+    
+    resources:
+        cpus=15,
+        nodes=1,
+        queue="normal",
+        walltime="30:00:00"
   
     run:
         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --freq --out Final/SUB/{params.prefix}"),
