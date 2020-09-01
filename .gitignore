@@ -126,6 +126,11 @@ dmypy.json
 # Dev Stuff:
 .DS_Store
 
+# Snakemake stuff:
+.snakemake/
+
 # Analysis-related outputs:
 Intermediates
 Final
+snakejob.*
+rawData/

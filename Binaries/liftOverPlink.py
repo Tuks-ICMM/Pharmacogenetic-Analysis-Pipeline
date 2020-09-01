@@ -117,7 +117,6 @@ def liftPed(fin, fout, fOldMap):
         if len(f[6:]) != len(flag):
             die('Inconsistent length of ped and map files')
         newMarker = [m for i, m in enumerate(f[6:]) if flag[i]]
-        print("Markers lifted: " + str(len([m for i, m in enumerate(f[6:]) if flag[i]])))
         fo.write('\t'.join(newMarker))
         fo.write('\n')
         #print marker[:10]

@@ -7,5 +7,7 @@
 #PBS -e /nlustre/users/graeme/pipeline-2020/Logs/QSUB.err
 #PBS -N Snakemake Pipeline
 
-module load python-3.6.6
-snakemake --cluster-config cluster.json
+module load python-3.8.2
+cd /nlustre/users/graeme/pipeline-2020/
+#snakemake --cluster-config cluster.json
+snakemake --cluster-config cluster.json --profile Wonko -s Snakefile-Admixture
