@@ -79,8 +79,8 @@ rule ALL_COLLATE:
     Collate Datasets together into 1 psudo-dataset for downstream analysis.
     """
     input:
-        expand("Intermediates/LIFTOVER/{sample}.{extension}", sample=samples, extension=bExtensions)
-    
+        expand("Intermediates/LIFTOVER/{sample}.vcf", sample=samples)
+
     output:
         expand("Intermediates/COLLATE/ALL.{extension}", extension=bExtensions)
 
