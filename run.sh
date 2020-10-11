@@ -1,7 +1,7 @@
 #!/bin/bash
-#PBS -q normal
-#PBS -l walltime=05:00:00
-#PBS -l nodes=1:ppn=24
+#PBS -q long
+#PBS -l walltime=900:00:00
+#PBS -l nodes=1:ppn=14
 #PBS -k oe
 #PBS -o /nlustre/users/graeme/pipeline-2020/Logs/QSUB.log
 #PBS -e /nlustre/users/graeme/pipeline-2020/Logs/QSUB.err

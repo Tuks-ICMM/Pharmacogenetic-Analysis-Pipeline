@@ -31,8 +31,8 @@ rule LIFTOVER:
         expand("rawData/{{sample}}.{extension}", extension=tExtensions)
 
     output:
-        expand("Intermediates/LIFTOVER/{{sample}}.{extension}", extension=bExtensions),
-        expand("Intermediates/LIFTOVER/{{sample}}_LIFTED.unlifted")
+        expand("Intermediates/LIFTOVER/{{sample}}.vcf")
+        #expand("Intermediates/LIFTOVER/{{sample}}_LIFTED.unlifted")
 
     params:
         prefix= lambda wildcards: "Intermediates/LIFTOVER/{sample}_LIFTED".format(sample=wildcards.sample),
@@ -63,15 +63,15 @@ rule LIFTOVER:
                 shell("echo 'liftOver complete.'"),
                 shell("cut -f 4 {params.prefix}.unlifted | sed '/^#/d' >> {params.exclusionList}"),
                 shell("echo 'Exclusion list generated'")
-                shell("module load plink-1.9; plink --map {params.prefix}.map --ped {params.prefix}.ped --allow-extra-chr --make-bed --keep-allele-order --exclude {params.exclusionList} --out Intermediates/LIFTOVER/{wildcards.sample}"),
+                shell("module load plink-1.9; plink --map {params.prefix}.map --ped {params.prefix}.ped --allow-extra-chr --chr 1-22 --recode vcf --keep-allele-order --exclude {params.exclusionList} --out Intermediates/LIFTOVER/{wildcards.sample}"),
                 #shell("module load plink-2; plink2 --bfile {params.prefix} --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/LIFTOVER/{wildcards.sample} --make-bed --keep-allele-order --exclude Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat")
         # TODO: Add conditionals for other human reference genome builds
         else:
             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
             shell("cp rawData/{wildcards.sample}.map Intermediates/LIFTOVER/{wildcards.sample}_LIFTED.map"),
             shell("cp rawData/{wildcards.sample}.ped Intermediates/LIFTOVER/{wildcards.sample}_LIFTED.ped"),
-            shell("touch Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat")
-            shell("echo '{wildcards.sample}' >> Intermediates/LIFTOVER/merge_list")
+            shell("touch Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat"),
+        shell("echo 'Intermediates/LIFTOVER/{wildcards.sample}' >> Intermediates/LIFTOVER/merge.list")
 
 
 rule ALL_COLLATE:
@@ -96,7 +96,10 @@ rule ALL_COLLATE:
         walltime="30:00:00"
 
     run:
-        shell("module load plink-1.9; plink --keep-allele-order --merge-list {input.merge_list} --make-bed --out ALL")
+        # TODO: Find way to reference files in prev process directory
+        shell("module load gatk-4.0.4.0; java -jar picard.jar MergeVcfs I=Intermediates/LIFTOVER/megre.list O=Intermediates/COLLATE/ALL.vcf"),
+        shell("ln -sf Intermediates/"),
+        shell("module load plink-1.9; plink --keep-allele-order --allow-extra-chr --chr 1-22 --vcf Intermediates/COLLATE/ALL.vcf --make-bed --out Intermediates/COLLATE/ALL")
 
 
 rule ALL_ANNOTATE:
