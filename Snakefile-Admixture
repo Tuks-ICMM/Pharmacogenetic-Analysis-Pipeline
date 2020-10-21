@@ -97,7 +97,7 @@ rule ALL_COLLATE:
 
     run:
         # TODO: Find way to reference files in prev process directory
-        shell("module load gatk-4.0.4.0; java -jar picard.jar MergeVcfs I=Intermediates/LIFTOVER/megre.list O=Intermediates/COLLATE/ALL.vcf"),
+        shell("module load picard-2.17.11; java -jar $PICARD MergeVcfs I=Intermediates/LIFTOVER/megre.list O=Intermediates/COLLATE/ALL.vcf"),
         shell("ln -sf Intermediates/"),
         shell("module load plink-1.9; plink --keep-allele-order --allow-extra-chr --chr 1-22 --vcf Intermediates/COLLATE/ALL.vcf --make-bed --out Intermediates/COLLATE/ALL")
 
