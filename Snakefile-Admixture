@@ -31,7 +31,7 @@ rule LIFTOVER:
         expand("rawData/{{sample}}.{extension}", extension=tExtensions)
 
     output:
-        expand("Intermediates/LIFTOVER/{{sample}}.vcf")
+        expand("Intermediates/LIFTOVER/{{sample}}.vcf.gz")
         #expand("Intermediates/LIFTOVER/{{sample}}_LIFTED.unlifted")
 
     params:
@@ -68,10 +68,10 @@ rule LIFTOVER:
         # TODO: Add conditionals for other human reference genome builds
         else:
             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
-            shell("cp rawData/{wildcards.sample}.map Intermediates/LIFTOVER/{wildcards.sample}_LIFTED.map"),
-            shell("cp rawData/{wildcards.sample}.ped Intermediates/LIFTOVER/{wildcards.sample}_LIFTED.ped"),
             shell("touch Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat"),
-        shell("echo 'Intermediates/LIFTOVER/{wildcards.sample}' >> Intermediates/LIFTOVER/merge.list")
+            shell("module load plink-1.9; plink --map rawData/{wildcards.sample}.map --ped rawData/{wildcards.sample}.ped --allow-extra-chr --chr 1-22 --recode vcf --keep-allele-order --exclude {params.exclusionList} --out Intermediates/LIFTOVER/{wildcards.sample}"),
+        shell("bgzip Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz"),
+        shell("echo 'Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz' >> Intermediates/LIFTOVER/merge.list")
 
 
 rule ALL_COLLATE:
@@ -79,7 +79,7 @@ rule ALL_COLLATE:
     Collate Datasets together into 1 psudo-dataset for downstream analysis.
     """
     input:
-        expand("Intermediates/LIFTOVER/{sample}.vcf", sample=samples)
+        expand("Intermediates/LIFTOVER/{sample}.vcf.gz", sample=samples)
 
     output:
         expand("Intermediates/COLLATE/ALL.{extension}", extension=bExtensions)
@@ -96,8 +96,8 @@ rule ALL_COLLATE:
         walltime="30:00:00"
 
     run:
-        # TODO: Find way to reference files in prev process directory
-        shell("module load picard-2.17.11; java -jar $PICARD MergeVcfs I=Intermediates/LIFTOVER/merge.list O=Intermediates/COLLATE/ALL.vcf"),
+        # TODO: Update function to use BCFTools merge command for non-overlapping samples (Picard complains about that)
+        shell("module load bcftools-1.7; bcftools merge  -l Intermediates/LIFTOVER/merge.list -o Intermediates/COLLATE/ALL.vcf"),
         shell("ln -sf Intermediates/"),
         shell("module load plink-1.9; plink --keep-allele-order --allow-extra-chr --chr 1-22 --vcf Intermediates/COLLATE/ALL.vcf --make-bed --out Intermediates/COLLATE/ALL")
 
