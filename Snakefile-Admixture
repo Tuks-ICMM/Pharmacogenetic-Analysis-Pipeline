@@ -70,7 +70,7 @@ rule LIFTOVER:
             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
             shell("touch Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat"),
             shell("module load plink-1.9; plink --map rawData/{wildcards.sample}.map --ped rawData/{wildcards.sample}.ped --allow-extra-chr --chr 1-22 --recode vcf --keep-allele-order --exclude {params.exclusionList} --out Intermediates/LIFTOVER/{wildcards.sample}"),
-        shell("bgzip Intermediates/LIFTOVER/{wildcards.sample}.vcf"),
+        shell("bgzip Intermediates/LIFTOVER/{wildcards.sample}.vcf"), 
         shell("tabix -p vcf Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz"),
         shell("echo 'Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz' >> Intermediates/LIFTOVER/merge.list")
 
