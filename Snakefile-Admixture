@@ -39,7 +39,8 @@ rule LIFTOVER:
         exclusionList= lambda wildcards: "Intermediates/LIFTOVER/{sample}_EXCLUDE.dat".format(sample=wildcards.sample),
         chainFile="Binaries/hg19ToHg38.over.chain",
         LiftOver="Binaries/liftOverPlink.py",
-        rmBadLifts="Binaries/rmBadLifts.py"
+        rmBadLifts="Binaries/rmBadLifts.py",
+        ref="Binaries/hg38.fa.gz"
 
     resources:
         cpus=28,
@@ -57,21 +58,16 @@ rule LIFTOVER:
                 if not os.path.exists('Intermediates/LIFTOVER'):
                     os.makedirs('Intermediates/LIFTOVER')
                 
-                shell("module load plink-2; plink2 --bfile rawData/{wildcards.sample} --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/LIFTOVER/{wildcards.sample}_CLEANED --make-bed --keep-allele-order")
-                shell("module load plink-1.9; plink --keep-allele-order --bfile Intermediates/LIFTOVER/{wildcards.sample}_CLEANED --recode --out Intermediates/LIFTOVER/{wildcards.sample}_CLEANED"),
-                shell("python {params.LiftOver} -e /apps/liftover/liftOver -m Intermediates/LIFTOVER/{wildcards.sample}_CLEANED.map -p Intermediates/LIFTOVER/{wildcards.sample}_CLEANED.ped -o {params.prefix} -c {params.chainFile}"),
-                shell("echo 'liftOver complete.'"),
-                shell("cut -f 4 {params.prefix}.unlifted | sed '/^#/d' >> {params.exclusionList}"),
-                shell("echo 'Exclusion list generated'")
-                shell("module load plink-1.9; plink --map {params.prefix}.map --ped {params.prefix}.ped --allow-extra-chr --chr 1-22 --recode vcf --keep-allele-order --exclude {params.exclusionList} --out Intermediates/LIFTOVER/{wildcards.sample}"),
-                #shell("module load plink-2; plink2 --bfile {params.prefix} --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/LIFTOVER/{wildcards.sample} --make-bed --keep-allele-order --exclude Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat")
+                shell("module load plink-2; plink2 --bfile rawData/{wildcards.sample} --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/LIFTOVER/{wildcards.sample}_CLEANED --export vcf bgz --keep-allele-order")
+                shell("module load picard-2.17.11; java -jar picard.jar LiftoverVcf -I Intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz -O Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz -C {params.chainFile} --REJECT Intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz -R {params.chainFile}"),
         # TODO: Add conditionals for other human reference genome builds
         else:
             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
             shell("touch Intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat"),
             shell("module load plink-1.9; plink --map rawData/{wildcards.sample}.map --ped rawData/{wildcards.sample}.ped --allow-extra-chr --chr 1-22 --recode vcf --keep-allele-order --exclude {params.exclusionList} --out Intermediates/LIFTOVER/{wildcards.sample}"),
-        shell("bgzip Intermediates/LIFTOVER/{wildcards.sample}.vcf"), 
-        shell("tabix -p vcf Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz"),
+        # shell("bgzip Intermediates/LIFTOVER/{wildcards.sample}.vcf"),
+        shell("sleep 1m"),
+        # shell("tabix -p vcf Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz"),
         shell("echo 'Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz' >> Intermediates/LIFTOVER/merge.list")
 
 
@@ -98,7 +94,7 @@ rule ALL_COLLATE:
 
     run:
         # TODO: Update function to use BCFTools merge command for non-overlapping samples (Picard complains about that)
-        shell("module load bcftools-1.7; bcftools merge  -l Intermediates/LIFTOVER/merge.list -o Intermediates/COLLATE/ALL.vcf"),
+        shell("module load bcftools-1.7; bcftools merge -l Intermediates/LIFTOVER/merge.list -o Intermediates/COLLATE/ALL.vcf"),
         shell("ln -sf Intermediates/"),
         shell("module load plink-1.9; plink --keep-allele-order --allow-extra-chr --chr 1-22 --vcf Intermediates/COLLATE/ALL.vcf --make-bed --out Intermediates/COLLATE/ALL")
 
