@@ -56,9 +56,9 @@ rule LIFTOVER:
             if config['samples'][wildcards.sample]['refGenome'] == "GRCh37" or config['samples'][wildcards.sample]['refGenome'] == "Hg19":
                 shell("echo 'Lifting from GRCh37 to GRCh38.'"),
                 if not os.path.exists('Intermediates/LIFTOVER'):
-                    os.makedirs('Intermediates/LIFTOVER')
+                    os.makedirs('Intermediates/LIFTOVER'),
                 
-                shell("module load plink-2; plink2 --bfile rawData/{wildcards.sample} --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/LIFTOVER/{wildcards.sample}_CLEANED --export vcf bgz --keep-allele-order")
+                shell("module load plink-2; plink2 --bfile rawData/{wildcards.sample} --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/LIFTOVER/{wildcards.sample}_CLEANED --export vcf bgz --output-chr chr26 --keep-allele-order")
                 shell("module load picard-2.17.11; java -jar $PICARD LiftoverVcf I=Intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz C={params.chainFile} REJECT=Intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.chainFile}"),
         # TODO: Add conditionals for other human reference genome builds
         else:
