@@ -57,7 +57,7 @@ rule LIFTOVER:
                 shell("echo 'Lifting from GRCh37 to GRCh38.'"),
                 if not os.path.exists('Intermediates/LIFTOVER'):
                     os.makedirs('Intermediates/LIFTOVER')
-                shell("module load plink-2; plink2 --bfile rawData/{wildcards.sample} --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/LIFTOVER/{wildcards.sample} --export vcf-4.2 bgz --keep-allele-order")
+                shell("module load plink-2; plink2 --bfile rawData/{wildcards.sample} --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out Intermediates/LIFTOVER/{wildcards.sample} --export vcf-4.2 bgz --output-chr chr26 --keep-allele-order")
                 # ToDo: Add in GATK SelectVariant Process and filter out symbolic using `--select-type-to-exclude`:
                 shell("module load gatk-4.0.12.0; gatk SelectVariants -R {params.ref} -V Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz --select-type-to-exclude SYMBOLIC -O Intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz"),
                 shell("module load picard-2.17.11; java -jar $PICARD LiftoverVcf I=Intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=Intermediates/LIFTOVER/{wildcards.sample}.vcf.gz C={params.chainFile} REJECT=Intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
