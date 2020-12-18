@@ -1,4 +1,7 @@
 {
+  "refGenomes": {
+    "GRCh38": "grch38.fna.gz"
+  },
   "samples": {
     "1000g": {
       "refGenome": "GRCh37",

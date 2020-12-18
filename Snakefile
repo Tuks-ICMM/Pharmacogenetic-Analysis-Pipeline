@@ -66,7 +66,7 @@ rule LIFTOVER:
         chainFile="binaries/hg19ToHg38.over.chain",
         LiftOver="binaries/liftOverPlink.py",
         rmBadLifts="binaries/rmBadLifts.py",
-        ref="binaries/hg38.fa.gz"
+        ref="binaries/" + config['grch38']
 
     resources:
         cpus=28,
