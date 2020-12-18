@@ -130,8 +130,8 @@ dmypy.json
 .snakemake/
 
 # Analysis-related outputs:
-Intermediates
-Final
+.intermediates
+final
 snakejob.*
 rawData/
-Logs/*
+logs/*
