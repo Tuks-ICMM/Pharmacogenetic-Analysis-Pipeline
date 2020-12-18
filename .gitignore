@@ -133,5 +133,5 @@ dmypy.json
 .intermediates
 final
 snakejob.*
-rawData/
+input/
 logs/*
