@@ -83,7 +83,7 @@ ___
 ## Usage:
 1. use the `cd` command to navigate to the root repository directory containing the `Snakefile`. 
 2. To start the pipeline and produce the default list of files, simply call `snakemake` on the command line with appropriate arguments. _(E.g. `--profile` and `--cluster-config` flags)_
-3. To generate a runtime report, detailing figures produced and performance-related numbers, use the `--report` snakemake flag. The HTML file produced is completely self-contained and can be shared as needed. You can view it using any web browser such as firefox or Google Chrome, etc.
+3. To generate a runtime report, detailing figures produced and performance-related numbers, use the `--report` snakemake flag _(This requires that you have the [`Jinja2`](https://jinja.palletsprojects.com/en/2.11.x/) python package installed.)_. The HTML file produced is completely self-contained and can be shared as needed. You can view it using any web browser such as firefox or Google Chrome, etc.
 ___
 ## Roadmap:
 See our [Projects tab](/projects) and [Issues tracker](/issues) for a list of proposed features (and known issues).
