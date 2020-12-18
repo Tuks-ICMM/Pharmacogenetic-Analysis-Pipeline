@@ -9,5 +9,4 @@
 
 module load python-3.8.2
 cd /nlustre/users/graeme/pipeline-2020/
-#snakemake --cluster-config cluster.json
-snakemake --cluster-config cluster.json --profile Wonko -s Snakefile-Admixture
+snakemake --cluster-config cluster.json --profile profile --report
