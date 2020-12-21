@@ -224,68 +224,67 @@ rule ALL_FILTER:
         shell("module load plink-2; plink2 --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz--out .intermediates/FILTER/ALL_{wildcards.location}_FILTERED")
         
 
-# rule ALL_ANALYZE_SUPER:
-#     """
-#     Perform Frequency analysis on super populations.
-#     """
-#     input:
-#         vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf",
-#         popClusters="input/superPopCluster"
+rule ALL_ANALYZE_SUPER:
+    """
+    Perform Frequency analysis on super populations.
+    """
+    input:
+        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf",
+        popClusters="input/superPopCluster"
     
-#     output:
-#         expand("final/SUPER/ALL_{{location}}_SUPER.{extension}", extension=finalExtensions),
-#         expand("final/SUPER/{i}/ALL_{{location}}_SUPER_{i}_HV.{extensions}", i=superPop, extensions=["log", "ld"])
+    output:
+        expand("final/SUPER/ALL_{{location}}_SUPER.{extension}", extension=finalExtensions),
+        expand("final/SUPER/{i}/ALL_{{location}}_SUPER_{i}_HV.{extensions}", i=superPop, extensions=["log", "ld"])
 
-#     params:
-#         prefix = 'ALL_{location}_SUPER'
+    params:
+        prefix = 'ALL_{location}_SUPER'
     
-#     resources:
-#         cpus=15,
-#         nodes=1,
-#         queue="normal",
-#         walltime="30:00:00"
+    resources:
+        cpus=15,
+        nodes=1,
+        queue="normal",
+        walltime="30:00:00"
 
-#     run:
-#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --freq --out final/SUPER/{params.prefix}"),
-#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --within {input.popClusters} --freq --fst --missing --r2 inter-chr dprime --test-mishap --hardy midp --het --ibc --out final/SUPER/{params.prefix}"),
-#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --snps-only --double-id --recode HV --out final/SUPER/ALL_{wildcards.location}_SUPER_HV"),
-#         shell("module load plink2; plink2 --vcf {input.vcf} --indep-pairwise 50 10 0.1 --double-id --out final/SUPER/ALL_SUPER_{wildcards.location}"),
-#         shell("module load plink2; plink2 --vcf {input.vcf} --double-id --mind --extract final/SUPER/ALL_SUPER_{wildcards.location}.prune.in --pca var-wts scols=sid --out final/SUPER/ALL_SUPER_{wildcards.location}")
-#         for i in superPop:
-#             shell(f"module load plink-1.9; plink --vcf {input.vcf} --double-id --snps-only --keep-allele-order --within {input.popClusters} --keep-cluster-names {i} --r2 inter-chr dprime --recode HV --out final/SUPER/{i}/{params.prefix}_{i}_HV");
-#         # Admixture:
-#         shell("module load plink-1.9; plink --mind --geno --indep-pairwise 50 10 0.1 --vcf {input.vcf} --double-id --keep-allele-order --make-bed --out final/SUPER/ALL_{wildcards.location}_SUPER"),
-#         shell("module load admixture-1.3.0; admixture --cv final/SUPER/ALL_{wildcards.location}_SUPER.bed 5"),
-#         shell("mv ALL_{wildcards.location}_SUPER.5.* final/SUPER/")
+    run:
+        shell("module load plink-2; plink2 --vcf {input.vcf} --freq --out final/SUPER/{params.prefix}"),
+        shell("module load plink-2; plink2 --vcf {input.vcf} --within {input.popClusters} --freq --fst --missing --indep-pairwise 50 5 .05 --hardy midp --het --out final/SUPER/{params.prefix}"),
+        # shell("module load plink-2; plink2 --vcf {input.vcf} --recode HV --out final/SUPER/ALL_{wildcards.location}_SUPER_HV"),
+        # shell("module load plink-2; plink2 --vcf {input.vcf} --indep-pairwise 50 10 0.1 --double-id --out final/SUPER/ALL_SUPER_{wildcards.location}"),
+        # shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --mind --extract final/SUPER/ALL_SUPER_{wildcards.location}.prune.in --pca var-wts scols=sid --out final/SUPER/ALL_SUPER_{wildcards.location}")
+        # for i in superPop:
+        #     shell(f"module load plink-1.9; plink --vcf {input.vcf} --double-id --snps-only --keep-allele-order --within {input.popClusters} --keep-cluster-names {i} --r2 inter-chr dprime --recode HV --out final/SUPER/{i}/{params.prefix}_{i}_HV");
+        # Admixture:
+        # shell("module load plink-1.9; plink --mind --geno --indep-pairwise 50 10 0.1 --vcf {input.vcf} --double-id --keep-allele-order --make-bed --out final/SUPER/ALL_{wildcards.location}_SUPER"),
+        # shell("module load admixture-1.3.0; admixture --cv final/SUPER/ALL_{wildcards.location}_SUPER.bed 5"),
+        # shell("mv ALL_{wildcards.location}_SUPER.5.* final/SUPER/")
 
 
-# rule ALL_ANALYZE_SUB:
-#     """
-#     Perform frequency analysis on sub-populations.
-#     """
-#     input:
-#         vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf",
-#         popClusters="input/subPopCluster"
+rule ALL_ANALYZE_SUB:
+    """
+    Perform frequency analysis on sub-populations.
+    """
+    input:
+        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf",
+        popClusters="input/subPopCluster"
         
-#     output:
-#         expand("final/SUB/ALL_{{location}}_SUB.{extension}", extension=finalExtensions),
-#         expand("final/SUB/{i}/ALL_{{location}}_SUB_{i}_HV.{extensions}", i=subPop, extensions=["log", "ld"])
+    output:
+        expand("final/SUB/ALL_{{location}}_SUB.{extension}", extension=finalExtensions),
+        expand("final/SUB/{i}/ALL_{{location}}_SUB_{i}_HV.{extensions}", i=subPop, extensions=["log", "ld"])
 
-#     params:
-#         prefix = 'ALL_{location}_SUB'
+    params:
+        prefix = 'ALL_{location}_SUB'
     
-#     resources:
-#         cpus=15,
-#         nodes=1,
-#         queue="normal",
-#         walltime="30:00:00"
+    resources:
+        cpus=15,
+        nodes=1,
+        queue="normal",
+        walltime="30:00:00"
   
-#     run:
-#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --freq --out final/SUB/{params.prefix}"),
-#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --within {input.popClusters} --freq --fst --missing --r2 inter-chr dprime --test-mishap --hardy midp --het --ibc --out final/SUB/{params.prefix}"),
-#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --snps-only --double-id --recode HV --out final/SUB/ALL_{wildcards.location}_SUB_HV")
-#         for i in subPop:
-#             shell(f"module load plink-1.9; plink --vcf {input.vcf} --double-id --snps-only --keep-allele-order --within {input.popClusters} --keep-cluster-names {i} --r2 inter-chr dprime --recode HV --out final/SUB/{i}/{params.prefix}_{i}_HV")
+    run:
+        shell("module load plink-2; plink2 --vcf {input.vcf} --freq --out final/SUB/{params.prefix}"),
+        shell("module load plink-2; plink2 --vcf {input.vcf} --within {input.popClusters} --freq --fst --missing --indep-pairwise 50 5 .5 --hardy midp --het --out final/SUB/{params.prefix}"),
+        # shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --recode HV --out final/SUB/ALL_{wildcards.location}_SUB_HV")
+        # for i in subPop:
+        #     shell(f"module load plink-1.9; plink --vcf {input.vcf} --double-id --snps-only --keep-allele-order --within {input.popClusters} --keep-cluster-names {i} --r2 inter-chr dprime --recode HV --out final/SUB/{i}/{params.prefix}_{i}_HV")
 
-    
-#// ToDo: Add in Admixture and in-house VEP processes
+# Add in VEP API calls
