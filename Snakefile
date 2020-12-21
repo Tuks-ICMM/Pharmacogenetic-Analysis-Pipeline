@@ -229,7 +229,7 @@ rule ALL_ANALYZE_SUPER:
     Perform Frequency analysis on super populations.
     """
     input:
-        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf",
+        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz",
         popClusters="input/superPopCluster"
     
     output:
@@ -264,7 +264,7 @@ rule ALL_ANALYZE_SUB:
     Perform frequency analysis on sub-populations.
     """
     input:
-        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf",
+        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz",
         popClusters="input/subPopCluster"
         
     output:
