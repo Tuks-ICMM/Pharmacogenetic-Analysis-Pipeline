@@ -209,7 +209,7 @@ rule ALL_FILTER:
     Filter out individuals missing 100% of their variant information (Safety Check).
     """
     input:
-        ".intermediates/TRIM/ALL_{location}_READY.vcf.gz"
+        ".intermediates/TRIM/ALL_{location}_TRIMMED.vcf.gz"
 
     output:
         ".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz"
