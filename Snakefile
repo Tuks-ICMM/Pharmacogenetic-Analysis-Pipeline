@@ -106,7 +106,8 @@ rule ALL_COLLATE:
         expand(".intermediates/LIFTOVER/{sample}.vcf.gz", sample=samples)
 
     output:
-        ".intermediates/COLLATE/ALL.vcf.gz"
+        ".intermediates/COLLATE/ALL.vcf.gz",
+        ".intermediates/COLLATE/ALL.vcf.gz.tbi"
 
     params:
         prefix = "ALL_PRE_COLLATE",
@@ -121,6 +122,7 @@ rule ALL_COLLATE:
 
     run:
         shell("module load bcftools-1.7; bcftools merge -l .intermediates/LIFTOVER/merge.list -O z -o .intermediates/COLLATE/ALL.vcf.gz"),
+        shell("module load samtools-1.7; tabix .intermediates/COLLATE/ALL.vcf.gz")
 
 rule ALL_ANNOTATE:
     """
