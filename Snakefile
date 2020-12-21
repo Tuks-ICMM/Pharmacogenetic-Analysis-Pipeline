@@ -106,7 +106,7 @@ rule ALL_COLLATE:
         expand(".intermediates/LIFTOVER/{sample}.vcf.gz", sample=samples)
 
     output:
-        expand(".intermediates/COLLATE/ALL.{extension}", extension=bExtensions)
+        ".intermediates/COLLATE/ALL.vcf.gz"
 
     params:
         prefix = "ALL_PRE_COLLATE",
@@ -120,23 +120,21 @@ rule ALL_COLLATE:
         walltime="30:00:00"
 
     run:
-        # TODO: Update function to use BCFTools merge command for non-overlapping samples (Picard complains about that)
-        shell("module load bcftools-1.7; bcftools merge -l .intermediates/LIFTOVER/merge.list -o .intermediates/COLLATE/ALL.vcf"),
-        shell("ln -sf .intermediates/"),
-        shell("module load plink-1.9; plink --keep-allele-order --allow-extra-chr --chr 1-22 --vcf .intermediates/COLLATE/ALL.vcf --make-bed --out .intermediates/COLLATE/ALL")
-
+        shell("module load bcftools-1.7; bcftools merge -l .intermediates/LIFTOVER/merge.list -O z -o .intermediates/COLLATE/ALL.vcf.gz"),
 
 rule ALL_ANNOTATE:
     """
     Annotate rsID's in psudo-dataset to facilitate down-stream analysis.
     """
     input:
-        expand(".intermediates/COLLATE/ALL.{extension}", extension=bExtensions)
-        # ".intermediates/FILTER/ALL_{location}_FILTERED.vcf"
+        ".intermediates/COLLATE/ALL.vcf.gz"
 
     output:
-        ".intermediates/ANNOTATE/ALL_ANNOTATED.vcf",
-        expand(".intermediates/ANNOTATE/ALL_ANNOTATED.{extension}", extension=bExtensions)
+        ".intermediates/ANNOTATE/ALL.vcf.gz",
+    
+    params:
+        refGenome='/apps/bcbio/genomes/Hsapiens/hg38/seq/hg38.fa.gz',
+        dbSNP='/nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz'
     
     resources:
         cpus=28,
@@ -144,17 +142,12 @@ rule ALL_ANNOTATE:
         queue="normal",
         walltime="30:00:00"
 
-    shell:
-        """
-        module load plink-1.9
-        plink --bfile .intermediates/COLLATE/ALL --keep-allele-order --recode --out .intermediates/COLLATE/ALL
-        module load gatk-4.0.12.0
-        gatk VariantAnnotator -V .intermediates/COLLATE/ALL.vcf -R /apps/bcbio/genomes/Hsapiens/hg38/seq/hg38.fa.gz -D /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O .intermediates/ANNOTATE/ALL_PRE_SED.vcf
-        sed -r -e 's/^chr([0-9]{{1,2}})\\t([0-9]+)\\t[0-9]{{1,2}}:[0-9]+[A-Z]{{1}}-[A-Z]{{1}};(rs[0-9]+)/chr\\1\\t\\2\\t\\3/g' .intermediates/ANNOTATE/ALL_PRE_SED.vcf > .intermediates/ANNOTATE/ALL_ANNOTATED.vcf
-        cp .intermediates/ANNOTATE/ALL_ANNOTATED.vcf final/ALL.vcf
-        plink --vcf .intermediates/ANNOTATE/ALL_ANOTATED.vcf --keep-allele-order --make-bed --out .intermediates/ANNOTATE/ALL_ANNOTATED
-        """
-
+    run:
+        # shell("module load plink-1.9; plink --bfile .intermediates/COLLATE/ALL --keep-allele-order --recode --out .intermediates/COLLATE/ALL"),
+        shell("module load gatk-4.0.12.0; gatk VariantAnnotator -V {input} -R {refGenome} -D /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O .intermediates/ANNOTATE/ALL_PRE_NAME_CHECKED.vcf"),
+        shell("sed -r -e 's/^chr([0-9]{{1,2}})\\t([0-9]+)\\t[0-9]{{1,2}}:[0-9]+[A-Z]{{1}}-[A-Z]{{1}};(rs[0-9]+)/chr\\1\\t\\2\\t\\3/g' .intermediates/ANNOTATE/ALL_PRE_NAME_CHECKED.vcf > .intermediates/ANNOTATE/ALL_ANNOTATED.vcf"),
+        shell("module load plink-2; plink2 --vcf .intermediates/ANNOTATE/ALL_ANNOTATED.vcf --export vcf-4.2 bgz --out ALL.vcf"),
+        # shell("module load plink-1.9; plink --vcf .intermediates/ANNOTATE/ALL_ANOTATED.vcf --keep-allele-order --make-bed --out .intermediates/ANNOTATE/ALL_ANNOTATED")
 
 # rule Admixture:
 #     """
@@ -191,10 +184,10 @@ rule TRIM_AND_NAME:
     Trim the whole-genome psudo-datasets down to several regions of interest for Variant analysis and Variant effect prediction.
     """
     input:
-        expand(".intermediates/ANNOTATE/ALL_ANNOTATED.{extension}", extension=bExtensions)
+        ".intermediates/ANNOTATE/ALL.vcf.gz"
 
     output:
-        expand(".intermediates/TRIM/ALL_{{location}}_READY.{extension}", extension=tExtensions)
+        ".intermediates/TRIM/ALL_{location}_TRIMMED.vcf.gz"
 
     params:
         fromBP = lambda wildcards: config["locations"][wildcards.location]["GRCh37"]["from"],
@@ -207,14 +200,8 @@ rule TRIM_AND_NAME:
         queue="normal",
         walltime="30:00:00"
 
-    shell:
-        """
-        module load plink-1.9
-        module load plink2
-        plink --bfile input/ALL --chr {params.chr} --set-missing-var-ids @_# --make-bed --keep-allele-order --from-bp {params.fromBP} --to-bp {params.toBP} --out .intermediates/TRIM/ALL_{wildcards.location}_TRIMMED
-        plink2 --bfile .intermediates/TRIM/ALL_{wildcards.location}_TRIMMED --set-all-var-ids @:#\$r-\$a --new-id-max-allele-len 40 truncate  --make-bed --out .intermediates/TRIM/ALL_{wildcards.location}_NAMED
-        plink --bfile .intermediates/TRIM/ALL_{wildcards.location}_NAMED --keep-allele-order --recode --out .intermediates/TRIM/ALL_{wildcards.location}_READY
-        """
+    run:
+        shell("module load plink-2; plink2 --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --export vcf-4.2 bgz --out .intermediates/TRIM/ALL_{wildcards.location}_TRIMMED"),
 
 
 rule ALL_FILTER:
@@ -222,10 +209,10 @@ rule ALL_FILTER:
     Filter out individuals missing 100% of their variant information (Safety Check).
     """
     input:
-        expand(".intermediates/TRIM/ALL_{{location}}_READY.{extension}", extension=tExtensions)
+        ".intermediates/TRIM/ALL_{location}_READY.vcf.gz"
 
     output:
-        ".intermediates/FILTER/ALL_{location}_FILTERED.vcf"
+        ".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz"
     
     resources:
         cpus=10,
@@ -233,75 +220,72 @@ rule ALL_FILTER:
         queue="short",
         walltime="03:00:00"
 
-    shell:
-        """
-        module load plink-1.9
-        plink --file .intermediates/COLLATE_{wildcards.location}/ALL_{wildcards.location} --mind 1 --recode vcf-iid --output-chr chr26 --keep-allele-order --out .intermediates/FILTER/ALL_{wildcards.location}_PRE_SED
-        sed -r -e 's/##contig=<ID=chr19,length=[0-9]+>/##contig=<ID=chr19,length=58617616>/' -e 's/##contig=<ID=chr4,length=[0-9]+>/##contig=<ID=chr4,length=190214555>/' .intermediates/FILTER/ALL_{wildcards.location}_PRE_SED.vcf > .intermediates/FILTER/ALL_{wildcards.location}_FILTERED.vcf
-        """
-
-rule ALL_ANALYZE_SUPER:
-    """
-    Perform Frequency analysis on super populations.
-    """
-    input:
-        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf",
-        popClusters="input/superPopCluster"
-    
-    output:
-        expand("final/SUPER/ALL_{{location}}_SUPER.{extension}", extension=finalExtensions),
-        expand("final/SUPER/{i}/ALL_{{location}}_SUPER_{i}_HV.{extensions}", i=superPop, extensions=["log", "ld"])
-
-    params:
-        prefix = 'ALL_{location}_SUPER'
-    
-    resources:
-        cpus=15,
-        nodes=1,
-        queue="normal",
-        walltime="30:00:00"
-
     run:
-        shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --freq --out final/SUPER/{params.prefix}"),
-        shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --within {input.popClusters} --freq --fst --missing --r2 inter-chr dprime --test-mishap --hardy midp --het --ibc --out final/SUPER/{params.prefix}"),
-        shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --snps-only --double-id --recode HV --out final/SUPER/ALL_{wildcards.location}_SUPER_HV"),
-        shell("module load plink2; plink2 --vcf {input.vcf} --indep-pairwise 50 10 0.1 --double-id --out final/SUPER/ALL_SUPER_{wildcards.location}"),
-        shell("module load plink2; plink2 --vcf {input.vcf} --double-id --mind --extract final/SUPER/ALL_SUPER_{wildcards.location}.prune.in --pca var-wts scols=sid --out final/SUPER/ALL_SUPER_{wildcards.location}")
-        for i in superPop:
-            shell(f"module load plink-1.9; plink --vcf {input.vcf} --double-id --snps-only --keep-allele-order --within {input.popClusters} --keep-cluster-names {i} --r2 inter-chr dprime --recode HV --out final/SUPER/{i}/{params.prefix}_{i}_HV");
-        # Admixture:
-        shell("module load plink-1.9; plink --mind --geno --indep-pairwise 50 10 0.1 --vcf {input.vcf} --double-id --keep-allele-order --make-bed --out final/SUPER/ALL_{wildcards.location}_SUPER"),
-        shell("module load admixture-1.3.0; admixture --cv final/SUPER/ALL_{wildcards.location}_SUPER.bed 5"),
-        shell("mv ALL_{wildcards.location}_SUPER.5.* final/SUPER/")
-
-
-rule ALL_ANALYZE_SUB:
-    """
-    Perform frequency analysis on sub-populations.
-    """
-    input:
-        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf",
-        popClusters="input/subPopCluster"
+        shell("module load plink-2; plink2 --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz--out .intermediates/FILTER/ALL_{wildcards.location}_FILTERED")
         
-    output:
-        expand("final/SUB/ALL_{{location}}_SUB.{extension}", extension=finalExtensions),
-        expand("final/SUB/{i}/ALL_{{location}}_SUB_{i}_HV.{extensions}", i=subPop, extensions=["log", "ld"])
 
-    params:
-        prefix = 'ALL_{location}_SUB'
+# rule ALL_ANALYZE_SUPER:
+#     """
+#     Perform Frequency analysis on super populations.
+#     """
+#     input:
+#         vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf",
+#         popClusters="input/superPopCluster"
     
-    resources:
-        cpus=15,
-        nodes=1,
-        queue="normal",
-        walltime="30:00:00"
+#     output:
+#         expand("final/SUPER/ALL_{{location}}_SUPER.{extension}", extension=finalExtensions),
+#         expand("final/SUPER/{i}/ALL_{{location}}_SUPER_{i}_HV.{extensions}", i=superPop, extensions=["log", "ld"])
+
+#     params:
+#         prefix = 'ALL_{location}_SUPER'
+    
+#     resources:
+#         cpus=15,
+#         nodes=1,
+#         queue="normal",
+#         walltime="30:00:00"
+
+#     run:
+#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --freq --out final/SUPER/{params.prefix}"),
+#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --within {input.popClusters} --freq --fst --missing --r2 inter-chr dprime --test-mishap --hardy midp --het --ibc --out final/SUPER/{params.prefix}"),
+#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --snps-only --double-id --recode HV --out final/SUPER/ALL_{wildcards.location}_SUPER_HV"),
+#         shell("module load plink2; plink2 --vcf {input.vcf} --indep-pairwise 50 10 0.1 --double-id --out final/SUPER/ALL_SUPER_{wildcards.location}"),
+#         shell("module load plink2; plink2 --vcf {input.vcf} --double-id --mind --extract final/SUPER/ALL_SUPER_{wildcards.location}.prune.in --pca var-wts scols=sid --out final/SUPER/ALL_SUPER_{wildcards.location}")
+#         for i in superPop:
+#             shell(f"module load plink-1.9; plink --vcf {input.vcf} --double-id --snps-only --keep-allele-order --within {input.popClusters} --keep-cluster-names {i} --r2 inter-chr dprime --recode HV --out final/SUPER/{i}/{params.prefix}_{i}_HV");
+#         # Admixture:
+#         shell("module load plink-1.9; plink --mind --geno --indep-pairwise 50 10 0.1 --vcf {input.vcf} --double-id --keep-allele-order --make-bed --out final/SUPER/ALL_{wildcards.location}_SUPER"),
+#         shell("module load admixture-1.3.0; admixture --cv final/SUPER/ALL_{wildcards.location}_SUPER.bed 5"),
+#         shell("mv ALL_{wildcards.location}_SUPER.5.* final/SUPER/")
+
+
+# rule ALL_ANALYZE_SUB:
+#     """
+#     Perform frequency analysis on sub-populations.
+#     """
+#     input:
+#         vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf",
+#         popClusters="input/subPopCluster"
+        
+#     output:
+#         expand("final/SUB/ALL_{{location}}_SUB.{extension}", extension=finalExtensions),
+#         expand("final/SUB/{i}/ALL_{{location}}_SUB_{i}_HV.{extensions}", i=subPop, extensions=["log", "ld"])
+
+#     params:
+#         prefix = 'ALL_{location}_SUB'
+    
+#     resources:
+#         cpus=15,
+#         nodes=1,
+#         queue="normal",
+#         walltime="30:00:00"
   
-    run:
-        shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --freq --out final/SUB/{params.prefix}"),
-        shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --within {input.popClusters} --freq --fst --missing --r2 inter-chr dprime --test-mishap --hardy midp --het --ibc --out final/SUB/{params.prefix}"),
-        shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --snps-only --double-id --recode HV --out final/SUB/ALL_{wildcards.location}_SUB_HV")
-        for i in subPop:
-            shell(f"module load plink-1.9; plink --vcf {input.vcf} --double-id --snps-only --keep-allele-order --within {input.popClusters} --keep-cluster-names {i} --r2 inter-chr dprime --recode HV --out final/SUB/{i}/{params.prefix}_{i}_HV")
+#     run:
+#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --freq --out final/SUB/{params.prefix}"),
+#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --double-id --within {input.popClusters} --freq --fst --missing --r2 inter-chr dprime --test-mishap --hardy midp --het --ibc --out final/SUB/{params.prefix}"),
+#         shell("module load plink-1.9; plink --vcf {input.vcf} --keep-allele-order --snps-only --double-id --recode HV --out final/SUB/ALL_{wildcards.location}_SUB_HV")
+#         for i in subPop:
+#             shell(f"module load plink-1.9; plink --vcf {input.vcf} --double-id --snps-only --keep-allele-order --within {input.popClusters} --keep-cluster-names {i} --r2 inter-chr dprime --recode HV --out final/SUB/{i}/{params.prefix}_{i}_HV")
 
     
 #// ToDo: Add in Admixture and in-house VEP processes
