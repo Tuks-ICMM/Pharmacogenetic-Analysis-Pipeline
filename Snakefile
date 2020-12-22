@@ -83,8 +83,8 @@ rule LIFTOVER:
                 shell("echo 'Lifting from GRCh37 to GRCh38.'"),
                 if not os.path.exists('.intermediates/LIFTOVER'):
                     os.makedirs('.intermediates/LIFTOVER')
-                shell("module load plink-2; plink2 --vcf input/{wildcards.sample}.vcf.gz --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out .intermediates/LIFTOVER/{wildcards.sample}_PREP --export vcf-4.2 bgz --output-chr 26 --keep-allele-order"),
-                shell("sleep 1m; tabix -p vcf .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
+                shell("module load plink-2; plink2 --vcf input/{wildcards.sample}.vcf.gz --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out .intermediates/LIFTOVER/{wildcards.sample}_PREP --export vcf-4.2 bgz --output-chr chr26 --keep-allele-order"),
+                shell("sleep 60; tabix -p vcf .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
                 # ToDo: Add in GATK SelectVariant Process and filter out symbolic using `--select-type-to-exclude`:
                 shell("module load gatk-4.0.12.0; gatk SelectVariants  -V .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O .intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz"),
                 shell("module load picard-2.17.11; java -jar $PICARD LiftoverVcf I=.intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz C={params.chainFile} REJECT=.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
@@ -122,7 +122,8 @@ rule ALL_COLLATE:
 
     run:
         shell("module load bcftools-1.7; bcftools merge -l .intermediates/LIFTOVER/merge.list -O z -o .intermediates/COLLATE/ALL.vcf.gz"),
-        shell("module load samtools-1.7; tabix .intermediates/COLLATE/ALL.vcf.gz")
+        shell("module load samtools-1.7; tabix .intermediates/COLLATE/ALL_INCLUDING_CHR.vcf.gz"),
+        shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_INCLUDING_CHR.vcf.gz --output-chr chr26 --chr 1-22 --expoprt vcf-4.2 bgz --out .intermediates/COLLATE/ALL.vcf.gz")
 
 rule ALL_ANNOTATE:
     """
