@@ -1,6 +1,6 @@
 {
   "refGenomes": {
-    "GRCh38": "grch38.fna.gz"
+    "GRCh38": "GRCh38.fa.gz"
   },
   "samples": {
     "1000g": {
