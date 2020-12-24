@@ -112,7 +112,8 @@ rule ALL_COLLATE:
 
     output:
         ".intermediates/COLLATE/ALL.vcf.gz",
-        ".intermediates/COLLATE/ALL.vcf.gz.tbi"
+        ".intermediates/COLLATE/ALL.vcf.gz.tbi",
+        ".intermediates/COLLATE/merge.list"
 
     params:
         prefix = "ALL_PRE_COLLATE",
@@ -126,6 +127,8 @@ rule ALL_COLLATE:
         walltime="30:00:00"
 
     run:
+        if not os.path.exists('.intermediates/COLLATE'):
+            os.makedirs('.intermediates/COLLATE')
         for i in mergeList:
             shell("module load picard-2.17.11; java-jar $PICARD I=.intermediates/LIFTOVER/{i}.vcf.gz O=.intermediates/COLLATE/{i}_FIXED.vcf.gz"),
             shell("echo '.intermediates/COLLATE/{i}_FIXED.vcf.gz' >> .intermediates/COLLATE/merge.list"),
