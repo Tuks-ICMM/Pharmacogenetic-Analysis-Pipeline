@@ -126,8 +126,8 @@ rule ALL_COLLATE:
         walltime="30:00:00"
 
     run:
-        shell("module load picard-2.17.11; java-jar $PICARD I=.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz O=.intermediates/COLLATE/{wildcards.sample}_FIXED.vcf.gz"),
         for i in mergeList:
+            shell("module load picard-2.17.11; java-jar $PICARD I=.intermediates/LIFTOVER/{i}.vcf.gz O=.intermediates/COLLATE/{i}_FIXED.vcf.gz"),
             shell("echo '.intermediates/COLLATE/{i}_FIXED.vcf.gz' > .intermediates/COLLATE/merge.list"),
         shell("module load bcftools-1.7; bcftools merge -l .intermediates/COLLATE/merge.list -O z -o .intermediates/COLLATE/ALL.vcf.gz"),
         shell("module load samtools-1.7; tabix .intermediates/COLLATE/ALL_INCLUDING_CHR.vcf.gz"),
