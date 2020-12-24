@@ -128,7 +128,7 @@ rule ALL_COLLATE:
     run:
         for i in mergeList:
             shell("module load picard-2.17.11; java-jar $PICARD I=.intermediates/LIFTOVER/{i}.vcf.gz O=.intermediates/COLLATE/{i}_FIXED.vcf.gz"),
-            shell("echo '.intermediates/COLLATE/{i}_FIXED.vcf.gz' > .intermediates/COLLATE/merge.list"),
+            shell("echo '.intermediates/COLLATE/{i}_FIXED.vcf.gz' >> .intermediates/COLLATE/merge.list"),
         shell("module load bcftools-1.7; bcftools merge -l .intermediates/COLLATE/merge.list -O z -o .intermediates/COLLATE/ALL.vcf.gz"),
         shell("module load samtools-1.7; tabix .intermediates/COLLATE/ALL_INCLUDING_CHR.vcf.gz"),
         shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_INCLUDING_CHR.vcf.gz --output-chr chr26 --chr 1-22 --expoprt vcf-4.2 bgz --out .intermediates/COLLATE/ALL.vcf.gz")
