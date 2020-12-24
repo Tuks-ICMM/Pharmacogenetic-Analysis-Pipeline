@@ -12,6 +12,9 @@ subPop=set(config['clusters']['SUB'])
 bExtensions=["bed", "bim", "fam"]
 tExtensions=["map", "ped"]
 
+# Define a list to store a merge-list of dataset names:
+mergeList = list()
+
 # def getReferenceGenome(sample):
 #     if config['samples'][wildcards.sample]['refGenome'] == "GRCh37" or config['samples'][wildcards.sample]['refGenome'] == "Hg19":
 #         return "/nlustre/users/fourie/H.sapiens/gatk_resource_bundle/2.8/hg19/ucsc.hg19.fasta"
@@ -95,7 +98,9 @@ rule LIFTOVER:
             shell("module load plink-1.9; plink --map input/{wildcards.sample}.map --ped input/{wildcards.sample}.ped --allow-extra-chr --chr 1-22 --recode vcf --keep-allele-order --exclude {params.exclusionList} --out .intermediates/LIFTOVER/{wildcards.sample}"),
         # shell("bgzip .intermediates/LIFTOVER/{wildcards.sample}.vcf"),
         shell("sleep 1m; tabix -f -p vcf .intermediates/LIFTOVER/{wildcards.sample}.vcf.gz"),
-        shell("echo '.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz' >> .intermediates/LIFTOVER/merge.list")
+        # shell("echo '.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz' >> .intermediates/LIFTOVER/merge.list")
+        mergeList.append(wildcards.sample)
+
 
 
 rule ALL_COLLATE:
@@ -121,7 +126,10 @@ rule ALL_COLLATE:
         walltime="30:00:00"
 
     run:
-        shell("module load bcftools-1.7; bcftools merge -l .intermediates/LIFTOVER/merge.list -O z -o .intermediates/COLLATE/ALL.vcf.gz"),
+        shell("module load picard-2.17.11; java-jar $PICARD I=.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz O=.intermediates/COLLATE/{wildcards.sample}_FIXED.vcf.gz"),
+        for i in mergeList:
+            shell("echo '.intermediates/COLLATE/{i}_FIXED.vcf.gz' > .intermediates/COLLATE/merge.list"),
+        shell("module load bcftools-1.7; bcftools merge -l .intermediates/COLLATE/merge.list -O z -o .intermediates/COLLATE/ALL.vcf.gz"),
         shell("module load samtools-1.7; tabix .intermediates/COLLATE/ALL_INCLUDING_CHR.vcf.gz"),
         shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_INCLUDING_CHR.vcf.gz --output-chr chr26 --chr 1-22 --expoprt vcf-4.2 bgz --out .intermediates/COLLATE/ALL.vcf.gz")
 
