@@ -90,7 +90,7 @@ rule LIFTOVER:
                 shell("sleep 60; tabix -p vcf .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
                 # ToDo: Add in GATK SelectVariant Process and filter out symbolic using `--select-type-to-exclude`:
                 shell("module load gatk-4.0.12.0; gatk SelectVariants  -V .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O .intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz"),
-                shell("module load picard-2.17.11; java -jar $PICARD LiftoverVcf I=.intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz C={params.chainFile} REJECT=.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
+                shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD LiftoverVcf I=.intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz C={params.chainFile} REJECT=.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
         # TODO: Add conditionals for other human reference genome builds
         else:
             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
@@ -130,7 +130,7 @@ rule ALL_COLLATE:
         if not os.path.exists('.intermediates/COLLATE'):
             os.makedirs('.intermediates/COLLATE')
         for i in mergeList:
-            shell("module load picard-2.17.11; java-jar $PICARD I=.intermediates/LIFTOVER/{i}.vcf.gz O=.intermediates/COLLATE/{i}_FIXED.vcf.gz"),
+            shell("module load picard-2.17.11; java-jar $PICARD FixVcfHeader I=.intermediates/LIFTOVER/{i}.vcf.gz O=.intermediates/COLLATE/{i}_FIXED.vcf.gz"),
             shell("echo '.intermediates/COLLATE/{i}_FIXED.vcf.gz' >> .intermediates/COLLATE/merge.list"),
         shell("module load bcftools-1.7; bcftools merge -l .intermediates/COLLATE/merge.list -O z -o .intermediates/COLLATE/ALL.vcf.gz"),
         shell("module load samtools-1.7; tabix .intermediates/COLLATE/ALL_INCLUDING_CHR.vcf.gz"),
