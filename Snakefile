@@ -127,7 +127,7 @@ rule ALL_COLLATE:
         walltime="30:00:00"
 
     run:
-        shell("module load bcftools-1.7; bcftools merge .intermediates/LIFTOVER/merge.list -O z -o .intermediates/COLLATE/ALL.vcf.gz"),
+        shell("module load bcftools-1.7; bcftools merge -l .intermediates/LIFTOVER/merge.list -O z -o .intermediates/COLLATE/ALL.vcf.gz"),
         shell("module load samtools-1.7; tabix .intermediates/COLLATE/ALL_INCLUDING_CHR.vcf.gz"),
         shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_INCLUDING_CHR.vcf.gz --output-chr chr26 --chr 1-22 --expoprt vcf-4.2 bgz --out .intermediates/COLLATE/ALL.vcf.gz")
 
