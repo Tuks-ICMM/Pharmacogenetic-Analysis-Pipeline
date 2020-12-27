@@ -129,7 +129,7 @@ rule ALL_COLLATE:
     run:
         shell("module load bcftools-1.7; bcftools merge -l .intermediates/LIFTOVER/merge.list -O z -o .intermediates/COLLATE/ALL_PRE.vcf.gz"),
         shell("module load samtools-1.7; tabix .intermediates/COLLATE/ALL_PRE.vcf.gz"),
-        shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_PRE.vcf.gz --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out .intermediates/COLLATE/ALL.vcf.gz")
+        shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_PRE.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out .intermediates/COLLATE/ALL.vcf.gz")
 
 rule ALL_ANNOTATE:
     """
