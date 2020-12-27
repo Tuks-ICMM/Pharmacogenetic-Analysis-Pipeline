@@ -89,7 +89,7 @@ rule LIFTOVER:
                 shell("sleep 60; tabix -p vcf .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
                 # ToDo: Add in GATK SelectVariant Process and filter out symbolic using `--select-type-to-exclude`:
                 shell("module load gatk-4.0.12.0; gatk SelectVariants  -V .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O .intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz"),
-                shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD LiftoverVcf I=.intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}_LIFTOVER.vcf.gz C={params.chainFile} REJECT=.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
+                shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD LiftoverVcf I=.intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}_LIFTED.vcf.gz C={params.chainFile} REJECT=.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
                 shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD FixVcfHeader I=.intermediates/LIFTOVER/{wildcards.sample}_LIFTED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz"),
         # TODO: Add conditionals for other human reference genome builds
         else:
