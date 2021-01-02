@@ -112,8 +112,7 @@ rule ALL_COLLATE:
 
     output:
         ".intermediates/COLLATE/ALL.vcf.gz",
-        ".intermediates/COLLATE/ALL.vcf.gz.tbi",
-        ".intermediates/COLLATE/merge.list"
+        ".intermediates/COLLATE/ALL.vcf.gz.tbi"
 
     params:
         ref="binaries/" + config['refGenomes']['GRCh38']
@@ -126,9 +125,10 @@ rule ALL_COLLATE:
 
     run:
         shell("module load bcftools-1.7; bcftools merge -l .intermediates/LIFTOVER/merge.list -O z -o .intermediates/COLLATE/ALL_PRE.vcf.gz"),
-        shell("module load samtools-1.7; tabix .intermediates/COLLATE/ALL_PRE.vcf.gz"),
+        shell("module load samtools-1.7; tabix -p vcf .intermediates/COLLATE/ALL_PRE.vcf.gz"),
         shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out .intermediates/COLLATE/ALL_REF"),
-        shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out .intermediates/COLLATE/ALL.vcf.gz")
+        shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out .intermediates/COLLATE/ALL"),
+        shell("module load samtools-1.7; tabix -p vcf .intermediates/COLLATE/ALL.vcf.gz"),
 
 rule ALL_ANNOTATE:
     """
