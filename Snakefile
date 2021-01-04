@@ -223,7 +223,7 @@ rule ALL_FILTER:
         cpus=10,
         nodes=1,
         queue="short",
-        walltime="03:00:00"
+        walltime="00:30:00"
 
     run:
         shell("module load plink-2; plink2 --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz--out .intermediates/FILTER/ALL_{wildcards.location}_FILTERED")
