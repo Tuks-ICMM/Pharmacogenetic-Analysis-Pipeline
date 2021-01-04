@@ -151,8 +151,8 @@ rule ALL_ANNOTATE:
         walltime="30:00:00"
 
     run:
-        shell("module load bcftools-1.7; bcftools annotate  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o .intermediates/ALL_ANNOTATED.vcf.gz {input}"),
-        shell("module load plink-2; plink2 --vcf .intermediates/ANNOTATE/ALL_ANNOTATED.vcf --export vcf-4.2 bgz --out ALL.vcf"),
+        shell("module load bcftools-1.7; bcftools annotate  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o .intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"),
+        shell("module load plink-2; plink2 --vcf .intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out ALL.vcf"),
 
 # rule Admixture:
 #     """
