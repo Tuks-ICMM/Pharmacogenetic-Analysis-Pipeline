@@ -151,11 +151,8 @@ rule ALL_ANNOTATE:
         walltime="30:00:00"
 
     run:
-        # shell("module load plink-1.9; plink --bfile .intermediates/COLLATE/ALL --keep-allele-order --recode --out .intermediates/COLLATE/ALL"),
-        shell("module load gatk-4.0.12.0; gatk VariantAnnotator -V {input} -R {params.refGenome} -D /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O .intermediates/ANNOTATE/ALL_PRE_NAME_CHECKED.vcf"),
-        shell("sed -r -e 's/^chr([0-9]{{1,2}})\\t([0-9]+)\\t[0-9]{{1,2}}:[0-9]+[A-Z]{{1}}-[A-Z]{{1}};(rs[0-9]+)/chr\\1\\t\\2\\t\\3/g' .intermediates/ANNOTATE/ALL_PRE_NAME_CHECKED.vcf > .intermediates/ANNOTATE/ALL_ANNOTATED.vcf"),
+        shell("module load bcftools-1.7; bcftools annotate  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o .intermediates/ALL_ANNOTATED.vcf.gz {input}"),
         shell("module load plink-2; plink2 --vcf .intermediates/ANNOTATE/ALL_ANNOTATED.vcf --export vcf-4.2 bgz --out ALL.vcf"),
-        # shell("module load plink-1.9; plink --vcf .intermediates/ANNOTATE/ALL_ANOTATED.vcf --keep-allele-order --make-bed --out .intermediates/ANNOTATE/ALL_ANNOTATED")
 
 # rule Admixture:
 #     """
