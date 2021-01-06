@@ -25,24 +25,27 @@
   },
   "locations": {
     "CYP2A6": {
-      "GRCh37": {
+      "GRCh38": {
+        "transcript_id": "NM_000762.6",
         "chromosome": 19,
-        "from": 41349343,
-        "to": 41356460
+        "from": 40842850,
+        "to": 40851138
       }
     },
     "CYP2B6": {
-      "GRCh37": {
+      "GRCh38": {
+        "transcript_id": "NM_000767.5",
         "chromosome": 19,
-        "from": 41497104,
-        "to": 41524408
+        "from": 40988570,
+        "to": 41021110
       }
     },
     "UGT2B7": {
-      "GRCh37": {
+      "GRCh38": {
+        "transcript_id": "NM_001074.4",
         "chromosome": 4,
-        "from": 69916981,
-        "to": 69978805
+        "from": 69045214,
+        "to": 69112987
       }
     }
   },

@@ -195,9 +195,9 @@ rule TRIM_AND_NAME:
         ".intermediates/TRIM/ALL_{location}_TRIMMED.vcf.gz"
 
     params:
-        fromBP = lambda wildcards: config["locations"][wildcards.location]["GRCh37"]["from"],
-        toBP = lambda wildcards: config["locations"][wildcards.location]["GRCh37"]["to"],
-        chr = lambda wildcards: config["locations"][wildcards.location]["GRCh37"]["chromosome"]
+        fromBP = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["from"],
+        toBP = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["to"],
+        chr = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["chromosome"]
     
     resources:
         cpus=10,
@@ -251,17 +251,8 @@ rule ALL_ANALYZE_SUPER:
         walltime="30:00:00"
 
     run:
-        shell("module load plink-2; plink2 --vcf {input.vcf} --freq --out final/SUPER/{params.prefix}"),
+        shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/SUPER/{params.prefix}"),
         shell("module load plink-2; plink2 --vcf {input.vcf} --within {input.popClusters} --freq --fst --missing --indep-pairwise 50 5 .05 --hardy midp --het --out final/SUPER/{params.prefix}"),
-        # shell("module load plink-2; plink2 --vcf {input.vcf} --recode HV --out final/SUPER/ALL_{wildcards.location}_SUPER_HV"),
-        # shell("module load plink-2; plink2 --vcf {input.vcf} --indep-pairwise 50 10 0.1 --double-id --out final/SUPER/ALL_SUPER_{wildcards.location}"),
-        # shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --mind --extract final/SUPER/ALL_SUPER_{wildcards.location}.prune.in --pca var-wts scols=sid --out final/SUPER/ALL_SUPER_{wildcards.location}")
-        # for i in superPop:
-        #     shell(f"module load plink-1.9; plink --vcf {input.vcf} --double-id --snps-only --keep-allele-order --within {input.popClusters} --keep-cluster-names {i} --r2 inter-chr dprime --recode HV --out final/SUPER/{i}/{params.prefix}_{i}_HV");
-        # Admixture:
-        # shell("module load plink-1.9; plink --mind --geno --indep-pairwise 50 10 0.1 --vcf {input.vcf} --double-id --keep-allele-order --make-bed --out final/SUPER/ALL_{wildcards.location}_SUPER"),
-        # shell("module load admixture-1.3.0; admixture --cv final/SUPER/ALL_{wildcards.location}_SUPER.bed 5"),
-        # shell("mv ALL_{wildcards.location}_SUPER.5.* final/SUPER/")
 
 
 rule ALL_ANALYZE_SUB:
@@ -286,10 +277,26 @@ rule ALL_ANALYZE_SUB:
         walltime="30:00:00"
   
     run:
-        shell("module load plink-2; plink2 --vcf {input.vcf} --freq --out final/SUB/{params.prefix}"),
+        shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/SUB/{params.prefix}"),
         shell("module load plink-2; plink2 --vcf {input.vcf} --within {input.popClusters} --freq --fst --missing --indep-pairwise 50 5 .5 --hardy midp --het --out final/SUB/{params.prefix}"),
-        # shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --recode HV --out final/SUB/ALL_{wildcards.location}_SUB_HV")
-        # for i in subPop:
-        #     shell(f"module load plink-1.9; plink --vcf {input.vcf} --double-id --snps-only --keep-allele-order --within {input.popClusters} --keep-cluster-names {i} --r2 inter-chr dprime --recode HV --out final/SUB/{i}/{params.prefix}_{i}_HV")
 
 # Add in VEP API calls
+rule ALL_VEP:
+    input:
+        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz"
+
+    output:
+        excel="final/{location}.xlsx"
+
+    params:
+        transcript_id = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["transcript_id"]
+
+    resources:
+        cpus=15,
+        nodes=1,
+        queue="normal",
+        walltime="30:00:00"
+
+    script:
+        "scripts/VEP.py"
+
