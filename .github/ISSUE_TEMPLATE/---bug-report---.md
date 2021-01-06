@@ -1,7 +1,7 @@
 ---
 name: "\U0001F41B Bug report \U0001F41B"
 about: Create a report to help us improve
-title: "[BUG] "
+title: "[BUG] | "
 labels: bug
 assignees: G-kodes
 

@@ -1,8 +1,8 @@
 ---
 name: "\U0001F914 Feature request \U0001F914"
 about: Suggest an idea for this project
-title: "[FEATURE]"
-labels: bug
+title: "[FEATURE] | "
+labels: enhancement
 assignees: G-kodes
 
 ---
