@@ -52,7 +52,7 @@ def generate_notation(row):
         return "{S}:{P}-{P2}:1/{I}".format(S=row['CHROM'], P=row["POS"], P2=stop_coordinates, I=row['ALT'])
 
 def chunk(seq, size):
-    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+    return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
 
 def update_set(set, term, search, add_or_append=True):
     if add_or_append:
@@ -69,77 +69,85 @@ def update_set(set, term, search, add_or_append=True):
 
 #%%
 
-# data = read_vcf(snakemake.input["vcf"])
-data = read_vcf(snamkemake.input['vcf'])
+data = read_vcf(snakemake.input["vcf"])
+# data = read_vcf("../final/SUPER/ALL_CYP2A6_SUPER.vcf.gz")
 
 #%%
-divided_data = chunk(data, 1000)
+divided_data = chunk(data, 10)
 
 
 #%%
-
-data_to_send = dict()
-data_to_send['variants'] = list()
+data_to_send = list(dict())
 for chunk in divided_data:
+    temp_list = list()
     for index, row in chunk.iterrows():
-        data_to_send['variants'].append(generate_notation(row))
-
-
-#%%
-
-requesting = True
-while requesting:
-    r = requests.post(endpoint, headers=headers, data=json.dumps(data_to_send), params=params)
-    if r.status_code != 200:
-        time.sleep(5)
-    else:
-        requesting=False
-
-
-#%%
-decoded = r.json()
-
+        temp_list.append(generate_notation(row))
+    data_to_send.append(dict(variants = temp_list))
 
 #%%
 
-i = 1
+data_received=dict()
+for index, chunk in enumerate(data_to_send):
+    requesting = True
+    while requesting:
+        r = requests.post(endpoint, headers=headers, data=json.dumps(chunk), params=params)
+        if r.status_code != 200:
+            time.sleep(5)
+        else:
+            requesting = False
+            decoded = r.json()
+            data_received["{start}-{stop}".format(start=index, stop=index+10)] = decoded
+
+#%%
+# decoded = r.json()
+
+
+#%%
 
 supplementary = data[['ID', 'POS', 'REF', 'ALT']]
-new_columns = ["Co-Located Variant", "Transcript ID", "Transcript Strand" 'Existing Variation', 'Consequence', 'Known Alleles', "Diseases", "Biotype", "CADD_PHRED"]
+new_columns = ['Co-Located Variant', 'Transcript ID', 'Transcript Strand', 'Existing Variation', 'Consequence', "Diseases", "Biotype", "CADD_PHRED"]
 for column in new_columns:
-    supplementary[column] = None
+    supplementary[column] = "-"
 
-for variant in decoded:
-    row = supplementary.loc[supplementary['POS'] == int(variant['start'])]
-    co_variants = list()
-    if 'colocated_variants' in variant:
-        row["Co-Located Variant"] = True
-        for variant in variant['colocated_variants']:
-            co_variants.append(variant['id'])
-    else:
-        row["Co-Located Variant"] = False
-        co_variants.append("-")
-    row['Existing Variation'] = ", ".join(co_variants)
+for key, chunk in data_received.items():
+    for variant in chunk:
+        row = supplementary.loc[supplementary['POS'] == int(variant['start'])]
+        co_variants = list()
+        if 'colocated_variants' in variant:
+            row["Co-Located Variant"] = True
+            for colocated_variant in variant['colocated_variants']:
+                co_variants.append(colocated_variant['id'])
+        else:
+            row["Co-Located Variant"] = False
+            co_variants.append("-")
+        row['Existing Variation'] = ", ".join(co_variants)
 
-    if 'transcript_consequences' in variant:
-        for consequence in variant['transcript_consequences']:
-            if 'canonical' in consequence:
-                print(consequence['transcript_id'])
-                i = i +1
+        if 'transcript_consequences' in variant:
+            for consequence in variant['transcript_consequences']:
                 # Add fields:
                 row['Consequence'] = ", ".join(consequence['consequence_terms'])
                 row['Transcript ID'] = consequence['transcript_id'] if 'transcript_id' in consequence else '-'
-                row["Biotype"] = consequence['biotype'] if 'biotype' in consequence else '-'
-                row['CADD_PHRED'] = consequence['cadd_phred'] if 'cadd_phred' in consequence else '-'
-                row['Transcript Strand'] = consequence['strand'] if 'strand' in consequence else '-'
-                
+                row["Biotype"] = consequence['biotype'] if ('biotype' in consequence) else '-'
+                row['CADD_PHRED'] = consequence['cadd_phred'] if ('cadd_phred' in consequence) else '-'
+                row['Transcript Strand'] = consequence['strand'] if ('strand' in consequence) else '-'
                 # Add phenotypes as a list:
                 phenotype = set()
                 if 'phenotypes' in consequence:
                     for instance in consequence['phenotypes']:
                         phenotype.add(instance['phenotype'])
-            else:
-                pass
+        else:
+            pass
+        supplementary.loc[supplementary['POS'] == int(variant['start'])] = row
+
+
 # %%
 
+frequency_data = pd.read_csv("../final/SUPER/ALL_CYP2A6_SUPER.afreq", delimiter="\t").rename(columns={'#CHROM': 'CHROM'})
+#%%
+
+# supplementary['']
+
+# supplementary.to_excel("../final/ALL_CYP2A6.xlsx", sheet_name="CYP2A6")
 supplementary.to_excel(snakemake.output['excel'], sheet_name=snakemake.wildcards.location)
+
+# %%

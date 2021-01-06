@@ -252,7 +252,7 @@ rule ALL_ANALYZE_SUPER:
 
     run:
         shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/SUPER/{params.prefix}"),
-        shell("module load plink-2; plink2 --vcf {input.vcf} --within {input.popClusters} --freq --fst --missing --indep-pairwise 50 5 .05 --hardy midp --het --out final/SUPER/{params.prefix}"),
+        shell("module load plink-2; plink2 --vcf {input.vcf} --within {input.popClusters} --freq --missing --indep-pairwise 50 5 .05 --hardy midp --het --out final/SUPER/{params.prefix}_CLUSTERED"),
 
 
 rule ALL_ANALYZE_SUB:
@@ -268,7 +268,7 @@ rule ALL_ANALYZE_SUB:
         expand("final/SUB/{i}/ALL_{{location}}_SUB_{i}_HV.{extensions}", i=subPop, extensions=["log", "ld"])
 
     params:
-        prefix = 'ALL_{location}_SUB'
+        prefix = 'ALL_{location}'
     
     resources:
         cpus=15,
@@ -278,7 +278,7 @@ rule ALL_ANALYZE_SUB:
   
     run:
         shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/SUB/{params.prefix}"),
-        shell("module load plink-2; plink2 --vcf {input.vcf} --within {input.popClusters} --freq --fst --missing --indep-pairwise 50 5 .5 --hardy midp --het --out final/SUB/{params.prefix}"),
+        shell("module load plink-2; plink2 --vcf {input.vcf} --within {input.popClusters} --freq --missing --indep-pairwise 50 5 .5 --hardy midp --het --out final/SUB/{params.prefix}_CLUSTERED"),
 
 # Add in VEP API calls
 rule ALL_VEP:
