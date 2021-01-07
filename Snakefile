@@ -29,10 +29,10 @@ rule all:
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
     input:
-        expand("final/SUPER/ALL_{{location}}.{extension}", extension=finalExtensions),
-        expand("final/SUPER/ALL_{{location}}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
-        expand("final/SUB/ALL_{{location}}.{extension}", extension=finalExtensions),
-        expand("final/SUB/ALL_{{location}}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
+        expand("final/SUPER/ALL_{location}.{extension}", extension=finalExtensions, location=locations),
+        expand("final/SUPER/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions, location=locations),
+        expand("final/SUB/ALL_{location}.{extension}", extension=finalExtensions, location=locations),
+        expand("final/SUB/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions, location=locations)
 
 
 # rule VALIDATE:
