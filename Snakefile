@@ -29,10 +29,10 @@ rule all:
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
     input:
-        expand("final/SUPER/ALL_{location}.{extension}", extension=finalExtensions),
-        expand("final/SUPER/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
-        expand("final/SUB/ALL_{location}.{extension}", extension=finalExtensions),
-        expand("final/SUB/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
+        expand("final/SUPER/ALL_{{location}}.{extension}", extension=finalExtensions),
+        expand("final/SUPER/ALL_{{location}}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
+        expand("final/SUB/ALL_{{location}}.{extension}", extension=finalExtensions),
+        expand("final/SUB/ALL_{{location}}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
 
 
 # rule VALIDATE:
@@ -241,8 +241,8 @@ rule ALL_ANALYZE_SUPER:
         popClusters="input/superPopCluster"
     
     output:
-        expand("final/SUPER/ALL_{location}.{extension}", extension=finalExtensions),
-        expand("final/SUPER/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
+        expand("final/SUPER/ALL_{{location}}.{extension}", extension=finalExtensions),
+        expand("final/SUPER/ALL_{{location}}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
 
     params:
         prefix = 'ALL_{location}'
@@ -267,8 +267,8 @@ rule ALL_ANALYZE_SUB:
         popClusters="input/subPopCluster"
         
     output:
-        expand("final/SUB/ALL_{location}.{extension}", extension=finalExtensions),
-        expand("final/SUB/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
+        expand("final/SUB/ALL_{{location}}.{extension}", extension=finalExtensions),
+        expand("final/SUB/ALL_{{location}}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
 
     params:
         prefix = 'ALL_{location}'
