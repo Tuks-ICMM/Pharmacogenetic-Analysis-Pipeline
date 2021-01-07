@@ -4,7 +4,8 @@ import os
 configfile: "config.json"
 
 # DEFINE CONTEXT-VARIABLES:
-finalExtensions=['frq.strat', 'fst', 'imiss', 'ld', 'missing.hap', 'hwe', 'het', 'ibc']
+clulsteredFinalExtensions=['afreq', 'hardy', 'log', 'prune.in', 'prune.out', 'smiss', 'vmiss']
+finalExtensions=['afreq', 'vcf.gz', 'log']
 locations=set(config['locations'].keys())
 samples=set(config['samples'].keys())
 superPop=set(config['clusters']['SUPER'])
@@ -28,8 +29,10 @@ rule all:
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
     input:
-        expand("final/SUB/ALL_{location}_SUB.{extension}", extension=finalExtensions, location=locations),
-        expand("final/SUPER/ALL_{location}_SUPER.{extension}", extension=finalExtensions, location=locations)
+        expand("final/SUPER/ALL_{location}.{extension}", extension=finalExtensions),
+        expand("final/SUPER/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
+        expand("final/SUB/ALL_{location}.{extension}", extension=finalExtensions),
+        expand("final/SUB/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
 
 
 # rule VALIDATE:
@@ -238,11 +241,11 @@ rule ALL_ANALYZE_SUPER:
         popClusters="input/superPopCluster"
     
     output:
-        expand("final/SUPER/ALL_{{location}}_SUPER.{extension}", extension=finalExtensions),
-        expand("final/SUPER/{i}/ALL_{{location}}_SUPER_{i}_HV.{extensions}", i=superPop, extensions=["log", "ld"])
+        expand("final/SUPER/ALL_{location}.{extension}", extension=finalExtensions),
+        expand("final/SUPER/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
 
     params:
-        prefix = 'ALL_{location}_SUPER'
+        prefix = 'ALL_{location}'
     
     resources:
         cpus=15,
@@ -252,7 +255,7 @@ rule ALL_ANALYZE_SUPER:
 
     run:
         shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/SUPER/{params.prefix}"),
-        shell("module load plink-2; plink2 --vcf {input.vcf} --within {input.popClusters} --freq --missing --indep-pairwise 50 5 .05 --hardy midp --out final/SUPER/{params.prefix}_CLUSTERED"),
+        shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within {input.popClusters} --freq --missing --indep-pairwise 50 5 .05 --hardy midp --out final/SUPER/{params.prefix}_CLUSTERED"),
 
 
 rule ALL_ANALYZE_SUB:
@@ -264,8 +267,8 @@ rule ALL_ANALYZE_SUB:
         popClusters="input/subPopCluster"
         
     output:
-        expand("final/SUB/ALL_{{location}}_SUB.{extension}", extension=finalExtensions),
-        expand("final/SUB/{i}/ALL_{{location}}_SUB_{i}_HV.{extensions}", i=subPop, extensions=["log", "ld"])
+        expand("final/SUB/ALL_{location}.{extension}", extension=finalExtensions),
+        expand("final/SUB/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
 
     params:
         prefix = 'ALL_{location}'
@@ -278,7 +281,7 @@ rule ALL_ANALYZE_SUB:
   
     run:
         shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/SUB/{params.prefix}"),
-        shell("module load plink-2; plink2 --vcf {input.vcf} --within {input.popClusters} --freq --missing --indep-pairwise 50 5 .5 --hardy midp --out final/SUB/{params.prefix}_CLUSTERED"),
+        shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within {input.popClusters} --freq --missing --indep-pairwise 50 5 .5 --hardy midp --out final/SUB/{params.prefix}_CLUSTERED"),
 
 # Add in VEP API calls
 rule ALL_VEP:
