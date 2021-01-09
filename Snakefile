@@ -26,6 +26,9 @@ def directoryExists(path: str):
     if not os.path.exists(path):
                     os.makedirs(path)
 
+onstart:
+    directoryExists(".intermediates")
+    directoryExists("final")
 
 # BEGIN DEFINING RULES:
 rule all:
