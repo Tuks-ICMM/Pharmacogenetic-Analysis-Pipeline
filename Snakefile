@@ -48,8 +48,7 @@ rule VALIDATE:
         "input/{sample}.vcf.gz"
 
     output:
-        ".intermediates/PREP/{sample}.vcf.gz",
-        directory(".intermediates/PREP")
+        "./.intermediates/PREP/{sample}.vcf.gz",
 
     params:
         memory="128G"
@@ -59,6 +58,7 @@ rule VALIDATE:
         nodes=1,
         queue="normal",
         walltime="30:00:00"
+    
     run:
         # Check if dir exists:
 
@@ -102,18 +102,18 @@ rule LIFTOVER:
             shell("module load liftover"),
             if config['samples'][wildcards.sample]['refGenome'] == "GRCh37" or config['samples'][wildcards.sample]['refGenome'] == "Hg19":
                 shell("echo 'Lifting from GRCh37 to GRCh38.'"),
-                directoryExists(".intermediates/LIFTOVER")
-                shell("module load plink-2; plink2 --vcf input/{wildcards.sample}.vcf.gz --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out .intermediates/LIFTOVER/{wildcards.sample}_PREP --export vcf-4.2 bgz --output-chr chr26 --keep-allele-order"),
-                shell("sleep 60; tabix -p vcf .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
-                shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD LiftoverVcf I=.intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}_LIFTED.vcf.gz C={params.chainFile} REJECT=.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
+                directoryExists("./.intermediates/LIFTOVER")
+                shell("module load plink-2; plink2 --vcf input/{wildcards.sample}.vcf.gz --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out ./.intermediates/LIFTOVER/{wildcards.sample}_PREP --export vcf-4.2 bgz --output-chr chr26 --keep-allele-order"),
+                shell("sleep 60; tabix -p vcf ./.intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
+                shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD LiftoverVcf I=./.intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=./.intermediates/LIFTOVER/{wildcards.sample}_LIFTED.vcf.gz C={params.chainFile} REJECT=./.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
         # TODO: Add conditionals for other human reference genome builds
         else:
             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
-            shell("touch .intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat"),
-            shell("module load plink-1.9; plink --map input/{wildcards.sample}.map --ped input/{wildcards.sample}.ped --allow-extra-chr --chr 1-22 --recode vcf --keep-allele-order --exclude {params.exclusionList} --out .intermediates/LIFTOVER/{wildcards.sample}"),
-        # shell("bgzip .intermediates/LIFTOVER/{wildcards.sample}.vcf"),
-        shell("sleep 1m; tabix -f -p vcf .intermediates/LIFTOVER/{wildcards.sample}.vcf.gz"),
-        shell("echo '.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz' >> .intermediates/LIFTOVER/merge.list")
+            shell("touch ./.intermediates/LIFTOVER/{wildcards.sample}_EXCLUDE.dat"),
+            shell("module load plink-1.9; plink --map input/{wildcards.sample}.map --ped input/{wildcards.sample}.ped --allow-extra-chr --chr 1-22 --recode vcf --keep-allele-order --exclude {params.exclusionList} --out ./.intermediates/LIFTOVER/{wildcards.sample}"),
+        # shell("bgzip ./.intermediates/LIFTOVER/{wildcards.sample}.vcf"),
+        shell("sleep 1m; tabix -f -p vcf ./.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz"),
+        shell("echo './.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz' >> ./.intermediates/LIFTOVER/merge.list")
 
 
 
@@ -123,11 +123,11 @@ rule ALL_COLLATE:
     Collate Datasets together into 1 psudo-dataset for downstream analysis.
     """
     input:
-        expand(".intermediates/LIFTOVER/{sample}.vcf.gz", sample=samples)
+        expand("./.intermediates/LIFTOVER/{sample}.vcf.gz", sample=samples)
 
     output:
-        ".intermediates/COLLATE/ALL.vcf.gz",
-        ".intermediates/COLLATE/ALL.vcf.gz.tbi"
+        "./.intermediates/COLLATE/ALL.vcf.gz",
+        "./.intermediates/COLLATE/ALL.vcf.gz.tbi"
 
     params:
         ref="binaries/" + config['refGenomes']['GRCh38']
@@ -139,21 +139,21 @@ rule ALL_COLLATE:
         walltime="30:00:00"
 
     run:
-        shell("module load bcftools-1.7; bcftools merge -l .intermediates/LIFTOVER/merge.list -O z -o .intermediates/COLLATE/ALL_PRE.vcf.gz"),
-        shell("module load samtools-1.7; tabix -p vcf .intermediates/COLLATE/ALL_PRE.vcf.gz"),
-        shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out .intermediates/COLLATE/ALL_REF"),
-        shell("module load plink-2; plink2 --vcf .intermediates/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out .intermediates/COLLATE/ALL"),
-        shell("module load samtools-1.7; tabix -p vcf .intermediates/COLLATE/ALL.vcf.gz"),
+        shell("module load bcftools-1.7; bcftools merge -l ./.intermediates/LIFTOVER/merge.list -O z -o ./.intermediates/COLLATE/ALL_PRE.vcf.gz"),
+        shell("module load samtools-1.7; tabix -p vcf ./.intermediates/COLLATE/ALL_PRE.vcf.gz"),
+        shell("module load plink-2; plink2 --vcf ./.intermediates/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out ./.intermediates/COLLATE/ALL_REF"),
+        shell("module load plink-2; plink2 --vcf ./.intermediates/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out ./.intermediates/COLLATE/ALL"),
+        shell("module load samtools-1.7; tabix -p vcf ./.intermediates/COLLATE/ALL.vcf.gz"),
 
 rule ALL_ANNOTATE:
     """
     Annotate rsID's in psudo-dataset to facilitate down-stream analysis.
     """
     input:
-        ".intermediates/COLLATE/ALL.vcf.gz"
+        "./.intermediates/COLLATE/ALL.vcf.gz"
 
     output:
-        ".intermediates/ANNOTATE/ALL.vcf.gz",
+        "./.intermediates/ANNOTATE/ALL.vcf.gz",
     
     params:
         refGenome='/apps/bcbio/genomes/Hsapiens/hg38/seq/hg38.fa.gz',
@@ -166,22 +166,22 @@ rule ALL_ANNOTATE:
         walltime="30:00:00"
 
     run:
-        shell("module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o .intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"),
-        shell("module load plink-2; plink2 --vcf .intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out .intermediates/ANNOTATE/ALL"),
+        shell("module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o ./.intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"),
+        shell("module load plink-2; plink2 --vcf ./.intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out ./.intermediates/ANNOTATE/ALL"),
 
 # rule Admixture:
 #     """
 #     Perform Admixture analysis on the large psudo-dataset (Requires 100 000 minimum variants to distinguish sub-populations and 10 000 to distinguish super-populations.)
 #     """
 #     input:
-#         ".intermediates/ANNOTATE/ALL_ANNOTATED.vcf"
+#         "./.intermediates/ANNOTATE/ALL_ANNOTATED.vcf"
 
 #     output:
-#         ".intermediates/Admixture/ALL.5.Q",
-#         ".intermediates/Admixture/ALL.5.P"
+#         "./.intermediates/Admixture/ALL.5.Q",
+#         "./.intermediates/Admixture/ALL.5.P"
 
 #     params:
-#         out_name = ".intermediates/Admixture/ALL",
+#         out_name = "./.intermediates/Admixture/ALL",
 #         smartPCA = "binaries/EIG-7.2.1/bin/"
     
 #     resources:
@@ -204,10 +204,10 @@ rule TRIM_AND_NAME:
     Trim the whole-genome psudo-datasets down to several regions of interest for Variant analysis and Variant effect prediction.
     """
     input:
-        ".intermediates/ANNOTATE/ALL.vcf.gz"
+        "./.intermediates/ANNOTATE/ALL.vcf.gz"
 
     output:
-        ".intermediates/TRIM/ALL_{location}_TRIMMED.vcf.gz"
+        "./.intermediates/TRIM/ALL_{location}_TRIMMED.vcf.gz"
 
     params:
         fromBP = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["from"],
@@ -221,7 +221,7 @@ rule TRIM_AND_NAME:
         walltime="30:00:00"
 
     run:
-        shell("module load plink-2; plink2 --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --export vcf-4.2 bgz --out .intermediates/TRIM/ALL_{wildcards.location}_TRIMMED"),
+        shell("module load plink-2; plink2 --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --export vcf-4.2 bgz --out ./.intermediates/TRIM/ALL_{wildcards.location}_TRIMMED"),
 
 
 rule ALL_FILTER:
@@ -229,10 +229,10 @@ rule ALL_FILTER:
     Filter out individuals missing 100% of their variant information (Safety Check).
     """
     input:
-        ".intermediates/TRIM/ALL_{location}_TRIMMED.vcf.gz"
+        "./.intermediates/TRIM/ALL_{location}_TRIMMED.vcf.gz"
 
     output:
-        ".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz"
+        "./.intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz"
     
     resources:
         cpus=10,
@@ -241,15 +241,15 @@ rule ALL_FILTER:
         walltime="00:30:00"
 
     run:
-        shell("module load plink-2; plink2 --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz --out .intermediates/FILTER/ALL_{wildcards.location}_FILTERED"),
-        shell("cp .intermediates/FILTER/ALL_{wildcards.location}_FILTERED.vcf.gz final/ALL_{wildcards.location}.vcf.gz")     
+        shell("module load plink-2; plink2 --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz --out ./.intermediates/FILTER/ALL_{wildcards.location}_FILTERED"),
+        shell("cp ./.intermediates/FILTER/ALL_{wildcards.location}_FILTERED.vcf.gz final/ALL_{wildcards.location}.vcf.gz")     
 
 rule ALL_ANALYZE_SUPER:
     """
     Perform Frequency analysis on super populations.
     """
     input:
-        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz",
+        vcf="./.intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz",
         popClusters="input/superPopCluster"
     
     output:
@@ -276,7 +276,7 @@ rule ALL_ANALYZE_SUB:
     Perform frequency analysis on sub-populations.
     """
     input:
-        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz",
+        vcf="./.intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz",
         popClusters="input/subPopCluster"
         
     output:
@@ -300,7 +300,7 @@ rule ALL_ANALYZE_SUB:
 # Add in VEP API calls
 rule ALL_VEP:
     input:
-        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz"
+        vcf="./.intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz"
 
     output:
         excel="final/{location}.xlsx"
