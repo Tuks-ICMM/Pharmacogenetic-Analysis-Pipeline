@@ -35,32 +35,41 @@ rule all:
         expand("final/SUB/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions, location=locations)
 
 
-# rule VALIDATE:
-#     """
-#     Perform validation of VCF format as well as REF alleles
-#     """
+rule VALIDATE:
+    """
+    Perform validation of VCF format as well as REF alleles and strip out INFO tags.
+    """
 
-#     input:
-#         "input/{{sample}}.vcf.gz"
-#     output:
+    input:
+        "input/{sample}.vcf.gz"
 
-#     params:
-#         referenceGenome=getReferenceGenome({wildcards.sample})
-#     resources:
-#         cpus=28,
-#         nodes=1,
-#         queue="normal",
-#         walltime="30:00:00"
-#     run:
-#         shell("module load gatk-4.0.12.0; gatk ValidateVariants -R {params.referenceGenome} -V {input}")
+    output:
+        ".intermediates/PREP/{sample}.vcf.gz",
 
+    params:
+        memory="128G"
+
+    resources:
+        cpus=28,
+        nodes=1,
+        queue="normal",
+        walltime="30:00:00"
+    run:
+        # Generate index files:
+        shell("module load gatk-4.0.12.0; gatk IndexFeatureFile -F {input}")
+        # Remove variant types we cant yet analyse:
+        shell("module load gatk-4.0.12.0; gatk SelectVariants  -V {input} --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O {wildcards.sample}_FILTERED"),
+        # Strip out INFO tags:
+        shell("module load bcftools-1.7; bcftools annotate -x INFO -O z -o {wildcards.sample}_NO_INFO {wildcards.sample}_FILTERED.vcf.gz"),
+        # Regenerate and verify the VCF header:
+        shell("module load picard-2.17.11; java -Xmx{params.memory} -jar $PICARD FixVcfHeader I={wildcards.sample}_NO_INFO.vcf.gz O={output}")
 
 rule LIFTOVER:
     """
     Lift Variants onto same Reference build. Otherwise we cant merge them or analyse them in context of eachother.
     """
     input:
-        expand("input/{{sample}}.vcf.gz")
+        ".intermediates/PREP/{sample}.vcf.gz",
 
     output:
         ".intermediates/LIFTOVER/{sample}.vcf.gz"
@@ -90,10 +99,7 @@ rule LIFTOVER:
                     os.makedirs('.intermediates/LIFTOVER')
                 shell("module load plink-2; plink2 --vcf input/{wildcards.sample}.vcf.gz --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out .intermediates/LIFTOVER/{wildcards.sample}_PREP --export vcf-4.2 bgz --output-chr chr26 --keep-allele-order"),
                 shell("sleep 60; tabix -p vcf .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
-                # ToDo: Add in GATK SelectVariant Process and filter out symbolic using `--select-type-to-exclude`:
-                shell("module load gatk-4.0.12.0; gatk SelectVariants  -V .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O .intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz"),
                 shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD LiftoverVcf I=.intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}_LIFTED.vcf.gz C={params.chainFile} REJECT=.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
-                shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD FixVcfHeader I=.intermediates/LIFTOVER/{wildcards.sample}_LIFTED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz"),
         # TODO: Add conditionals for other human reference genome builds
         else:
             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
