@@ -68,11 +68,11 @@ rule VALIDATE:
         # Generate index files:
         shell("module load gatk-4.0.12.0; gatk IndexFeatureFile -F {input}")
         # Remove variant types we cant yet analyse:
-        shell("module load gatk-4.0.12.0; gatk SelectVariants  -V {input} --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O {wildcards.sample}_FILTERED"),
+        shell("module load gatk-4.0.12.0; gatk SelectVariants  -V {input} --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O .intermediates/PREP/{wildcards.sample}_FILTERED"),
         # Strip out INFO tags:
-        shell("module load bcftools-1.7; bcftools annotate -x INFO -O z -o {wildcards.sample}_NO_INFO {wildcards.sample}_FILTERED.vcf.gz"),
+        shell("module load bcftools-1.7; bcftools annotate -x INFO -O z -o .intermediates/PREP/{wildcards.sample}_NO_INFO .intermediates/PREP/{wildcards.sample}_FILTERED.vcf.gz"),
         # Regenerate and verify the VCF header:
-        shell("module load picard-2.17.11; java -Xmx{params.memory} -jar $PICARD FixVcfHeader I={wildcards.sample}_NO_INFO.vcf.gz O={output}")
+        shell("module load picard-2.17.11; java -Xmx{params.memory} -jar $PICARD FixVcfHeader I=.intermediates/PREP/{wildcards.sample}_NO_INFO.vcf.gz O={output}")
 
 rule LIFTOVER:
     """
