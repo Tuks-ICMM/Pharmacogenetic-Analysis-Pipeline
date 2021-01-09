@@ -22,6 +22,10 @@ mergeList = list()
 #     else if config['samples'][wildcards.sample]['refGenome'] == "GRCh38":
 #         return "/nlustre/users/graeme/pipeline-2020/binaries/hg38.fa.gz"
 
+def directoryExists(path: str):
+    if not os.path.exists(path):
+                    os.makedirs(path)
+
 
 # BEGIN DEFINING RULES:
 rule all:
@@ -45,6 +49,7 @@ rule VALIDATE:
 
     output:
         ".intermediates/PREP/{sample}.vcf.gz",
+        directory(".intermediates/PREP")
 
     params:
         memory="128G"
@@ -55,6 +60,8 @@ rule VALIDATE:
         queue="normal",
         walltime="30:00:00"
     run:
+        # Check if dir exists:
+
         # Generate index files:
         shell("module load gatk-4.0.12.0; gatk IndexFeatureFile -F {input}")
         # Remove variant types we cant yet analyse:
@@ -95,8 +102,7 @@ rule LIFTOVER:
             shell("module load liftover"),
             if config['samples'][wildcards.sample]['refGenome'] == "GRCh37" or config['samples'][wildcards.sample]['refGenome'] == "Hg19":
                 shell("echo 'Lifting from GRCh37 to GRCh38.'"),
-                if not os.path.exists('.intermediates/LIFTOVER'):
-                    os.makedirs('.intermediates/LIFTOVER')
+                directoryExists(".intermediates/LIFTOVER")
                 shell("module load plink-2; plink2 --vcf input/{wildcards.sample}.vcf.gz --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out .intermediates/LIFTOVER/{wildcards.sample}_PREP --export vcf-4.2 bgz --output-chr chr26 --keep-allele-order"),
                 shell("sleep 60; tabix -p vcf .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
                 shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD LiftoverVcf I=.intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}_LIFTED.vcf.gz C={params.chainFile} REJECT=.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
