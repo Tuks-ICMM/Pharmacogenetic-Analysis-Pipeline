@@ -104,7 +104,7 @@ rule LIFTOVER:
                 directoryExists(".intermediates/LIFTOVER")
                 shell("module load plink-2; plink2 --vcf input/{wildcards.sample}.vcf.gz --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out .intermediates/LIFTOVER/{wildcards.sample}_PREP --export vcf-4.2 bgz --output-chr chr26 --keep-allele-order"),
                 shell("sleep 60; tabix -p vcf .intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
-                shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD LiftoverVcf I=.intermediates/LIFTOVER/{wildcards.sample}_CLEANED.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}_LIFTED.vcf.gz C={params.chainFile} REJECT=.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
+                shell("module load picard-2.17.11; java -Xmx128G -jar $PICARD LiftoverVcf I=.intermediates/LIFTOVER/{wildcards.sample}_PREP.vcf.gz O=.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz C={params.chainFile} REJECT=.intermediates/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"),
         # TODO: Add conditionals for other human reference genome builds
         else:
             print("No liftover required. Dataset {} is already mapped to GRCh38.".format(wildcards.sample)),
