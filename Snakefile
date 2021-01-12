@@ -59,8 +59,8 @@ rule VALIDATE:
     resources:
         cpus=28,
         nodes=1,
-        queue="normal",
-        walltime="30:00:00"
+        queue="long",
+        walltime="900:00:00"
     
     run:
         # Remove variant types we cant yet analyse:
@@ -135,7 +135,7 @@ rule ALL_COLLATE:
         cpus=28,
         nodes=1,
         queue="long",
-        walltime="30:00:00"
+        walltime="900:00:00"
 
     run:
         shell("module load bcftools-1.7; bcftools merge -l .intermediates/LIFTOVER/merge.list -O z -o .intermediates/COLLATE/ALL_PRE.vcf.gz"),
@@ -161,8 +161,8 @@ rule ALL_ANNOTATE:
     resources:
         cpus=28,
         nodes=1,
-        queue="normal",
-        walltime="30:00:00"
+        queue="long",
+        walltime="900:00:00"
 
     run:
         shell("module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o .intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"),
