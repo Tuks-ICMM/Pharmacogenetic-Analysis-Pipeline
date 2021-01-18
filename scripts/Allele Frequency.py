@@ -19,10 +19,14 @@ data = dict()
 #%%
 
 
+# for dataset in datasets:
+#     file = "../final/SUPER/ALL_{}_SUPER.afreq".format(dataset)
+#     print(file)
+#     data[str(dataset)] = pd.read_csv(file, delimiter='\t')
+
 for dataset in datasets:
-    file = "../final/SUPER/ALL_{}_SUPER.afreq".format(dataset)
-    print(file)
-    data[str(dataset)] = pd.read_csv(file, delimiter='\t')
+    data[dataset] = pd.read_excel("../final/Supplementary_Data.xlsx", sheet_name=dataset)
+
 # %%
 
 def graph(pops, dataset, name):
@@ -30,15 +34,22 @@ def graph(pops, dataset, name):
     plt.style.use("seaborn-darkgrid")
 
     for index, i in enumerate(ax):
-        sns.barplot(x="start_coord", y=pops[index], data=dataset, hue="A2", dodge=False, ax=i).set(xticklabels=data["A1"])
+        sns.barplot(x="Start Coordinates", y=pops[index], data=dataset, hue="ALT", dodge=False, ax=i).set(xticklabels=dataset.drop_duplicates(subset='Start Coordinates')["REF"])
+        i.legend(loc='upper right')
 
     plt.tight_layout()
-    plt.savefig('../Figures/{}.png'.format(name), dpi=300)
+    fig.savefig('../figures/{}.png'.format(name), dpi=300)
 
 #%%
 
 pops = ['AFR', 'AMR', 'EAS', 'SAS', 'EUR']
 
+
+
 for dataset in datasets:
-    graph(pops, data, "Population stratified Allele Frequency | {}".format(dataset))
+    clinSig = pd.concat(
+    [data[dataset][data[dataset][pop] >= 0.04] for pop in pops]
+    , copy=False)
+    display(clinSig)
+    graph(pops, clinSig, "Population stratified Allele Frequency - {}".format(dataset))
 # %%
