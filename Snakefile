@@ -231,7 +231,7 @@ rule ALL_FILTER:
         ".intermediates/TRIM/ALL_{location}_TRIMMED.vcf.gz"
 
     output:
-        "final/ALL_{wildcards.location}.vcf.gz"
+        "final/ALL_{location}.vcf.gz"
     
     resources:
         cpus=10,
