@@ -231,7 +231,7 @@ rule ALL_FILTER:
         ".intermediates/TRIM/ALL_{location}_TRIMMED.vcf.gz"
 
     output:
-        ".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz"
+        "final/ALL_{wildcards.location}.vcf.gz"
     
     resources:
         cpus=10,
@@ -241,14 +241,14 @@ rule ALL_FILTER:
 
     run:
         shell("module load plink-2; plink2 --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz --out .intermediates/FILTER/ALL_{wildcards.location}_FILTERED"),
-        shell("cp .intermediates/FILTER/ALL_{wildcards.location}_FILTERED.vcf.gz final/ALL_{wildcards.location}.vcf.gz")     
+        shell("module load bcftools-1.7; bcftools norm -m - -o final/ALL_{wildcards.location}.vcf.gz -O z .intermediates/FILTER/ALL_{wildcards.location}_FILTERED.vcf.gz")     
 
 rule ALL_ANALYZE_SUPER:
     """
     Perform Frequency analysis on super populations.
     """
     input:
-        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz",
+        vcf="final/ALL_{location}.vcf.gz",
         popClusters="input/superPopCluster"
     
     output:
@@ -274,7 +274,7 @@ rule ALL_ANALYZE_SUB:
     Perform frequency analysis on sub-populations.
     """
     input:
-        vcf=".intermediates/FILTER/ALL_{location}_FILTERED.vcf.gz",
+        vcf="final/ALL_{location}.vcf.gz",
         popClusters="input/subPopCluster"
         
     output:
