@@ -1,0 +1,124 @@
+---
+title: "SASDGHUB UpSetR Plots"
+author: "Graeme Ford"
+date: "11/05/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("E:/Downloads/")
+library('UpSetR')
+library('openxlsx')
+library('tidyverse')
+movies <- read.csv(system.file("extdata", "movies.csv", package = "UpSetR"), 
+    header = T, sep = ";")
+```
+
+## UpSetR Plots
+
+
+First off, lets load the data in from a .xlsx file and set up the lists needed for UpSetR:
+
+``` {r Load Datasets}
+dataRaw <- read.xlsx("export.xlsx")
+innovationLabels <- read.xlsx("export1.xlsx")
+data <- inner_join(dataRaw, innovationLabels, by = c("Id" = "Id"))
+miniData <- head(data, 20)
+listInput = list(
+  SDG1 = as.vector(filter(data, grepl("SDG 1", SDG))$Id),
+  SDG2 = as.vector(filter(data, grepl("SDG 2", SDG))$Id),
+  SDG3 = as.vector(filter(data, grepl("SDG 3", SDG))$Id),
+  SDG4 = as.vector(filter(data, grepl("SDG 4", SDG))$Id),
+  SDG5 = as.vector(filter(data, grepl("SDG 5", SDG))$Id),
+  SDG6 = as.vector(filter(data, grepl("SDG 6", SDG))$Id),
+  SDG7 = as.vector(filter(data, grepl("SDG 7", SDG))$Id),
+  SDG8 = as.vector(filter(data, grepl("SDG 8", SDG))$Id),
+  SDG9 = as.vector(filter(data, grepl("SDG 9", SDG))$Id),
+  SDG10 = as.vector(filter(data, grepl("SDG 10", SDG))$Id),
+  SDG11 = as.vector(filter(data, grepl("SDG 11", SDG))$Id),
+  SDG12 = as.vector(filter(data, grepl("SDG 12", SDG))$Id),
+  SDG13 = as.vector(filter(data, grepl("SDG 13", SDG))$Id),
+  SDG14 = as.vector(filter(data, grepl("SDG 14", SDG))$Id),
+  SDG15 = as.vector(filter(data, grepl("SDG 15", SDG))$Id),
+  SDG16 = as.vector(filter(data, grepl("SDG 16", SDG))$Id),
+  SDG17 = as.vector(filter(data, grepl("SDG 17", SDG))$Id)
+)
+smallList <- list(
+  SDG1 = as.vector(filter(miniData, grepl("SDG 1", SDG))$Id),
+  SDG2 = as.vector(filter(miniData, grepl("SDG 2", SDG))$Id),
+  SDG3 = as.vector(filter(miniData, grepl("SDG 3", SDG))$Id),
+  SDG4 = as.vector(filter(miniData, grepl("SDG 4", SDG))$Id),
+  SDG5 = as.vector(filter(miniData, grepl("SDG 5", SDG))$Id),
+  SDG6 = as.vector(filter(miniData, grepl("SDG 6", SDG))$Id),
+  SDG7 = as.vector(filter(miniData, grepl("SDG 7", SDG))$Id),
+  SDG8 = as.vector(filter(miniData, grepl("SDG 8", SDG))$Id),
+  SDG9 = as.vector(filter(miniData, grepl("SDG 9", SDG))$Id),
+  SDG10 = as.vector(filter(miniData, grepl("SDG 10", SDG))$Id),
+  SDG11 = as.vector(filter(miniData, grepl("SDG 11", SDG))$Id),
+  SDG12 = as.vector(filter(miniData, grepl("SDG 12", SDG))$Id),
+  SDG13 = as.vector(filter(miniData, grepl("SDG 13", SDG))$Id),
+  SDG14 = as.vector(filter(miniData, grepl("SDG 14", SDG))$Id),
+  SDG15 = as.vector(filter(miniData, grepl("SDG 15", SDG))$Id),
+  SDG16 = as.vector(filter(miniData, grepl("SDG 16", SDG))$Id),
+  SDG17 = as.vector(filter(miniData, grepl("SDG 17", SDG))$Id)
+)
+sets <- c("SDG 1",
+          "SDG 2",
+          "SDG 3",
+          "SDG 4",
+          "SDG 5",
+          "SDG 6",
+          "SDG 7",
+          "SDG 8",
+          "SDG 9",
+          "SDG 10",
+          "SDG 11",
+          "SDG 12",
+          "SDG 13",
+          "SDG 14",
+          "SDG 15",
+          "SDG 16",
+          "SDG 17")
+```
+
+
+``` {r Plot Set Intersetcions}
+plot <- upset(
+  fromList(listInput),
+  nintersects = 9999,
+  order.by = "freq",
+  group.by = "sets",
+  sets = c("SDG1",
+          "SDG2",
+          "SDG3",
+          "SDG4",
+          "SDG5",
+          "SDG6",
+          "SDG7",
+          "SDG8",
+          "SDG9",
+          "SDG10",
+          "SDG11",
+          "SDG12",
+          "SDG13",
+          #"SDG14",
+          "SDG15",
+          "SDG16"#,
+          #"SDG17"
+    ),
+  keep.order = TRUE,
+  text.scale = c(5, 3, 5, 3, 3, 3.5),
+  point.size = 6,
+  line.size = 3,
+  mainbar.y.label = "No. of Innovations in Intersection",
+  sets.x.label = "Innovation count per SDG"
+  
+)
+
+plot
+```
+```{r Save Plots}
+pdf("SASDGHUB Intersection Plot.pdf", onefile = FALSE, width = 40, height = 20)
+plot
+```

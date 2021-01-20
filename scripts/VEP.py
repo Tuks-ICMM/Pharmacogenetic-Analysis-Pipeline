@@ -8,6 +8,8 @@ import gzip
 import requests
 import time
 import pandas as pd
+from typing import Generator
+import os
 
 # %%
 
@@ -27,17 +29,28 @@ params = {
     'refseq': True,
     # 'transcript_id': snakemake.params.transcript_id
 }
-params = {
+def generate_params(key):
+    params = {
     'hgvs': True,
     'CADD': True,
     'LoF': True,
     'Phenotypes': True,
     'domains': True,
     'canonical': True,
-    'refseq': True
-}
+    'refseq': True,
+    # 'transcript_id': snakemake.params.transcript_id
+    }
+    if key == 'CYP2A6':
+        return params | dict(transcrcipt_id="NM_000762.6")
+    if key == 'CYP2B6':
+        return params | dict(transcript_id="NM_000767.5")
+    if key == 'UGT2B7':
+        return params | dict(transcript_id="NM_001074.4")
 
-def read_vcf(path):
+#%%
+
+# Define formulas for later use:
+def read_vcf(path: str) -> pd.DataFrame:
     """Function to import a VCF file as a Pandas dataframe. Does not include Genotype columns. CREDIT: https://gist.github.com/dceoy/99d976a2c01e7f0ba1c813778f9db744
 
     Args:
@@ -55,7 +68,15 @@ def read_vcf(path):
         sep='\t'
     ).rename(columns={'#CHROM': 'CHROM'})
 
-def generate_notation(row):
+def generate_notation(row: pd.Series) -> str:
+    """Parses a row and returns the HGVS notation to query E! Ensembl.
+
+    Args:
+        row (Series): A row (generated from .iterrows() method) for which notation is needed.
+
+    Returns:
+        str: HGVS notation for the given variant row.
+    """
     alleles = row['ALT'].split(",")
     notation = list(str())
     for allele in alleles:
@@ -67,48 +88,27 @@ def generate_notation(row):
             notation.append("{S}:{P}-{P2}:1/{I}".format(S=row['CHROM'], P=row["POS"], P2=stop_coordinates, I=allele))
         return notation
 
-def chunk(seq, size):
-    return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
+def chunk(dataset: pd.DataFrame, size: int) -> Generator:
+    """Renders a generator to yield chunks of data from the original file.
 
-def update_set(set, term, search, add_or_append=True):
-    if add_or_append:
-        if term in search:
-            set.add(search[term])
-        else:
-            set.add("-")
-    else:
-        if term in search:
-            set.append(search[term])
-        else:
-            set.append("-")
+    Args:
+        dataset (pd.DataFrame): The dataset to divide into chunks.
+        size (int): The maximum size of the resulting chunks.
+
+    Returns:
+        [type]: [description]
+
+    Yields:
+        Generator: [description]
+    """
+    return (dataset[pos:pos + size] for pos in range(0, len(dataset), size))
+
 
 
 # %%
 data = dict()
-# data = read_vcf(snakemake.input["vcf"])
 for location in locations:
     data[location] = read_vcf("../final/ALL_{location}.vcf.gz".format(location=location))
-    # for index, row in data[location].iterrows():
-    #     alleles = row['ALT'].split(",")
-    #     names = row['ID'].split(";")
-    #     if len(alleles) > 1 and len(names) > 1:
-    #         for index, allele in enumerate(alleles):
-    #             print(names)
-    #             print(allele)
-    #             print(index)
-    #             product = row.copy()
-    #             product['ALT'] = allele
-    #             product['ID'] = names[index]
-    #             data[location].append(product, ignore_index=True)
-    #         data[location].drop(index, inplace=True)
-    #     elif len(alleles) > 1 and len(names) == 1:
-    #         for allele in alleles:
-    #             product = row.copy()
-    #             product['ALT'] = allele
-    #             data[location].append(product, ignore_index=True)
-    #         data[location].drop(index, inplace=True)            
-    #     else:
-    #         pass
 
 
 
@@ -146,7 +146,7 @@ for dataset_key, dataset in data_to_send.items():
         requesting = True
         temp_list = list()
         while requesting:
-            r = requests.post(endpoint, headers=headers, data=json.dumps(chunk), params=params)
+            r = requests.post(endpoint, headers=headers, data=json.dumps(chunk), params=generate_params(dataset_key))
             if r.status_code != 200:
                 time.sleep(5)
             else:
@@ -155,11 +155,6 @@ for dataset_key, dataset in data_to_send.items():
                 data_received[dataset_key] = data_received[dataset_key] + decoded
 
 # %%
-# decoded = r.json()
-
-
-# %%
-
 supplementary = dict()
 
 # Iterate through each dataset and compile its excel:
@@ -203,26 +198,10 @@ for dataset_key, dataset in data_received.items():
 
 
 # %%
-frequency_data = dict()
 
 for gene in locations:
-    for pop in populations:
-        supplementary[gene][pop] = 0
-        frequency_data = pd.read_csv("../final/SUPER/ALL_{gene}.{pop}.afreq".format(gene=gene, pop=pop), delimiter="\t").rename(columns={'#CHROM': 'CHROM'})
-        for index, row in frequency_data.iterrows():
-            supplementary[gene].loc[supplementary[gene]['ID'] == row['ID'], pop] = row['ALT_FREQS']
-# %%
-# Rinse and repeat for clustered Frequency Analysis:
-clust_freq_data = dict()
-
-for location in locations:
-    for pop in c:
-        clust_freq_data[location] = dict()
-        clust_freq_data[location][pop] = pd.read_csv("../final/SUPER/ALL_{location}.{pop}.afreq".format(location=location, pop=pop), delimiter="\t").rename(columns={'#CHROM': 'CHROM'})
-# %%
-with pd.ExcelWriter("../final/Supplementary_Data.xlsx") as writer:
-    for gene in locations:
-        supplementary[gene].to_excel(writer, sheet_name=gene)
+    supplementary[gene].to_csv("../final/{}_VEP.csv".format(gene), sep='\t', index=False)
     # supplementary.to_excel(snakemake.output['excel'], sheet_name=snakemake.wildcards.location)
+
 
 # %%
