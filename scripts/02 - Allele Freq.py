@@ -1,7 +1,10 @@
 # %%
+
+# Import dependancies
 import pandas as pd
 
 #%%
+
 # Declare Constants and Functions:
 genes = ['CYP2A6','CYP2B6', 'UGT2B7']
 populations = ['AFR', 'AMR', 'EUR', 'EAS', 'SAS']
@@ -24,15 +27,16 @@ def freq(alt: int, total: int) -> int:
     if alt != 0 and total == 0:
         return 999
 #%%
+
 # Load the Supplementary Table:
 supplementary = dict()
 for gene in genes:
-    supplementary[gene] = pd.read_excel("../final/{}.xlsx".format(gene), sheet_name='VEP')[['ID', 'POS', 'REF', 'ALT']]
+    supplementary[gene] = pd.read_csv("../final/Supplementary Table/{}_VEP.csv".format(gene), sep="\t")[['ID', 'POS', 'REF', 'ALT']]
 #%%
 
+# Calculate frequencies
 frequency_data = dict()
 fishers_data = dict()
-
 for gene in genes:
     fishers_data[gene] = supplementary[gene][['ID', 'POS', 'REF', 'ALT']]
     for pop in populations:
@@ -46,8 +50,11 @@ for gene in genes:
             fishers_data[gene].loc[supplementary[gene]['ID'] == row['ID'], '{pop}_tc'.format(pop=pop)] = row['OBS_CT']
 
 # %%
+
 # Save the resulting dataframe back to its excel file:
 for gene in genes:
-    supplementary[gene].to_csv("../final/{}_Freq.csv".format(gene), index=False, sep="\t")
+    supplementary[gene].to_csv("../final/Supplementary Table/{}_Freq.csv".format(gene), index=False, sep="\t")
+    fishers_data[gene].to_csv("../final/Supplementary Table/{}_Count.csv".format(gene), index=False, sep="\t")
+    
 
 # %%

@@ -28,6 +28,7 @@
       "GRCh38": {
         "transcript_id": "NM_000762.6",
         "chromosome": 19,
+        "strand": "-1",
         "from": 40842850,
         "to": 40851138
       }
@@ -36,6 +37,7 @@
       "GRCh38": {
         "transcript_id": "NM_000767.5",
         "chromosome": 19,
+        "strand": "1",
         "from": 40988570,
         "to": 41021110
       }
@@ -44,6 +46,7 @@
       "GRCh38": {
         "transcript_id": "NM_001074.4",
         "chromosome": 4,
+        "strand": "1",
         "from": 69045214,
         "to": 69112987
       }

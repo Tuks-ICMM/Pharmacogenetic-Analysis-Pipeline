@@ -1,6 +1,6 @@
 
 #%%
-
+# Import dependancies
 import sys
 import io
 import json
@@ -15,7 +15,11 @@ import os
 
 # Set constants and functions to be used:
 # locations = snakemake.config['locations'].keys()
-locations=['CYP2A6', 'CYP2B6', 'UGT2B7']
+with open('../config.json') as f:
+  config = json.load(f)
+
+#  %%
+locations=config['locations'].keys()
 populations = ['AFR', 'AMR', 'EUR', 'EAS', 'SAS']
 endpoint = "https://rest.ensembl.org/vep/homo_sapiens/region/"
 headers={ "Content-Type" : "application/json", "Accept" : "application/json"}
@@ -27,6 +31,8 @@ params = {
     'domains': True,
     'canonical': True,
     'refseq': True,
+    "LoF": True,
+    "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
     # 'transcript_id': snakemake.params.transcript_id
 }
 def generate_params(key):
@@ -38,6 +44,8 @@ def generate_params(key):
     'domains': True,
     'canonical': True,
     'refseq': True,
+    "LoF": True,
+    "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
     # 'transcript_id': snakemake.params.transcript_id
     }
     if key == 'CYP2A6':
@@ -68,7 +76,7 @@ def read_vcf(path: str) -> pd.DataFrame:
         sep='\t'
     ).rename(columns={'#CHROM': 'CHROM'})
 
-def generate_notation(row: pd.Series) -> str:
+def generate_notation(row: pd.Series, gene: str) -> str:
     """Parses a row and returns the HGVS notation to query E! Ensembl.
 
     Args:
@@ -85,7 +93,7 @@ def generate_notation(row: pd.Series) -> str:
             notation.append("{S}:{P}-{P2}:1/{I}".format(S=row['CHROM'], P=row["POS"], P2=stop_coordinates, I=allele))
         elif len(row['REF']) < len(allele):
             stop_coordinates = int(row['POS'])+len(row['REF'])
-            notation.append("{S}:{P}-{P2}:1/{I}".format(S=row['CHROM'], P=row["POS"], P2=stop_coordinates, I=allele))
+            notation.append("{S}:{P}-{P2}:{ST}/{I}".format(S=row['CHROM'], P=row["POS"], P2=stop_coordinates, I=allele, ST=config['locations'][gene]['GRCh38']['strand']))
         return notation
 
 def chunk(dataset: pd.DataFrame, size: int) -> Generator:
@@ -103,17 +111,33 @@ def chunk(dataset: pd.DataFrame, size: int) -> Generator:
     """
     return (dataset[pos:pos + size] for pos in range(0, len(dataset), size))
 
+def merge(value: set) -> str:
+    """Generate row value to save in df
+
+    Args:
+        value (set): The set you wish to convert
+
+    Returns:
+        str: The converted value, ready to store.
+    """
+    r = list(value)
+    if len(r) == 1:
+        return str(r[0])
+    else:
+        return " | ".join(value)
+
 
 
 # %%
+
+#  Import Data:
 data = dict()
 for location in locations:
     data[location] = read_vcf("../final/ALL_{location}.vcf.gz".format(location=location))
 
-
-
-
  # %%
+
+# Sub-Divide data:
 data_generator = dict()
 for dataset in data:
     data_generator[dataset] = chunk(data[dataset], 200)
@@ -121,6 +145,7 @@ for dataset in data:
 
 # %%
 
+# Compile and format request bodies:
 data_to_send = dict()
 
 # Iterate through each gene:
@@ -133,13 +158,13 @@ for dataset in data_generator:
 
         # Iterate through each row in the chunk and add the HGVS notation to the list:
         for index, row in chunk.iterrows():
-            temp_list.extend(generate_notation(row))
+            temp_list.extend(generate_notation(row, dataset))
         data_to_send[dataset].append(dict(variants = temp_list))
 
 # %%
 
+# Perform API calls:
 data_received=dict()
-
 for dataset_key, dataset in data_to_send.items():
     data_received[dataset_key] = list()
     for index, chunk in enumerate(dataset):
@@ -155,12 +180,28 @@ for dataset_key, dataset in data_to_send.items():
                 data_received[dataset_key] = data_received[dataset_key] + decoded
 
 # %%
-supplementary = dict()
 
-# Iterate through each dataset and compile its excel:
+# Iterate through each response and compile its excel:
+supplementary = dict()
 for dataset_key, dataset in data_received.items():
     supplementary[dataset_key] = data[dataset_key][['ID', 'POS', 'REF', 'ALT']]
-    new_columns = ['Co-Located Variant', 'Transcript ID', 'Transcript Strand', 'Existing Variation', 'Start Coordinates', 'Consequence', "Diseases", "Biotype", "CADD_PHRED"]
+    new_columns = [
+        'Co-Located Variant', 
+        'Transcript ID', 
+        'Transcript Strand', 
+        'Existing Variation', 
+        'Start Coordinates', 
+        'Consequence', 
+        'Diseases', 
+        'Biotype', 
+        'CADD_PHRED', 
+        'LoFtool' ,
+        'input',
+        'SIFT4G_score',
+        'SIFT4G_pred',
+        'Polyphen2_HVAR_score',
+        'Polyphen2_HVAR_pred',
+        ]
     for column in new_columns:
         supplementary[dataset_key][column] = "-"
 
@@ -168,6 +209,7 @@ for dataset_key, dataset in data_received.items():
         for variant in chunk:
             row = supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start'])]
             row['Start Coordinates'] = variant['start']
+            row['Input'] = variant['input']
             
             co_variants = list()
             if 'colocated_variants' in variant:
@@ -177,21 +219,32 @@ for dataset_key, dataset in data_received.items():
             else:
                 row["Co-Located Variant"] = False
                 co_variants.append("-")
-            row['Existing Variation'] = ", ".join(co_variants)
+            row['Existing Variation'] = "| ".join(co_variants)
 
             if 'transcript_consequences' in variant:
+                Consequence = set()
+                Transcript_ID = set()
+                Biotype = set()
+                CADD_PHRED = set()
+                Transcript_Strand = set()
+                phenotype = set()
                 for consequence in variant['transcript_consequences']:
                     # Add fields:
-                    row['Consequence'] = ", ".join(consequence['consequence_terms'])
-                    row['Transcript ID'] = consequence['transcript_id'] if 'transcript_id' in consequence else '-'
-                    row["Biotype"] = consequence['biotype'] if ('biotype' in consequence) else '-'
-                    row['CADD_PHRED'] = consequence['cadd_phred'] if ('cadd_phred' in consequence) else '-'
-                    row['Transcript Strand'] = consequence['strand'] if ('strand' in consequence) else '-'
+                    Consequence.update(consequence['consequence_terms'])
+                    Transcript_ID.add(consequence['transcript_id'] if 'transcript_id' in consequence else '-')
+                    Biotype.add(consequence['biotype'] if ('biotype' in consequence) else '-')
+                    CADD_PHRED.add(consequence['cadd_phred'] if ('cadd_phred' in consequence) else '-')
+                    Transcript_Strand.add(consequence['strand'] if ('strand' in consequence) else '-')
                     # Add phenotypes as a list:
-                    phenotype = set()
                     if 'phenotypes' in consequence:
                         for instance in consequence['phenotypes']:
                             phenotype.add(instance['phenotype'])
+                row['Diseases'] = merge(phenotype)
+                row['Consequence'] = merge(Consequence)
+                row['Transcript ID'] = merge(Transcript_ID)
+                row['Biotype'] = merge(Biotype)
+                row['CADD_PHRED'] = merge(CADD_PHRED)
+                row['Transcript Strand'] = merge(Transcript_Strand)
             else:
                 pass
             supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start'])] = row
@@ -199,8 +252,9 @@ for dataset_key, dataset in data_received.items():
 
 # %%
 
+# Save formatted results to CSV
 for gene in locations:
-    supplementary[gene].to_csv("../final/{}_VEP.csv".format(gene), sep='\t', index=False)
+    supplementary[gene].to_csv("../final/Supplementary Table/{}_VEP.csv".format(gene), sep='\t', index=False)
     # supplementary.to_excel(snakemake.output['excel'], sheet_name=snakemake.wildcards.location)
 
 
