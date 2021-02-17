@@ -1,15 +1,14 @@
 import os
+import pandas as pd
 
 # DEFINE CONFIG FILE FOR SNAKEMAKE:
 configfile: "config.json"
 
 # DEFINE CONTEXT-VARIABLES:
-clulsteredFinalExtensions=['afreq', 'hardy', 'log', 'prune.in', 'prune.out', 'smiss', 'vmiss']
-finalExtensions=['afreq', 'vcf.gz', 'log']
+finalExtensions=['afreq', 'vcf.gz', 'log', 'hardy','prune.in', 'prune.out', 'smiss', 'vmiss']
 locations=set(config['locations'].keys())
 samples=set(config['samples'].keys())
-superPop=set(config['clusters']['SUPER'])
-subPop=set(config['clusters']['SUB'])
+clusters=set(config['clusters'].keys())
 bExtensions=["bed", "bim", "fam"]
 tExtensions=["map", "ped"]
 
@@ -36,10 +35,7 @@ rule all:
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
     input:
-        expand("final/SUPER/ALL_{location}.{extension}", extension=finalExtensions, location=locations),
-        expand("final/SUPER/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions, location=locations),
-        expand("final/SUB/ALL_{location}.{extension}", extension=finalExtensions, location=locations),
-        expand("final/SUB/ALL_{location}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions, location=locations)
+        expand("final/{cluster}/ALL_{location}.{extension}", extension=finalExtensions, location=locations, cluster=clusters)
 
 
 rule VALIDATE:
@@ -243,17 +239,36 @@ rule ALL_FILTER:
         shell("module load plink-2; plink2 --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz --out .intermediates/FILTER/ALL_{wildcards.location}_FILTERED"),
         shell("module load bcftools-1.7; bcftools norm -m - -o final/ALL_{wildcards.location}.vcf.gz -O z .intermediates/FILTER/ALL_{wildcards.location}_FILTERED.vcf.gz")     
 
+rule TRANSPILE_CLUSTERS:
+    """
+    Convert Cluster information given in the config file into PLINK-2.0 suitable format.
+    """
+    output:
+        ".intermediates/REFERENCE/cluster_{cluster}.txt"
+
+    resources:
+        cpus=15,
+        nodes=1,
+        queue="normal",
+        walltime="30:00:00"
+    
+    run:
+        cluster = pd.DataFrame.from_dict(config['clusters'][params.cluster], orient="index")
+        cluster.reset_index()
+        cluster.to_csv(output, sep='\t')
+
+
+
 rule ALL_ANALYZE_SUPER:
     """
     Perform Frequency analysis on super populations.
     """
     input:
-        vcf="final/ALL_{location}.vcf.gz",
-        popClusters="input/superPopCluster"
+        expand(".intermediates/REFERENCE/cluster_{cluster}.txt", cluster=clusters),
+        vcf="final/ALL_{location}.vcf.gz"
     
     output:
-        expand("final/SUPER/ALL_{{location}}.{extension}", extension=finalExtensions),
-        expand("final/SUPER/ALL_{{location}}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
+        expand("final/{cluster}/ALL_{{location}}.{extension}", extension=finalExtensions, cluster=clusters)
 
     params:
         prefix = 'ALL_{location}'
@@ -265,34 +280,9 @@ rule ALL_ANALYZE_SUPER:
         walltime="30:00:00"
 
     run:
-        shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/SUPER/{params.prefix}"),
-        shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within {input.popClusters} populations --freq --missing --indep-pairwise 50 5 .05 --hardy midp --loop-cats populations --out final/SUPER/{params.prefix}"),
-
-
-rule ALL_ANALYZE_SUB:
-    """
-    Perform frequency analysis on sub-populations.
-    """
-    input:
-        vcf="final/ALL_{location}.vcf.gz",
-        popClusters="input/subPopCluster"
-        
-    output:
-        expand("final/SUB/ALL_{{location}}.{extension}", extension=finalExtensions),
-        expand("final/SUB/ALL_{{location}}_CLUSTERED.{extension}", extension=clulsteredFinalExtensions)
-
-    params:
-        prefix = 'ALL_{location}'
-    
-    resources:
-        cpus=15,
-        nodes=1,
-        queue="normal",
-        walltime="30:00:00"
-  
-    run:
-        shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/SUB/{params.prefix}"),
-        shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within {input.popClusters} populations --freq --missing --indep-pairwise 50 5 .5 --hardy midp --loop-cats populations --out final/SUB/{params.prefix}"),
+        for cluster in clusters:
+            shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/{cluster}/{params.prefix}"),
+            shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within {cluster} populations --freq --missing --indep-pairwise 50 5 .05 --hardy midp --loop-cats populations --out final/SUPER/{params.prefix}"),
 
 # Add in VEP API calls
 rule ALL_VEP:
