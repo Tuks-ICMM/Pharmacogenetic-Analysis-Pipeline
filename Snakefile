@@ -66,6 +66,7 @@ rule VALIDATE:
         # Regenerate and verify the VCF header:
         shell("module load picard-2.17.11; java -Xmx{params.memory} -jar $PICARD FixVcfHeader I=.intermediates/PREP/{wildcards.sample}_NO_INFO.vcf.gz O={output}")
 
+
 rule LIFTOVER:
     """
     Lift Variants onto same Reference build. Otherwise we cant merge them or analyse them in context of eachother.
@@ -109,8 +110,6 @@ rule LIFTOVER:
         # shell("bgzip .intermediates/LIFTOVER/{wildcards.sample}.vcf"),
         shell("sleep 1m; tabix -f -p vcf .intermediates/LIFTOVER/{wildcards.sample}.vcf.gz"),
         shell("echo '.intermediates/LIFTOVER/{wildcards.sample}.vcf.gz' >> .intermediates/LIFTOVER/merge.list")
-
-
 
 
 rule ALL_COLLATE:
@@ -253,8 +252,8 @@ rule TRANSPILE_CLUSTERS:
         walltime="30:00:00"
     
     run:
-        cluster = pd.DataFrame.from_dict(config['clusters'][params.cluster], orient="index")
-        cluster.reset_index()
+        cluster = pd.from_excel(config['cluster']["file"]).set_index(['ID'])
+        cluster.reset_index(['ID'])
         cluster.to_csv(output, sep='\t')
 
 

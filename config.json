@@ -52,56 +52,8 @@
       }
     }
   },
-  "clusters": {
-    "SUPER": [
-      "AFR",
-      "AMR",
-      "EUR",
-      "EAS",
-      "SAS"
-    ],
-    "SUB": [
-      "GBR", 
-      "FIN", 
-      "CHS", 
-      "PUR", 
-      "CDX", 
-      "CLM", 
-      "IBS", 
-      "PEL", 
-      "PJL",
-      "KHV", 
-      "ACB", 
-      "GWD", 
-      "ESN",
-      "BEB", 
-      "MSL", 
-      "STU", 
-      "ITU", 
-      "CEU",
-      "YRI", 
-      "CHB", 
-      "JPT", 
-      "LWK", 
-      "ASW", 
-      "MXL", 
-      "TSI", 
-      "GIH", 
-      "FUL",
-      "WOL", 
-      "JOL", 
-      "MAN", 
-      "BAG", 
-      "BAN", 
-      "BAR", 
-      "ZUL", 
-      "IGB", 
-      "GAA",
-      "KIK", 
-      "KAL", 
-      "ETH", 
-      "SOT",
-      "COL", 
-      "XHO"]
+  "cluster": {
+    "clusters": ["SUPER", "SUB"],
+    "file": "clusters.xlsx"
   }
 }
