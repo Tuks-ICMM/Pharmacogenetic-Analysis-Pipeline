@@ -252,7 +252,7 @@ rule TRANSPILE_CLUSTERS:
         walltime="30:00:00"
     
     run:
-        cluster = pd.from_excel(config['cluster']["file"]).set_index(['ID'])
+        cluster = pd.read_excel(config['cluster']["file"]).set_index(['ID'])
         cluster.reset_index(['ID'])
         cluster.to_csv(output, sep='\t')
 
