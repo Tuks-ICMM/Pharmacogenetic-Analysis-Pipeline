@@ -8,7 +8,7 @@ configfile: "config.json"
 finalExtensions=['afreq', 'vcf.gz', 'log', 'hardy','prune.in', 'prune.out', 'smiss', 'vmiss']
 locations=set(config['locations'].keys())
 samples=set(config['samples'].keys())
-clusters=set(config['cluster']['clusters']
+clusters=set(config['cluster']['clusters'])
 bExtensions=["bed", "bim", "fam"]
 tExtensions=["map", "ped"]
 
