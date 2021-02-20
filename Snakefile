@@ -259,7 +259,7 @@ rule TRANSPILE_CLUSTERS:
 
 
 
-rule ALL_ANALYZE_SUPER:
+rule ALL_ANALYZE:
     """
     Perform Frequency analysis on super populations.
     """
@@ -282,7 +282,7 @@ rule ALL_ANALYZE_SUPER:
     run:
         for cluster in clusters:
             shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/{cluster}/{params.prefix}"),
-            shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within {cluster} populations --freq --missing --indep-pairwise 50 5 .05 --hardy midp --loop-cats populations --out final/SUPER/{params.prefix}"),
+            shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within .intermediates/REFERENCE/cluster_{cluster}.txt populations --freq --missing --indep-pairwise 50 5 .05 --hardy midp --loop-cats populations --out final/SUPER/{params.prefix}"),
 
 # Add in VEP API calls
 rule ALL_VEP:
