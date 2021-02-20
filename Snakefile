@@ -242,6 +242,9 @@ rule TRANSPILE_CLUSTERS:
     """
     Convert Cluster information given in the config file into PLINK-2.0 suitable format.
     """
+    input:
+        config['cluster']["file"]
+
     output:
         ".intermediates/REFERENCE/cluster_{cluster}.txt"
 
@@ -252,7 +255,7 @@ rule TRANSPILE_CLUSTERS:
         walltime="30:00:00"
     
     run:
-        cluster = pd.read_excel(config['cluster']["file"]).set_index(['ID'])
+        cluster = pd.read_excel(input).set_index(['ID'])
         cluster.reset_index(['ID'])
         cluster.to_csv(output, sep='\t')
 

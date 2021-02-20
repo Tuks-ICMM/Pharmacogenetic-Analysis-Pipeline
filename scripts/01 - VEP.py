@@ -226,6 +226,11 @@ for dataset_key, dataset in data_received.items():
                 Transcript_ID = set()
                 Biotype = set()
                 CADD_PHRED = set()
+                LoFtool = set()
+                SIFT4G_score = set()
+                SIFT4G_pred = set()
+                Polyphen2_HVAR_score = set()
+                Polyphen2_HVAR_pred = set()
                 Transcript_Strand = set()
                 phenotype = set()
                 for consequence in variant['transcript_consequences']:
@@ -234,11 +239,21 @@ for dataset_key, dataset in data_received.items():
                     Transcript_ID.add(consequence['transcript_id'] if 'transcript_id' in consequence else '-')
                     Biotype.add(consequence['biotype'] if ('biotype' in consequence) else '-')
                     CADD_PHRED.add(consequence['cadd_phred'] if ('cadd_phred' in consequence) else '-')
+                    # LoFtool.add(consequence['LoFtool'] if ('LoFtool' in consequence) else '-')
+                    SIFT4G_score.add(consequence['sift4g_score'] if ('sift4g_score' in consequence) else '-')
+                    SIFT4G_pred.add(consequence['sift_prediction'] if ('sift_prediction' in consequence) else '-')
+                    Polyphen2_HVAR_score.add(consequence['polyphen2_hvar_score'] if ('polyphen2_hvar_score' in consequence) else '-')
+                    Polyphen2_HVAR_pred.add(consequence['polyphen2_hvar_pred'] if ('polyphen2_hvar_pred' in consequence) else '-')
                     Transcript_Strand.add(consequence['strand'] if ('strand' in consequence) else '-')
                     # Add phenotypes as a list:
                     if 'phenotypes' in consequence:
                         for instance in consequence['phenotypes']:
                             phenotype.add(instance['phenotype'])
+                print(Polyphen2_HVAR_score)
+                row['SIFT4G_score'] = merge(SIFT4G_score)
+                row['SIFT4G_pred'] = merge(SIFT4G_pred)
+                row['Polyphen2_HVAR_score'] = merge(Polyphen2_HVAR_score)
+                row['Polyphen2_HVAR_pred'] = merge(Polyphen2_HVAR_pred)
                 row['Diseases'] = merge(phenotype)
                 row['Consequence'] = merge(Consequence)
                 row['Transcript ID'] = merge(Transcript_ID)
