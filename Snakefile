@@ -227,7 +227,7 @@ rule ALL_FILTER:
 
     output:
         "final/ALL_{location}.vcf.gz",
-        ".intermediates/FILTER/ALL_UGT2B7_FILTERED.log"
+        ".intermediates/FILTER/ALL_{location}_FILTERED.log"
     
     resources:
         cpus=10,
