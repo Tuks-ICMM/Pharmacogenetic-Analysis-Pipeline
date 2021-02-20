@@ -254,7 +254,7 @@ rule TRANSPILE_CLUSTERS:
     run:
         cluster = pd.read_excel(config['cluster']["file"])
         cluster['FID'] = cluster['ID']
-        cluster.to_csv(".intermediates/REFERENCE/cluster_{}.txt".format(wildcards.cluster), sep='\t')
+        cluster[['ID', 'FID', wildcards.cluster]].to_csv(".intermediates/REFERENCE/cluster_{}.txt".format(wildcards.cluster), sep='\t')
 
 
 
