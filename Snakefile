@@ -226,7 +226,8 @@ rule ALL_FILTER:
         ".intermediates/TRIM/ALL_{location}_TRIMMED.vcf.gz"
 
     output:
-        "final/ALL_{location}.vcf.gz"
+        "final/ALL_{location}.vcf.gz",
+        ".intermediates/FILTER/ALL_UGT2B7_FILTERED.log"
     
     resources:
         cpus=10,
