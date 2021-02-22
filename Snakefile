@@ -35,7 +35,7 @@ rule all:
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
     input:
-        expand(["final/%s/ALL_{{location}}.%s.{extension}" % (cluster, config['clusters'][cluster]) for cluster in ['SUPER', 'SUB']], extension=finalExtensions, location=locations)
+        expand(["final/%s/ALL_{{location}}.%s.{extension}" % (cluster, config['cluster'][cluster]) for cluster in ['SUPER', 'SUB']], extension=finalExtensions, location=locations)
 
 
 rule VALIDATE:
