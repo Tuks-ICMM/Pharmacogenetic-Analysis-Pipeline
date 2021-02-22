@@ -9,6 +9,7 @@ finalExtensions=['afreq', 'vcf.gz', 'log', 'hardy','prune.in', 'prune.out', 'smi
 locations=set(config['locations'].keys())
 samples=set(config['samples'].keys())
 clusters=set(config['cluster']['clusters'])
+populations = pd.read_excel("./Clusters.xlsx")
 bExtensions=["bed", "bim", "fam"]
 tExtensions=["map", "ped"]
 
@@ -35,7 +36,7 @@ rule all:
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
     input:
-        expand(["final/%s/ALL_{{location}}.%s.{extension}" % (cluster, config['cluster'][cluster]) for cluster in ['SUPER', 'SUB']], extension=finalExtensions, location=locations)
+        expand([["final/%s/ALL_{{location}}.%s.{extension}" % (cluster, population) for population in populations[cluster].unique()] for cluster in ['SUPER', 'SUB']], extension=finalExtensions, location=locations)
 
 
 rule VALIDATE:
