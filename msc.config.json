@@ -1,0 +1,91 @@
+{
+  "refGenomes": {
+    "GRCh38": "GRCh38.fa.gz"
+  },
+  "samples": {
+    "1000g": {
+      "refGenome": "GRCh37",
+      "format": "Plink Binary",
+      "requiresSexing": false,
+      "exclusions": ["rs199808813"]
+    }
+  },
+  "locations": {
+    "CYP2B6": {
+      "GRCh38": {
+        "transcript_id": "NM_000767.5",
+        "chromosome": 19,
+        "strand": "1",
+        "from": 40988570,
+        "to": 41021110
+      }
+    },
+    "CYP2C9": {
+      "GRCh38": {
+        "transcript_id": "NM_000771.4",
+        "chromosome": 10,
+        "strand": "1",
+        "from": 94938658,
+        "to": 94990091
+      }
+    },
+    "CYP2C19": {
+      "GRCh38": {
+        "transcript_id": "NM_000769.4",
+        "chromosome": 10,
+        "strand": "1",
+        "from": 94762681,
+        "to": 94855547
+      }
+    },
+    "CYP2D6": {
+      "GRCh38": {
+        "transcript_id": "NM_000106.6",
+        "chromosome": 22,
+        "strand": "-1",
+        "from": 42126499,
+        "to": 42130881
+      }
+    },
+    "CYP4F2": {
+      "GRCh38": {
+        "transcript_id": "NM_001082.5",
+        "chromosome": 19,
+        "strand": "-1",
+        "from": 15878023,
+        "to": 15898077
+      }
+    },
+    "VKORC1": {
+      "GRCh38": {
+        "transcript_id": "NM_024006.6",
+        "chromosome": 16,
+        "strand": "-1",
+        "from": 31090842,
+        "to": 31095980
+      }
+    },
+    "HLA-A": {
+      "GRCh38": {
+        "transcript_id": "NM_002116.8",
+        "chromosome": 6,
+        "strand": "1",
+        "from": 29941260,
+        "to": 29945884
+      }
+    },
+    "HLA-B": {
+      "GRCh38": {
+        "transcript_id": "NM_005514.8",
+        "chromosome": 6,
+        "strand": "-1",
+        "from": 31353872,
+        "to": 31357188
+      }
+    }
+  },
+  "cluster": {
+    "clusters": ["SUPER", "SUB"],
+    "file": "Clusters.xlsx"
+  }
+}

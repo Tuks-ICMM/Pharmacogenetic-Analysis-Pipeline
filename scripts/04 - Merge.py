@@ -2,11 +2,14 @@
 
 # Import Dependancies
 import pandas as pd
+import json
 
 # %%
 
 # Declare Constants and Functions:
-genes = ['CYP2A6','CYP2B6', 'UGT2B7']
+with open('../config.json') as f:
+  config = json.load(f)
+genes = config['locations']
 populations = ['AFR', 'AMR', 'EUR', 'EAS', 'SAS']
 tests = ['VEP', 'Freq', 'FishersP', 'FishersOR']
 
@@ -24,7 +27,7 @@ for gene in genes:
 
 # Save data to Excel
 for gene in genes:
-    with pd.ExcelWriter("../final/{}.xlsx".format(gene)) as writer:
+    with pd.ExcelWriter("../final/{}.xlsx".format(gene), engine='xlsxwriter') as writer:
         for test in data[gene]:
             df = data[gene][test]
             df.to_excel(writer, sheet_name=test, index=False, header=False)
@@ -35,5 +38,6 @@ for gene in genes:
                 'name': test,
                 'first_column': True
                 }
+            print(dir(worksheet))
             worksheet.add_table(0, 0, max_row-1, max_col-1, options)
 # %%

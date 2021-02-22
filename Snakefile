@@ -35,7 +35,7 @@ rule all:
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
     input:
-        expand("final/{cluster}/ALL_{location}.{extension}", extension=finalExtensions, location=locations, cluster=clusters)
+        expand(["final/%s/ALL_{{location}}.%s.{extension}" % (cluster, config['clusters'][cluster]) for cluster in ['SUPER', 'SUB']], extension=finalExtensions, location=locations, cluster=clusters, subCluster=config['clusters'][cluster])
 
 
 rule VALIDATE:
@@ -268,7 +268,7 @@ rule ALL_ANALYZE:
         vcf="final/ALL_{location}.vcf.gz"
     
     output:
-        expand("final/{cluster}/ALL_{{location}}.{extension}", extension=finalExtensions, cluster=clusters)
+        expand("final/{{cluster}}/ALL_{{location}}.{{subCluster}}.{extension}", extension=finalExtensions,)
 
     params:
         prefix = 'ALL_{location}'
@@ -281,8 +281,8 @@ rule ALL_ANALYZE:
 
     run:
         for cluster in clusters:
-            shell("module load plink-2; plink2 --vcf {input.vcf} --freq --export vcf-4.2 bgz --out final/{cluster}/{params.prefix}"),
-            shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within .intermediates/REFERENCE/cluster_{cluster}.txt populations --freq --missing --indep-pairwise 50 5 .05 --hardy midp --loop-cats populations --out final/SUPER/{params.prefix}"),
+            shell("module load plink-2; plink2 --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out final/{cluster}/{params.prefix}"),
+            shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within .intermediates/REFERENCE/cluster_{cluster}.txt populations --freq counts --missing --indep-pairwise 50 5 .05 --hardy midp --loop-cats populations --out final/{cluster}/{params.prefix}"),
 
 # Add in VEP API calls
 rule ALL_VEP:
@@ -304,3 +304,6 @@ rule ALL_VEP:
     script:
         "scripts/VEP.py"
 
+
+
+["final/%s/ALL_{{location}}.{subCluster}.{extension}" % cluster for cluster in ['SUPER', 'SUB']]

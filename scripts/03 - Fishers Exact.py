@@ -4,11 +4,14 @@
 import pandas as pd
 from scipy.stats import fisher_exact
 from statsmodels.stats.multitest import multipletests
+import json
 
 # %%
 
 # Declare Constants and Functions
-genes = ['CYP2A6','CYP2B6', 'UGT2B7']
+with open('../config.json') as f:
+  config = json.load(f)
+genes = config['locations']
 populations = ['AFR', 'AMR', 'EUR', 'EAS', 'SAS']
 refPop = 'AFR'
 compPop = ['AMR', 'EUR', 'EAS', 'SAS']

@@ -18,7 +18,13 @@ import os
 with open('../config.json') as f:
   config = json.load(f)
 
+geneSummary = dict()
+for cluster in config['cluster']['clusters']:
+    geneSummary[cluster] = pd.read_excel("../%s" % config["cluster"]["file"])[['ID', cluster]] 
+
 #  %%
+
+#  Set POST Variables and Headers:
 locations=config['locations'].keys()
 populations = ['AFR', 'AMR', 'EUR', 'EAS', 'SAS']
 endpoint = "https://rest.ensembl.org/vep/homo_sapiens/region/"
@@ -46,14 +52,14 @@ def generate_params(key):
     'refseq': True,
     "LoF": True,
     "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
-    # 'transcript_id': snakemake.params.transcript_id
+    'transcript_id': config['locations'][key]["GRCh38"]["transcript_id"]
     }
-    if key == 'CYP2A6':
-        return params | dict(transcrcipt_id="NM_000762.6")
-    if key == 'CYP2B6':
-        return params | dict(transcript_id="NM_000767.5")
-    if key == 'UGT2B7':
-        return params | dict(transcript_id="NM_001074.4")
+    # if key == 'CYP2A6':
+    #     return params | dict(transcrcipt_id="NM_000762.6")
+    # if key == 'CYP2B6':
+    #     return params | dict(transcript_id="NM_000767.5")
+    # if key == 'UGT2B7':
+    #     return params | dict(transcript_id="NM_001074.4")
 
 #%%
 
