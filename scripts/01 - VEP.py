@@ -18,6 +18,7 @@ import os
 with open('../config.json') as f:
   config = json.load(f)
 
+clusters = config['cluster']['clusters']
 geneSummary = dict()
 for cluster in config['cluster']['clusters']:
     geneSummary[cluster] = pd.read_excel("../%s" % config["cluster"]["file"])[['ID', cluster]] 
@@ -54,6 +55,7 @@ def generate_params(key):
     "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
     'transcript_id': config['locations'][key]["GRCh38"]["transcript_id"]
     }
+    return params
     # if key == 'CYP2A6':
     #     return params | dict(transcrcipt_id="NM_000762.6")
     # if key == 'CYP2B6':
@@ -205,8 +207,8 @@ for dataset_key, dataset in data_received.items():
         'input',
         'SIFT4G_score',
         'SIFT4G_pred',
-        'Polyphen2_HVAR_score',
-        'Polyphen2_HVAR_pred',
+        'Polyphen_score',
+        'Polyphen_pred',
         ]
     for column in new_columns:
         supplementary[dataset_key][column] = "-"
@@ -248,18 +250,17 @@ for dataset_key, dataset in data_received.items():
                     # LoFtool.add(consequence['LoFtool'] if ('LoFtool' in consequence) else '-')
                     SIFT4G_score.add(consequence['sift4g_score'] if ('sift4g_score' in consequence) else '-')
                     SIFT4G_pred.add(consequence['sift_prediction'] if ('sift_prediction' in consequence) else '-')
-                    Polyphen2_HVAR_score.add(consequence['polyphen2_hvar_score'] if ('polyphen2_hvar_score' in consequence) else '-')
-                    Polyphen2_HVAR_pred.add(consequence['polyphen2_hvar_pred'] if ('polyphen2_hvar_pred' in consequence) else '-')
-                    Transcript_Strand.add(consequence['strand'] if ('strand' in consequence) else '-')
+                    Polyphen2_HVAR_score.add(str(consequence['polyphen_score']) if ('polyphen_score' in consequence) else '-')
+                    Polyphen2_HVAR_pred.add(consequence['polyphen_pred'] if ('polyphen_pred' in consequence) else '-')
+                    Transcript_Strand.add(str(consequence['strand'] if ('strand' in consequence) else '-'))
                     # Add phenotypes as a list:
                     if 'phenotypes' in consequence:
                         for instance in consequence['phenotypes']:
                             phenotype.add(instance['phenotype'])
-                print(Polyphen2_HVAR_score)
                 row['SIFT4G_score'] = merge(SIFT4G_score)
                 row['SIFT4G_pred'] = merge(SIFT4G_pred)
-                row['Polyphen2_HVAR_score'] = merge(Polyphen2_HVAR_score)
-                row['Polyphen2_HVAR_pred'] = merge(Polyphen2_HVAR_pred)
+                row['Polyphen_score'] = merge(Polyphen2_HVAR_score)
+                row['Polyphen_pred'] = merge(Polyphen2_HVAR_pred)
                 row['Diseases'] = merge(phenotype)
                 row['Consequence'] = merge(Consequence)
                 row['Transcript ID'] = merge(Transcript_ID)
@@ -274,9 +275,10 @@ for dataset_key, dataset in data_received.items():
 # %%
 
 # Save formatted results to CSV
-for gene in locations:
-    supplementary[gene].to_csv("../final/Supplementary Table/{}_VEP.csv".format(gene), sep='\t', index=False)
-    # supplementary.to_excel(snakemake.output['excel'], sheet_name=snakemake.wildcards.location)
+for cluster in clusters:
+    for gene in locations:
+        supplementary[gene].to_csv("../final/Supplementary Table/{cluster}/{gene}_VEP.csv".format(cluster=cluster, gene=gene), sep='\t', index=False)
+        # supplementary.to_excel(snakemake.output['excel'], sheet_name=snakemake.wildcards.location)
 
 
 # %%
