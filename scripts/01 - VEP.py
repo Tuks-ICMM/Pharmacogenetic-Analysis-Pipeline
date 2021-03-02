@@ -56,6 +56,7 @@ def generate_params(key):
     "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
     'transcript_id': config['locations'][key]["GRCh38"]["transcript_id"]
     }
+    return params
     # if key == 'CYP2A6':
     #     return params | dict(transcrcipt_id="NM_000762.6")
     # if key == 'CYP2B6':
@@ -263,8 +264,6 @@ for dataset_key, dataset in data_received.items():
         'SIFT4G_pred',
         'Polyphen_score',
         'Polyphen_pred',
-        'CONDEL',
-        'CONDEL_pred'
         ]
     for column in new_columns:
         supplementary[dataset_key][column] = "-"

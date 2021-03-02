@@ -73,5 +73,4 @@ Fishers(supplementary['SUPER'], refPop, compPop)
 for gene in genes:
     supplementary['SUPER'][gene]["P"].to_csv("../final/Supplementary Table/SUPER/{gene}_FishersP.csv".format(gene=gene), sep='\t', index=False)
     supplementary['SUPER'][gene]['OR'].to_csv("../final/Supplementary Table/SUPER/{gene}_FishersOR.csv".format(gene=gene), sep='\t', index=False)
-
 # %%

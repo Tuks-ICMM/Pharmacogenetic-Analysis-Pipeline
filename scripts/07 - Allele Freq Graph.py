@@ -80,6 +80,8 @@ for gene in genes:
     #     ] for pop in pops]
     # , copy=False, join='inner')
     # for pop in compPops:
+    
+    clinSigP[gene] = clinSig[gene].query(" | ".join(["AFR_T_{pop} >= 0.05".format(pop=pop) for pop in compPops]))
     clinSigP[gene] = clinSig[gene].query(" | ".join(["AFR_G_{pop} >= 0.05".format(pop=pop) for pop in compPops]))
     clinSigP[gene] = clinSig[gene].query(" | ".join(["AFR_L_{pop} >= 0.05".format(pop=pop) for pop in compPops]))
     # graph(pops, clinSig[gene].set_index("ID"), clinSigP[gene].set_index("ID"), "Population stratified Allele Frequency - {}".format(gene))

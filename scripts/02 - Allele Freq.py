@@ -70,6 +70,7 @@ for cluster in clusters:
     for gene in genes:
         supplementary[cluster][gene].to_csv("../final/Supplementary Table/{cluster}/{gene}_Freq.csv".format(cluster=cluster, gene=gene), index=False, sep="\t")
         fishers_data[cluster][gene].to_csv("../final/Supplementary Table/{cluster}/{gene}_Count.csv".format(cluster=cluster, gene=gene), index=False, sep="\t")
+    
 
 
 # %%
