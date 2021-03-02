@@ -12,7 +12,8 @@ import json
 with open('../config.json') as f:
   config = json.load(f)
 genes = config['locations']
-populations = ['AFR', 'AMR', 'EUR', 'EAS', 'SAS']
+clusters = config['cluster']['clusters']
+populations = pd.read_excel("../Clusters.xlsx")
 refPop = 'AFR'
 compPop = ['AMR', 'EUR', 'EAS', 'SAS']
 
@@ -52,21 +53,25 @@ def Fishers (input: dict, refPop: str, compPop: list):
 
 # Load the Supplementary Table
 supplementary = dict()
-for gene in genes:
-    supplementary[gene] = dict()
-    supplementary[gene]['Count'] = pd.read_csv("../final/Supplementary Table/{}_Count.csv".format(gene), sep="\t")
-    supplementary[gene]['OR'] = dict()
-    supplementary[gene]['P'] = dict()
+
+for cluster in clusters:
+    supplementary[cluster] = dict()
+    for gene in genes:
+        supplementary[cluster][gene] = dict()
+        supplementary[cluster][gene]['Count'] = pd.read_csv("../final/Supplementary Table/{cluster}/{gene}_Count.csv".format(cluster=cluster, gene=gene), sep="\t")
+        supplementary[cluster][gene]['OR'] = dict()
+        supplementary[cluster][gene]['P'] = dict()
 
 # %%
 
 # Run Fisher's Exact test
-Fishers(supplementary, refPop, compPop)
+Fishers(supplementary['SUPER'], refPop, compPop)
 
 # %%
 
 # Save Fishers Data to CSV
 for gene in genes:
-    supplementary[gene]["P"].to_csv("../final/Supplementary Table/{}_FishersP.csv".format(gene), sep='\t', index=False)
-    supplementary[gene]['OR'].to_csv("../final/Supplementary Table/{}_FishersOR.csv".format(gene), sep='\t', index=False)
+    supplementary['SUPER'][gene]["P"].to_csv("../final/Supplementary Table/SUPER/{gene}_FishersP.csv".format(gene=gene), sep='\t', index=False)
+    supplementary['SUPER'][gene]['OR'].to_csv("../final/Supplementary Table/SUPER/{gene}_FishersOR.csv".format(gene=gene), sep='\t', index=False)
+
 # %%

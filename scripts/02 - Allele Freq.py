@@ -10,6 +10,8 @@ import json
 with open('../config.json') as f:
   config = json.load(f)
 genes = config['locations']
+clusters = config['cluster']['clusters']
+popsFile = pd.read_excel("../Clusters.xlsx")
 populations = ['AFR', 'AMR', 'EUR', 'EAS', 'SAS']
 
 
@@ -33,31 +35,41 @@ def freq(alt: int, total: int) -> int:
 
 # Load the Supplementary Table:
 supplementary = dict()
-for gene in genes:
-    supplementary[gene] = pd.read_csv("../final/Supplementary Table/{}_VEP.csv".format(gene), sep="\t")[['ID', 'POS', 'REF', 'ALT']]
+
+for cluster in clusters:
+    supplementary[cluster] = dict()
+    for gene in genes:
+        supplementary[cluster][gene] = pd.read_csv("../final/Supplementary Table/{cluster}/{gene}_VEP.csv".format(cluster=cluster, gene=gene), sep="\t")[['ID', 'POS', 'REF', 'ALT']]
+
 #%%
 
 # Calculate frequencies
 frequency_data = dict()
 fishers_data = dict()
-for gene in genes:
-    fishers_data[gene] = supplementary[gene][['ID', 'POS', 'REF', 'ALT']]
-    for pop in populations:
-        supplementary[gene][pop] = 0
-        fishers_data[gene]['{pop}_ac'.format(pop=pop)] = 0
-        fishers_data[gene]['{pop}_tc'.format(pop=pop)] = 0
-        frequency_data = pd.read_csv("../final/SUPER/ALL_{gene}.{pop}.acount".format(gene=gene, pop=pop), delimiter="\t").rename(columns={'#CHROM': 'CHROM'})
-        for index, row in frequency_data.iterrows():
-            supplementary[gene].loc[supplementary[gene]['ID'] == row['ID'], pop] = freq(row['ALT_CTS'], row['OBS_CT'])
-            fishers_data[gene].loc[supplementary[gene]['ID'] == row['ID'], '{pop}_ac'.format(pop=pop)] = row['ALT_CTS']
-            fishers_data[gene].loc[supplementary[gene]['ID'] == row['ID'], '{pop}_tc'.format(pop=pop)] = row['OBS_CT']
+
+
+for cluster in clusters:
+    frequency_data[cluster] = dict()
+    fishers_data[cluster] = dict()
+    for gene in genes:
+        fishers_data[cluster][gene] = supplementary[cluster][gene][['ID', 'POS', 'REF', 'ALT']]
+        for pop in popsFile[cluster].unique():
+            # supplementary[cluster][gene][pop] = 0
+            fishers_data[cluster][gene]['{pop}_ac'.format(pop=pop)] = 0
+            fishers_data[cluster][gene]['{pop}_tc'.format(pop=pop)] = 0
+            frequency_data[cluster][gene] = pd.read_csv("../final/{cluster}/ALL_{gene}.{pop}.acount".format(cluster=cluster, gene=gene, pop=pop), delimiter="\t").rename(columns={'#CHROM': 'CHROM'})
+            for index, row in frequency_data[cluster][gene].iterrows():
+                supplementary[cluster][gene].loc[supplementary[cluster][gene]['ID'] == row['ID'], pop] = freq(row['ALT_CTS'], row['OBS_CT'])
+                fishers_data[cluster][gene].loc[supplementary[cluster][gene]['ID'] == row['ID'], '{pop}_ac'.format(pop=pop)] = row['ALT_CTS']
+                fishers_data[cluster][gene].loc[supplementary[cluster][gene]['ID'] == row['ID'], '{pop}_tc'.format(pop=pop)] = row['OBS_CT']
 
 # %%
 
 # Save the resulting dataframe back to its excel file:
-for gene in genes:
-    supplementary[gene].to_csv("../final/Supplementary Table/{}_Freq.csv".format(gene), index=False, sep="\t")
-    fishers_data[gene].to_csv("../final/Supplementary Table/{}_Count.csv".format(gene), index=False, sep="\t")
-    
+for cluster in clusters:
+    for gene in genes:
+        supplementary[cluster][gene].to_csv("../final/Supplementary Table/{cluster}/{gene}_Freq.csv".format(cluster=cluster, gene=gene), index=False, sep="\t")
+        fishers_data[cluster][gene].to_csv("../final/Supplementary Table/{cluster}/{gene}_Count.csv".format(cluster=cluster, gene=gene), index=False, sep="\t")
+
 
 # %%

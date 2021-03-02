@@ -54,6 +54,6 @@
   },
   "cluster": {
     "clusters": ["SUPER", "SUB"],
-    "file": "clusters.xlsx"
+    "file": "Clusters.xlsx"
   }
 }
