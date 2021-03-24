@@ -1,15 +1,16 @@
+
 # %%
 # Import dependancies
-import gzip
+import sys
 import io
 import json
-import os
-import pandas as pd
+import gzip
 import requests
-import sys
 import time
+import pandas as pd
 from typing import Generator
-from typing import Tuple
+import os
+pd.options.mode.chained_assignment = None
 
 # %%
 
@@ -21,7 +22,8 @@ with open('../config.json') as f:
 clusters = config['cluster']['clusters']
 geneSummary = dict()
 for cluster in config['cluster']['clusters']:
-    geneSummary[cluster] = pd.read_excel("../%s" % config["cluster"]["file"])[['ID', cluster]]
+    geneSummary[cluster] = pd.read_excel(
+        "../%s" % config["cluster"]["file"])[['ID', cluster]]
 
 #  %%
 
@@ -33,12 +35,13 @@ headers = {"Content-Type": "application/json", "Accept": "application/json"}
 params = {
     'hgvs': True,
     'CADD': True,
+    'LoF': True,
     'Phenotypes': True,
     'domains': True,
     'canonical': True,
     'refseq': True,
     "LoF": True,
-    # "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
+    "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
     # 'transcript_id': snakemake.params.transcript_id
 }
 
@@ -47,13 +50,14 @@ def generate_params(key):
     params = {
         'hgvs': True,
         'CADD': True,
+        'LoF': True,
         'Phenotypes': True,
         'domains': True,
         'canonical': True,
         'refseq': True,
         "LoF": True,
         "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
-        'transcript_id': config['locations'][key]["GRCh38"]["transcript_id"]
+        # 'transcript_id': config['locations'][key]["GRCh38"]["transcript_id"]
     }
     return params
     # if key == 'CYP2A6':
@@ -63,27 +67,11 @@ def generate_params(key):
     # if key == 'UGT2B7':
     #     return params | dict(transcript_id="NM_001074.4")
 
-
-condelTests = ['SIFT', "PolyPhen"]
-cutoff = {
-    'SIFT': 0.15,
-    'PolyPhen': 0.28,
-    'Condel': 0.46
-}
-maximums = {
-    'SIFT': 1,
-    'PolyPhen': 1
-}
-probabilities = {
-    "SIFT": pd.read_csv("../binaries/CONDEL/sift.data", delimiter='\t', names=['Score', 'Deleterious', 'Normal']),
-    "PolyPhen": pd.read_csv("../binaries/CONDEL/polyphen.data", delimiter='\t',
-                            names=['Score', 'Deleterious', 'Normal'])
-}
-
-
 # %%
 
 # Define formulas for later use:
+
+
 def read_vcf(path: str) -> pd.DataFrame:
     """Function to import a VCF file as a Pandas dataframe. Does not include Genotype columns. CREDIT: https://gist.github.com/dceoy/99d976a2c01e7f0ba1c813778f9db744
 
@@ -116,12 +104,13 @@ def generate_notation(row: pd.Series, gene: str) -> str:
     notation = list(str())
     for allele in alleles:
         if (len(row['REF']) > len(allele)) | (len(row['REF']) == len(allele)):
-            stop_coordinates = int(row['POS']) + (len(row['REF']) - 1)
-            notation.append("{S}:{P}-{P2}:1/{I}".format(S=row['CHROM'], P=row["POS"], P2=stop_coordinates, I=allele))
+            stop_coordinates = int(row['POS'])+(len(row['REF'])-1)
+            notation.append(
+                "{S}:{P}-{P2}:1/{I}".format(S=row['CHROM'], P=row["POS"], P2=stop_coordinates, I=allele))
         elif len(row['REF']) < len(allele):
-            stop_coordinates = int(row['POS']) + len(row['REF'])
-            notation.append("{S}:{P}-{P2}:{ST}/{I}".format(S=row['CHROM'], P=row["POS"], P2=stop_coordinates, I=allele,
-                                                           ST=config['locations'][gene]['GRCh38']['strand']))
+            stop_coordinates = int(row['POS'])+len(row['REF'])-1
+            notation.append("{S}:{P}-{P2}:{ST}/{I}".format(
+                S=row['CHROM'], P=row["POS"], P2=stop_coordinates, I=allele, ST=config['locations'][gene]['GRCh38']['strand']))
         return notation
 
 
@@ -157,58 +146,20 @@ def merge(value: set) -> str:
         return " | ".join(value)
 
 
-def CONDEL(sift: int, polyphen: int) -> Tuple[int, str]:
-    """Function to calculate a weighted average score accross SIFT and PolyPhenV2 scores.
-
-    Args:
-        sift (int): A number indicating the likelyhood a variant affects protein function (Based on sequence homology and protein function)
-        polyphen (int): A number indicating impact of a variant on protein structure using straightforward physical comparative methods
-
-    Returns:
-        Tuple[int, str]: A weighted score which favours variants with scores further away from each set cutoff (i.e. less ambiguity regarding the prediction) as well as a string, indicating the cutoff verdict
-    """
-
-    score = int()
-
-    if sift <= cutoff['SIFT']:
-        score += (1 - sift / maximums['SIFT']) * (
-                1 - probabilities['SIFT'].loc[probabilities['SIFT']['Score'] == sift, 'Normal'].values[0])
-    else:
-        score += (1 - sift / maximums['SIFT']) * (
-                1 - probabilities['SIFT'].loc[probabilities['SIFT']['Score'] == sift, 'Deleterious'].values[0])
-
-    if polyphen >= cutoff['PolyPhen']:
-        score += (polyphen / maximums['PolyPhen']) * (
-                1 - probabilities['PolyPhen'].loc[probabilities['PolyPhen']['Score'] == polyphen, 'Normal'].values[
-            0])
-    else:
-        score += (polyphen / maximums['PolyPhen']) * (1 - probabilities['PolyPhen'].loc[
-            probabilities['PolyPhen']['Score'] == polyphen, 'Deleterious'].values[0])
-
-    # This acocunts for number of VEP teests used. Since we are only using 2, we use 2...
-    score = score / 2
-
-    if score >= 0.469:
-        pred = "deleterious"
-    elif score >= 0 and score < 0.469:
-        pred = "neutral"
-
-    return (score, pred)
-
-
 # %%
-
 #  Import Data:
 data = dict()
 for location in locations:
-    data[location] = read_vcf("../final/ALL_{location}.vcf.gz".format(location=location))
+    data[location] = read_vcf(
+        "../final/ALL_{location}.vcf.gz".format(location=location))
 
-# %%
+ # %%
 
 # Sub-Divide data:
 data_generator = dict()
 for dataset in data:
     data_generator[dataset] = chunk(data[dataset], 200)
+
 
 # %%
 
@@ -238,7 +189,8 @@ for dataset_key, dataset in data_to_send.items():
         requesting = True
         temp_list = list()
         while requesting:
-            r = requests.post(endpoint, headers=headers, data=json.dumps(chunk), params=generate_params(dataset_key))
+            r = requests.post(endpoint, headers=headers, data=json.dumps(
+                chunk), params=generate_params(dataset_key))
             if r.status_code != 200:
                 time.sleep(5)
             else:
@@ -262,23 +214,22 @@ for dataset_key, dataset in data_received.items():
         'Diseases',
         'Biotype',
         'CADD_PHRED',
-        # 'LoFtool',
+        'LoFtool',
         'input',
-        'SIFT_score',
-        'SIFT_pred',
+        'SIFT4G_score',
+        'SIFT4G_pred',
         'Polyphen_score',
         'Polyphen_pred',
-        "CONDEL",
-        "CONDEL_pred"
     ]
     for column in new_columns:
-        supplementary[dataset_key][column] = None
+        supplementary[dataset_key][column] = "-"
 
     for key, chunk in data_received.items():
         for variant in chunk:
-            row = supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start'])]
+            row = supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(
+                variant['start'])]
             row['Start Coordinates'] = variant['start']
-            row['input'] = variant['input']
+            row['Input'] = variant['input']
 
             co_variants = list()
             if 'colocated_variants' in variant:
@@ -291,44 +242,95 @@ for dataset_key, dataset in data_received.items():
             row['Existing Variation'] = "| ".join(co_variants)
 
             if 'transcript_consequences' in variant:
+                Consequence = set()
+                Transcript_ID = set()
+                Biotype = set()
+                CADD_PHRED = set()
+                LoFtool = set()
+                SIFT4G_score = set()
+                SIFT4G_pred = set()
+                Polyphen2_HVAR_score = set()
+                Polyphen2_HVAR_pred = set()
+                Transcript_Strand = set()
+                phenotype = set()
                 for consequence in variant['transcript_consequences']:
-                    if consequence['transcript_id'] == config['locations'][dataset_key]['GRCh38']['transcript_id']:
-                        phenotype = set()
-
-                        if 'phenotypes' in consequence:
-                            for instance in consequence['phenotypes']:
-                                phenotype.add(instance['phenotype'])
-                        
-                        row['SIFT_score'] = consequence['sift_score'] if ('sift_score' in consequence) else None
-                        row['SIFT_pred'] = consequence['sift_prediction'] if ('sift_prediction' in consequence) else None
-                        row['Polyphen_score'] = str(consequence['polyphen_score']) if ('polyphen_score' in consequence) else None
-                        row['Polyphen_pred'] = consequence['polyphen_prediction'] if ('polyphen_prediction' in consequence) else None
-                        row['Diseases'] = merge(phenotype)
-                        row['Consequence'] = merge(consequence['consequence_terms'])
-                        row['Transcript ID'] = consequence['transcript_id'] if 'transcript_id' in consequence else None
-                        row['Biotype'] = consequence['biotype'] if ('biotype' in consequence) else None
-                        row['CADD_PHRED'] = consequence['cadd_phred'] if ('cadd_phred' in consequence) else None
-                        row['Transcript Strand'] = consequence['strand'] if ('strand' in consequence) else None
-                        # row['LoFtool'] = consequence['loftool'] if 'loftool' in consequence else None
-                        if 'sift_score' in consequence and 'polyphen_score' in consequence:
-                            s, p = CONDEL(int(consequence['sift_score']), consequence['polyphen_score'])
-                            row['CONDEL'] = s
-                            row['CONDEL_pred'] = p
-                        else:
-                            row['CONDEL'] = None
-                            row['CONDEL_pred'] = None
+                    for transcript in config['locations'][key]["GRCh38"]["transcript_id"]:
+                        if consequence['transcript_id'] == transcript:
+                            # Add fields:
+                            Consequence.update(
+                                consequence['consequence_terms'])
+                            Transcript_ID.add(
+                                consequence['transcript_id'] if 'transcript_id' in consequence else '-')
+                            Biotype.add(consequence['biotype'] if (
+                                'biotype' in consequence) else '-')
+                            CADD_PHRED.add(consequence['cadd_phred'] if (
+                                'cadd_phred' in consequence) else '-')
+                            # LoFtool.add(consequence['LoFtool'] if ('LoFtool' in consequence) else '-')
+                            SIFT4G_score.add(consequence['sift4g_score'] if (
+                                'sift4g_score' in consequence) else '-')
+                            SIFT4G_pred.add(consequence['sift_prediction'] if (
+                                'sift_prediction' in consequence) else '-')
+                            Polyphen2_HVAR_score.add(str(consequence['polyphen_score']) if (
+                                'polyphen_score' in consequence) else '-')
+                            Polyphen2_HVAR_pred.add(consequence['polyphen_pred'] if (
+                                'polyphen_pred' in consequence) else '-')
+                            Transcript_Strand.add(
+                                str(consequence['strand'] if ('strand' in consequence) else '-'))
+                            # Add phenotypes as a list:
+                            if 'phenotypes' in consequence:
+                                for instance in consequence['phenotypes']:
+                                    phenotype.add(instance['phenotype'])
+                            break
+                if not len(Transcript_ID) and len(variant['transcript_consequences']):
+                    consequence = variant['transcript_consequences'][0]
+                    # Add fields:
+                    Consequence.update(
+                        consequence['consequence_terms'])
+                    Transcript_ID.add(
+                        consequence['transcript_id'] if 'transcript_id' in consequence else '-')
+                    Biotype.add(consequence['biotype'] if (
+                        'biotype' in consequence) else '-')
+                    CADD_PHRED.add(consequence['cadd_phred'] if (
+                        'cadd_phred' in consequence) else '-')
+                    # LoFtool.add(consequence['LoFtool'] if ('LoFtool' in consequence) else '-')
+                    SIFT4G_score.add(consequence['sift4g_score'] if (
+                        'sift4g_score' in consequence) else '-')
+                    SIFT4G_pred.add(consequence['sift_prediction'] if (
+                        'sift_prediction' in consequence) else '-')
+                    Polyphen2_HVAR_score.add(str(consequence['polyphen_score']) if (
+                        'polyphen_score' in consequence) else '-')
+                    Polyphen2_HVAR_pred.add(consequence['polyphen_pred'] if (
+                        'polyphen_pred' in consequence) else '-')
+                    Transcript_Strand.add(
+                        str(consequence['strand'] if ('strand' in consequence) else '-'))
+                    # Add phenotypes as a list:
+                    if 'phenotypes' in consequence:
+                        for instance in consequence['phenotypes']:
+                            phenotype.add(instance['phenotype'])
+                row['SIFT4G_score'] = merge(SIFT4G_score)
+                row['SIFT4G_pred'] = merge(SIFT4G_pred)
+                row['Polyphen_score'] = merge(Polyphen2_HVAR_score)
+                row['Polyphen_pred'] = merge(Polyphen2_HVAR_pred)
+                row['Diseases'] = merge(phenotype)
+                row['Consequence'] = merge(Consequence)
+                row['Transcript ID'] = merge(Transcript_ID)
+                row['Biotype'] = merge(Biotype)
+                row['CADD_PHRED'] = merge(CADD_PHRED)
+                row['Transcript Strand'] = merge(Transcript_Strand)
             else:
                 pass
-            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start'])] = row
+            supplementary[dataset_key].loc[supplementary[dataset_key]
+                                           ['POS'] == int(variant['start'])] = row
+
 
 # %%
 
 # Save formatted results to CSV
 for cluster in clusters:
     for gene in locations:
-        supplementary[gene].to_csv(
-            "../final/Supplementary Table/{cluster}/{gene}_VEP.csv".format(cluster=cluster, gene=gene), sep='\t',
-            index=False)
+        supplementary[gene].to_csv("../final/Supplementary Table/{cluster}/{gene}_VEP.csv".format(
+            cluster=cluster, gene=gene), sep='\t', index=False)
         # supplementary.to_excel(snakemake.output['excel'], sheet_name=snakemake.wildcards.location)
+
 
 # %%
