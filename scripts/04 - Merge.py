@@ -30,7 +30,15 @@ for cluster in clusters:
                     pass
             else:
                 data[cluster][gene][test] = pd.read_csv("../final/Supplementary Table/{cluster}/{gene}_{test}.csv".format(cluster=cluster, gene=gene, test=test), delimiter='\t')
-    
+
+
+# %%
+
+# Compile a VEP + Freq sheet for analysis sake:
+for cluster in clusters:
+    for gene in genes:
+        data[cluster][gene]['VEP_Freq'] = pd.merge(data[cluster][gene]['VEP'], data[cluster][gene]["Freq"])
+
 
 # %%
 

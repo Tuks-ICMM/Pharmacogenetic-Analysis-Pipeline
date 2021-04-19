@@ -200,7 +200,7 @@ for dataset_key, dataset in data_to_send.items():
 
 # %%
 
-# Iterate through each response and compile its excel:
+# Iterate through each response and compile it:
 supplementary = dict()
 for dataset_key, dataset in data_received.items():
     supplementary[dataset_key] = data[dataset_key][['ID', 'POS', 'REF', 'ALT']]
