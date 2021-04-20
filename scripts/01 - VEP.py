@@ -10,6 +10,7 @@ import time
 import pandas as pd
 from typing import Generator
 import os
+from typing import Tuple
 pd.options.mode.chained_assignment = None
 
 # %%

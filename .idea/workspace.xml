@@ -54,6 +54,7 @@
       <recent name="F:\GitHub\Pharmacogenetics Snakemake\Final" />
     </key>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="project-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -85,11 +86,12 @@
       <workItem from="1591535890880" duration="787000" />
       <workItem from="1591539084593" duration="1206000" />
       <workItem from="1591540453737" duration="3348000" />
+      <workItem from="1616393810301" duration="5541000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="2" />
+    <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="INCLUDE_TEXT_INTO_SHELF" value="false" />
