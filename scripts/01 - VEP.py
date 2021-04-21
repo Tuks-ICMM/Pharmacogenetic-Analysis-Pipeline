@@ -4,12 +4,14 @@ import gzip
 import io
 import json
 import os
-import pandas as pd
-import requests
 import sys
 import time
-from typing import Generator
-from typing import Tuple
+from typing import Generator, Tuple
+
+import pandas as pd
+import requests
+
+pd.options.mode.chained_assignment = None
 
 # %%
 
@@ -30,18 +32,6 @@ locations = config['locations'].keys()
 populations = ['AFR', 'AMR', 'EUR', 'EAS', 'SAS']
 endpoint = "https://rest.ensembl.org/vep/homo_sapiens/region/"
 headers = {"Content-Type": "application/json", "Accept": "application/json"}
-params = {
-    'hgvs': True,
-    'CADD': True,
-    'Phenotypes': True,
-    'domains': True,
-    'canonical': True,
-    'refseq': True,
-    "LoF": True,
-    # "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
-    # 'transcript_id': snakemake.params.transcript_id
-}
-
 
 def generate_params(key):
     params = {
@@ -49,11 +39,11 @@ def generate_params(key):
         'CADD': True,
         'Phenotypes': True,
         'domains': True,
-        'canonical': True,
+        # 'canonical': True,
         'refseq': True,
         "LoF": True,
         "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
-        'transcript_id': config['locations'][key]["GRCh38"]["transcript_id"]
+        # 'transcript_id': config['locations'][key]["GRCh38"]["transcript_id"]
     }
     return params
     # if key == 'CYP2A6':
@@ -208,7 +198,7 @@ for location in locations:
 # Sub-Divide data:
 data_generator = dict()
 for dataset in data:
-    data_generator[dataset] = chunk(data[dataset], 200)
+    data_generator[dataset] = chunk(data[dataset], 100)
 
 # %%
 
@@ -239,8 +229,8 @@ for dataset_key, dataset in data_to_send.items():
         temp_list = list()
         while requesting:
             r = requests.post(endpoint, headers=headers, data=json.dumps(chunk), params=generate_params(dataset_key))
-            if r.status_code != 200:
-                time.sleep(5)
+            if not r.ok:
+                time.sleep(2)
             else:
                 requesting = False
                 decoded = r.json()
@@ -248,7 +238,7 @@ for dataset_key, dataset in data_to_send.items():
 
 # %%
 
-# Iterate through each response and compile its excel:
+# Iterate through each response and compile its values:
 supplementary = dict()
 for dataset_key, dataset in data_received.items():
     supplementary[dataset_key] = data[dataset_key][['ID', 'POS', 'REF', 'ALT']]
@@ -276,50 +266,77 @@ for dataset_key, dataset in data_received.items():
 
     for key, chunk in data_received.items():
         for variant in chunk:
-            row = supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start'])]
-            row['Start Coordinates'] = variant['start']
-            row['input'] = variant['input']
+            # row = supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start'])]
+            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Start Coordinates'] = variant['start']
+            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'input'] = variant['input']
 
             co_variants = list()
             if 'colocated_variants' in variant:
-                row["Co-Located Variant"] = True
+                supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), "Co-Located Variant"] = True
                 for colocated_variant in variant['colocated_variants']:
                     co_variants.append(colocated_variant['id'])
             else:
-                row["Co-Located Variant"] = False
+                supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), "Co-Located Variant"] = False
                 co_variants.append("-")
-            row['Existing Variation'] = "| ".join(co_variants)
+            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Existing Variation'] = "| ".join(co_variants)
 
             if 'transcript_consequences' in variant:
-                for consequence in variant['transcript_consequences']:
-                    if consequence['transcript_id'] == config['locations'][dataset_key]['GRCh38']['transcript_id']:
+                for transcript in config['locations'][dataset_key]['GRCh38']['transcript_id']:
+                    consequence = next((n for n in variant['transcript_consequences'] if n['transcript_id'] == transcript), None)
+                    if consequence is not None:
                         phenotype = set()
 
                         if 'phenotypes' in consequence:
                             for instance in consequence['phenotypes']:
                                 phenotype.add(instance['phenotype'])
-                        
-                        row['SIFT_score'] = consequence['sift_score'] if ('sift_score' in consequence) else None
-                        row['SIFT_pred'] = consequence['sift_prediction'] if ('sift_prediction' in consequence) else None
-                        row['Polyphen_score'] = str(consequence['polyphen_score']) if ('polyphen_score' in consequence) else None
-                        row['Polyphen_pred'] = consequence['polyphen_prediction'] if ('polyphen_prediction' in consequence) else None
-                        row['Diseases'] = merge(phenotype)
-                        row['Consequence'] = merge(consequence['consequence_terms'])
-                        row['Transcript ID'] = consequence['transcript_id'] if 'transcript_id' in consequence else None
-                        row['Biotype'] = consequence['biotype'] if ('biotype' in consequence) else None
-                        row['CADD_PHRED'] = consequence['cadd_phred'] if ('cadd_phred' in consequence) else None
-                        row['Transcript Strand'] = consequence['strand'] if ('strand' in consequence) else None
+
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'SIFT_score'] = consequence['sift_score'] if ('sift_score' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'SIFT_pred'] = consequence['sift_prediction'] if ('sift_prediction' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Polyphen_score'] = str(consequence['polyphen_score']) if ('polyphen_score' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Polyphen_pred'] = consequence['polyphen_prediction'] if ('polyphen_prediction' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Diseases'] = merge(phenotype)
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Consequence'] = merge(consequence['consequence_terms'])
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Transcript ID'] = consequence['transcript_id']
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Biotype'] = consequence['biotype'] if ('biotype' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'CADD_PHRED'] = consequence['cadd_phred'] if ('cadd_phred' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Transcript Strand'] = consequence['strand'] if ('strand' in consequence) else None
                         # row['LoFtool'] = consequence['loftool'] if 'loftool' in consequence else None
                         if 'sift_score' in consequence and 'polyphen_score' in consequence:
                             s, p = CONDEL(int(consequence['sift_score']), consequence['polyphen_score'])
-                            row['CONDEL'] = s
-                            row['CONDEL_pred'] = p
+                            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'CONDEL'] = s
+                            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'CONDEL_pred'] = p
                         else:
-                            row['CONDEL'] = None
-                            row['CONDEL_pred'] = None
-            else:
-                pass
-            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start'])] = row
+                            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'CONDEL'] = None
+                            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'CONDEL_pred'] = None
+                        break
+                    
+                    else:
+                        consequence = variant['transcript_consequences'][0]
+                        phenotype = set()
+
+                        if 'phenotypes' in consequence:
+                            for instance in consequence['phenotypes']:
+                                phenotype.add(instance['phenotype'])
+
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'SIFT_score'] = consequence['sift_score'] if ('sift_score' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'SIFT_pred'] = consequence['sift_prediction'] if ('sift_prediction' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Polyphen_score'] = str(consequence['polyphen_score']) if ('polyphen_score' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Polyphen_pred'] = consequence['polyphen_prediction'] if ('polyphen_prediction' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Diseases'] = merge(phenotype)
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Consequence'] = merge(consequence['consequence_terms'])
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Transcript ID'] = consequence['transcript_id']
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Biotype'] = consequence['biotype'] if ('biotype' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'CADD_PHRED'] = consequence['cadd_phred'] if ('cadd_phred' in consequence) else None
+                        supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'Transcript Strand'] = consequence['strand'] if ('strand' in consequence) else None
+                        # row['LoFtool'] = consequence['loftool'] if 'loftool' in consequence else None
+                        if 'sift_score' in consequence and 'polyphen_score' in consequence:
+                            s, p = CONDEL(int(consequence['sift_score']), consequence['polyphen_score'])
+                            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'CONDEL'] = s
+                            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'CONDEL_pred'] = p
+                        else:
+                            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'CONDEL'] = None
+                            supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] == int(variant['start']), 'CONDEL_pred'] = None
+                        break
 
 # %%
 
