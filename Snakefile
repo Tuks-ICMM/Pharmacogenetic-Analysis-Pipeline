@@ -36,7 +36,7 @@ rule all:
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
     input:
-        expand(["final/%s/ALL_{location}.%s.{extension}" % (cluster, population) for population in populations[cluster].unique()], extension=finalExtensions, location=locations)for cluster in ['SUPER', 'SUB'],
+        [expand(["final/%s/ALL_{location}.%s.{extension}" % (cluster, population) for population in populations[cluster].unique()], extension=finalExtensions, location=locations)for cluster in ['SUPER', 'SUB']],
         "final/Admixture/EIGENSOFT.pca",
         "final/Admixture/EIGENSOFT.plot",
         "final/Admixture/EIGENSOFT.eval",
@@ -174,7 +174,7 @@ rule Admixture:
     Perform Admixture analysis on the large psudo-dataset (Requires 100 000 minimum variants to distinguish sub-populations and 10 000 to distinguish super-populations.)
     """
     input:
-        ".intermediates/ANNOTATE/ALL_ANNOTATED.vcf"
+        ".intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz"
 
     output:
         "final/Admixture/EIGENSOFT.pca",
