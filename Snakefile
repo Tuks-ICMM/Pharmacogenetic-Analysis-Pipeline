@@ -193,7 +193,7 @@ rule Admixture:
         cpus=28,
         nodes=1,
         queue="long",
-        walltime="30:00:00"
+        walltime="900:00:00"
 
     shell:
         shell("module load plink-2; plink --vcf {input} --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.out_name}"),
