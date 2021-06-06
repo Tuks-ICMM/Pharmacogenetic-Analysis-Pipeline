@@ -178,8 +178,7 @@ rule Admixture:
 
     params:
         out_name = ".intermediates/Admixture/ALL",
-        final_out = 'final/Admixture'
-        smartPCA = "binaries/EIG-7.2.1/bin/"
+        final_out = 'final/Admixture',
         admixture_assumption = 5
     
     resources:
