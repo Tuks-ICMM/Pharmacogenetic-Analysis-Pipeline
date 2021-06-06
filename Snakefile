@@ -196,7 +196,7 @@ rule Admixture:
         walltime="900:00:00"
 
     shell:
-        shell("print('test')")
+        shell("echo 'test'")
         # shell("module load plink-2; plink --vcf {input} --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.out_name}"),
         # shell("module load admixture-1.3.0; admixture {params.out_name}.bed {params.admixture_assumption}"),
         # shell("mkdir {params.final_out}"),
