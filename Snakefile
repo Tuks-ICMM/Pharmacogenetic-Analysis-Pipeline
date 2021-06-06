@@ -164,34 +164,44 @@ rule ALL_ANNOTATE:
         shell("module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o .intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"),
         shell("module load plink-2; plink2 --vcf .intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out .intermediates/ANNOTATE/ALL"),
 
-# rule Admixture:
-#     """
-#     Perform Admixture analysis on the large psudo-dataset (Requires 100 000 minimum variants to distinguish sub-populations and 10 000 to distinguish super-populations.)
-#     """
-#     input:
-#         ".intermediates/ANNOTATE/ALL_ANNOTATED.vcf"
+rule Admixture:
+    """
+    Perform Admixture analysis on the large psudo-dataset (Requires 100 000 minimum variants to distinguish sub-populations and 10 000 to distinguish super-populations.)
+    """
+    input:
+        ".intermediates/ANNOTATE/ALL_ANNOTATED.vcf"
 
-#     output:
-#         ".intermediates/Admixture/ALL.5.Q",
-#         ".intermediates/Admixture/ALL.5.P"
+    output:
+        ".intermediates/Admixture/ALL.5.Q",
+        ".intermediates/Admixture/ALL.5.P",
+        "final/"
 
-#     params:
-#         out_name = ".intermediates/Admixture/ALL",
-#         smartPCA = "binaries/EIG-7.2.1/bin/"
+    params:
+        out_name = ".intermediates/Admixture/ALL",
+        final_out = 'final/Admixture'
+        smartPCA = "binaries/EIG-7.2.1/bin/"
+        admixture_assumption = 5
     
-#     resources:
-#         cpus=28,
-#         nodes=1,
-#         queue="long",
-#         walltime="30:00:00"
+    resources:
+        cpus=28,
+        nodes=1,
+        queue="long",
+        walltime="30:00:00"
 
-#     shell:
-#         """
-#         module load plink-1.9
-#         module load admixture-1.3.0
-#         plink --vcf {input} --keep-allele-order --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {Params.out_name}
-#         admixture {Params.out_name}.bed 5
-#         """
+    shell:
+        """
+        module load plink-2.0
+        module load admixture-1.3.0
+        module load eigensoft
+        plink --vcf {input} --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {Params.out_name}
+        admixture {Params.out_name}.bed {Params.admixture_assumption}
+        mkdir {Params.final_out}
+        cp {Params.out_name}.{Params.admixture_assumption}.P {Params.final_out}/ADMIXTURE.{Params.admixture_assumption}.P
+        cp {Params.out_name}.{Params.admixture_assumption}.Q {Params.final_out}/ADMIXTURE.{Params.admixture_assumption}.Q
+        mv {Params.out_name}.bim {Params.out_name}.pedsnp
+        mv {Params.out_name}.fam {Params.out_name}.pedind
+        smartpca -i {Params.out_name}.bed -a {Params.out_name}.pedsnp -b {Params.out_name}.pedind -o {Params.final_out}/EIGENSOFT.pca -p {Params.final_out}/EIGENSOFT.plot -e {Params.final_out}/EIGENSOFT.eval -l {Params.final_out}/EIGENSOFT.log
+        """
 
 
 rule TRIM_AND_NAME:
