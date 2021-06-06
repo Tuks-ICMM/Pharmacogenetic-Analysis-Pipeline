@@ -42,7 +42,7 @@ rule all:
         "final/Admixture/EIGENSOFT.eval",
         "final/Admixture/EIGENSOFT.log",
         "final/Admixture/ADMIXTURE.5.Q",
-        "final/Admixture/ADMIXTURE.5.P",
+        "final/Admixture/ADMIXTURE.5.P"
 
 rule VALIDATE:
     """
@@ -182,7 +182,7 @@ rule Admixture:
         "final/Admixture/EIGENSOFT.eval",
         "final/Admixture/EIGENSOFT.log",
         "final/Admixture/ADMIXTURE.5.Q",
-        "final/Admixture/ADMIXTURE.5.P",
+        "final/Admixture/ADMIXTURE.5.P"
 
     params:
         out_name = ".intermediates/Admixture/ALL",
