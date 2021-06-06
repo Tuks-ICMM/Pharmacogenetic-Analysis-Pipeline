@@ -196,19 +196,14 @@ rule Admixture:
         walltime="30:00:00"
 
     shell:
-        """
-        module load plink-2.0
-        module load admixture-1.3.0
-        module load eigensoft
-        plink --vcf {input} --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {Params.out_name}
-        admixture {Params.out_name}.bed {Params.admixture_assumption}
-        mkdir {Params.final_out}
-        cp {Params.out_name}.{Params.admixture_assumption}.P {Params.final_out}/ADMIXTURE.{Params.admixture_assumption}.P
-        cp {Params.out_name}.{Params.admixture_assumption}.Q {Params.final_out}/ADMIXTURE.{Params.admixture_assumption}.Q
-        mv {Params.out_name}.bim {Params.out_name}.pedsnp
-        mv {Params.out_name}.fam {Params.out_name}.pedind
-        smartpca -i {Params.out_name}.bed -a {Params.out_name}.pedsnp -b {Params.out_name}.pedind -o {Params.final_out}/EIGENSOFT.pca -p {Params.final_out}/EIGENSOFT.plot -e {Params.final_out}/EIGENSOFT.eval -l {Params.final_out}/EIGENSOFT.log
-        """
+        shell("module load plink-2.0; plink --vcf {input} --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.out_name}"),
+        shell("module load admixture-1.3.0; admixture {params.out_name}.bed {params.admixture_assumption}"),
+        shell("mkdir {params.final_out}"),
+        shell("cp {params.out_name}.{params.admixture_assumption}.P {params.final_out}/ADMIXTURE.{params.admixture_assumption}.P"),
+        shell("cp {params.out_name}.{params.admixture_assumption}.Q {params.final_out}/ADMIXTURE.{params.admixture_assumption}.Q"),
+        shell("mv {params.out_name}.bim {params.out_name}.pedsnp"),
+        shell("mv {params.out_name}.fam {params.out_name}.pedind"),
+        shell("module load eigensoft; smartpca -i {params.out_name}.bed -a {params.out_name}.pedsnp -b {params.out_name}.pedind -o {params.final_out}/EIGENSOFT.pca -p {params.final_out}/EIGENSOFT.plot -e {params.final_out}/EIGENSOFT.eval -l {params.final_out}/EIGENSOFT.log")
 
 
 rule TRIM_AND_NAME:
