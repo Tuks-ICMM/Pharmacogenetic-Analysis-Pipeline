@@ -187,7 +187,7 @@ rule Admixture:
     params:
         out_name = ".intermediates/Admixture/ALL",
         final_out = 'final/Admixture',
-        admixture_assumption = 5
+        admixture_assumption = "5"
     
     resources:
         cpus=28,
