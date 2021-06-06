@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -q short
-#PBS -l walltime=00:30:00
+#PBS -q long
+#PBS -l walltime=900:00:00
 #PBS -l nodes=1:ppn=1
 #PBS -k oe
 #PBS -o /nlustre/users/graeme/pipeline-2020/logs/pipeline.log
