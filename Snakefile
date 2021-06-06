@@ -174,7 +174,7 @@ rule Admixture:
     Perform Admixture analysis on the large psudo-dataset (Requires 100 000 minimum variants to distinguish sub-populations and 10 000 to distinguish super-populations.)
     """
     input:
-        ".intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz"
+        ".intermediates/ANNOTATE/ALL.vcf.gz"
 
     output:
         "final/Admixture/EIGENSOFT.pca",
