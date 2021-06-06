@@ -36,8 +36,13 @@ rule all:
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
     input:
-        expand(["final/%s/ALL_{location}.%s.{extension}" % (cluster, population) for population in populations[cluster].unique()], extension=finalExtensions, location=locations)for cluster in ['SUPER', 'SUB']
-
+        expand(["final/%s/ALL_{location}.%s.{extension}" % (cluster, population) for population in populations[cluster].unique()] for cluster in ['SUPER', 'SUB'], extension=finalExtensions, location=locations),
+        "final/Admixture/EIGENSOFT.pca",
+        "final/Admixture/EIGENSOFT.plot",
+        "final/Admixture/EIGENSOFT.eval",
+        "final/Admixture/EIGENSOFT.log",
+        "final/Admixture/ADMIXTURE.5.Q",
+        "final/Admixture/ADMIXTURE.5.P",
 
 rule VALIDATE:
     """
@@ -172,9 +177,12 @@ rule Admixture:
         ".intermediates/ANNOTATE/ALL_ANNOTATED.vcf"
 
     output:
-        ".intermediates/Admixture/ALL.5.Q",
-        ".intermediates/Admixture/ALL.5.P",
-        "final/"
+        "final/Admixture/EIGENSOFT.pca",
+        "final/Admixture/EIGENSOFT.plot",
+        "final/Admixture/EIGENSOFT.eval",
+        "final/Admixture/EIGENSOFT.log",
+        "final/Admixture/ADMIXTURE.5.Q",
+        "final/Admixture/ADMIXTURE.5.P",
 
     params:
         out_name = ".intermediates/Admixture/ALL",
