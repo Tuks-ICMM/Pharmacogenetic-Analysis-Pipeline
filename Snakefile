@@ -9,7 +9,7 @@ finalExtensions=['acount', 'hardy','prune.in', 'prune.out', 'smiss', 'vmiss']
 locations=set(config['locations'].keys())
 samples=set(config['samples'].keys())
 clusters=set(config['cluster']['clusters'])
-populations = pd.read_excel("./Clusters.xlsx")
+populations = pd.read_excel("./Clusters.xlsx", engine='openpyxl')
 bExtensions=["bed", "bim", "fam"]
 tExtensions=["map", "ped"]
 
@@ -153,7 +153,7 @@ rule ALL_ANNOTATE:
         ".intermediates/COLLATE/ALL.vcf.gz"
 
     output:
-        ".intermediates/ANNOTATE/ALL.vcf.gz",
+        ".intermediates/ANNOTATE/ALL.vcf.gz"
     
     params:
         refGenome='/apps/bcbio/genomes/Hsapiens/hg38/seq/hg38.fa.gz',
@@ -169,7 +169,7 @@ rule ALL_ANNOTATE:
         shell("module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o .intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"),
         shell("module load plink-2; plink2 --vcf .intermediates/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out .intermediates/ANNOTATE/ALL"),
 
-rule Admixture:
+rule ADMIXTURE:
     """
     Perform Admixture analysis on the large psudo-dataset (Requires 100 000 minimum variants to distinguish sub-populations and 10 000 to distinguish super-populations.)
     """
@@ -185,9 +185,9 @@ rule Admixture:
         "final/Admixture/ADMIXTURE.5.P"
 
     params:
-        out_name = ".intermediates/Admixture/ALL",
-        final_out = 'final/Admixture',
-        admixture_assumption = "5"
+        outName = ".intermediates/Admixture/ALL",
+        finalOut = 'final/Admixture',
+        admixtureAssumption = "5"
     
     resources:
         cpus=28,
@@ -195,16 +195,15 @@ rule Admixture:
         queue="long",
         walltime="900:00:00"
 
-    shell:
-        shell("echo 'test'")
-        # shell("module load plink-2; plink --vcf {input} --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.out_name}"),
-        # shell("module load admixture-1.3.0; admixture {params.out_name}.bed {params.admixture_assumption}"),
-        # shell("mkdir {params.final_out}"),
-        # shell("cp {params.out_name}.{params.admixture_assumption}.P {params.final_out}/ADMIXTURE.{params.admixture_assumption}.P"),
-        # shell("cp {params.out_name}.{params.admixture_assumption}.Q {params.final_out}/ADMIXTURE.{params.admixture_assumption}.Q"),
-        # shell("mv {params.out_name}.bim {params.out_name}.pedsnp"),
-        # shell("mv {params.out_name}.fam {params.out_name}.pedind"),
-        # shell("module load eigensoft; smartpca -i {params.out_name}.bed -a {params.out_name}.pedsnp -b {params.out_name}.pedind -o {params.final_out}/EIGENSOFT.pca -p {params.final_out}/EIGENSOFT.plot -e {params.final_out}/EIGENSOFT.eval -l {params.final_out}/EIGENSOFT.log")
+    run:
+        shell("module load plink-2; plink2 --vcf {input} --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.outName}"),
+        shell("module load admixture-1.3.0; admixture {params.outName}.bed {params.admixtureAssumption}"),
+        shell("mkdir {params.finalOut}"),
+        shell("cp {params.outName}.{params.admixtureAssumption}.P {params.finalOut}/ADMIXTURE.{params.admixtureAssumption}.P"),
+        shell("cp {params.outName}.{params.admixtureAssumption}.Q {params.finalOut}/ADMIXTURE.{params.admixtureAssumption}.Q"),
+        shell("mv {params.outName}.bim {params.outName}.pedsnp"),
+        shell("mv {params.outName}.fam {params.outName}.pedind"),
+        shell("module load eigensoft; smartpca -i {params.outName}.bed -a {params.outName}.pedsnp -b {params.outName}.pedind -o {params.finalOut}/EIGENSOFT.pca -p {params.finalOut}/EIGENSOFT.plot -e {params.finalOut}/EIGENSOFT.eval -l {params.finalOut}/EIGENSOFT.log")
 
 
 rule TRIM_AND_NAME:
