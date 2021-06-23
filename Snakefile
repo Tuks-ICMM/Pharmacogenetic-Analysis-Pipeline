@@ -177,6 +177,10 @@ rule ADMIXTURE:
         ".intermediates/ANNOTATE/ALL.vcf.gz"
 
     output:
+        ".intermediates/Admixture/ALL.log",
+        ".intermediates/Admixture/ALL.bed",
+        ".intermediates/Admixture/ALL.bim",
+        ".intermediates/Admixture/ALL.fam",
         "final/Admixture/EIGENSOFT.pca",
         "final/Admixture/EIGENSOFT.plot",
         "final/Admixture/EIGENSOFT.eval",
