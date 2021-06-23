@@ -200,7 +200,7 @@ rule ADMIXTURE:
         walltime="900:00:00"
 
     run:
-        shell("module load plink-2; plink2 --vcf {input} --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.outName}"),
+        shell("module load plink-2; plink2 --vcf {input} --snps-only --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.outName}"),
         shell("module load admixture-1.3.0; admixture {params.outName}.bed {params.admixtureAssumption}"),
         shell("mkdir {params.finalOut}"),
         shell("cp {params.outName}.{params.admixtureAssumption}.P {params.finalOut}/ADMIXTURE.{params.admixtureAssumption}.P"),
