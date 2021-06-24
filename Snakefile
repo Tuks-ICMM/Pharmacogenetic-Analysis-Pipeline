@@ -62,7 +62,7 @@ rule VALIDATE:
         memory="128G"
 
     resources:
-        cpus=28,
+        cpus=10,
         nodes=1,
         queue="long",
         walltime="900:00:00"
@@ -95,7 +95,7 @@ rule LIFTOVER:
         ref="binaries/" + config['refGenomes']['GRCh38']
 
     resources:
-        cpus=28,
+        cpus=10,
         nodes=1,
         queue="long",
         walltime="900:00:00"
@@ -136,7 +136,7 @@ rule ALL_COLLATE:
         ref="binaries/" + config['refGenomes']['GRCh38']
 
     resources:
-        cpus=28,
+        cpus=10,
         nodes=1,
         queue="long",
         walltime="900:00:00"
@@ -163,7 +163,7 @@ rule ALL_ANNOTATE:
         dbSNP='/nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz'
     
     resources:
-        cpus=28,
+        cpus=10,
         nodes=1,
         queue="long",
         walltime="900:00:00"
@@ -197,7 +197,7 @@ rule ADMIXTURE:
         admixtureAssumption = "5"
     
     resources:
-        cpus=28,
+        cpus=10,
         nodes=1,
         queue="long",
         walltime="900:00:00"
@@ -268,7 +268,7 @@ rule TRANSPILE_CLUSTERS:
         ".intermediates/REFERENCE/cluster_{cluster}.txt"
 
     resources:
-        cpus=15,
+        cpus=10,
         nodes=1,
         queue="normal",
         walltime="30:00:00"
@@ -295,7 +295,7 @@ rule ALL_ANALYZE:
         prefix = 'ALL_{location}'
     
     resources:
-        cpus=15,
+        cpus=10,
         nodes=1,
         queue="normal",
         walltime="30:00:00"
@@ -317,7 +317,7 @@ rule ALL_VEP:
         transcript_id = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["transcript_id"]
 
     resources:
-        cpus=15,
+        cpus=10,
         nodes=1,
         queue="normal",
         walltime="30:00:00"
