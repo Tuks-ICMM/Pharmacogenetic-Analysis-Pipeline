@@ -203,7 +203,7 @@ rule ADMIXTURE:
         walltime="900:00:00"
 
     run:
-        shell("module load bcftools-1.7; bcftools view -O z -o {params.path}FILTERED -m2 -M2 -v {input}"),
+        shell("module load bcftools-1.7; bcftools view -O z -o {params.path}FILTERED.vcf.gz -m2 -M2 -v {input}"),
         shell("module load plink-2; plink2 --vcf {params.path}FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.path}THINNED"),
         shell("module load admixture-1.3.0; admixture {params.path}THINNED.bed {params.admixtureAssumption}"),
         shell("mkdir {params.finalPath}"),
