@@ -37,12 +37,15 @@ rule all:
     """
     input:
         [expand(["final/%s/ALL_{location}.%s.{extension}" % (cluster, population) for population in populations[cluster].unique()], extension=finalExtensions, location=locations)for cluster in ['SUPER', 'SUB']],
-        "final/Admixture/EIGENSOFT.pca",
-        "final/Admixture/EIGENSOFT.plot",
-        "final/Admixture/EIGENSOFT.eval",
-        "final/Admixture/EIGENSOFT.log",
-        "final/Admixture/ADMIXTURE.5.Q",
-        "final/Admixture/ADMIXTURE.5.P"
+        # "final/Admixture/EIGENSOFT.pca",
+        # "final/Admixture/EIGENSOFT.plot",
+        # "final/Admixture/EIGENSOFT.eval",
+        # "final/Admixture/EIGENSOFT.log",
+        # "final/Admixture/ADMIXTURE.5.Q",
+        # "final/Admixture/ADMIXTURE.5.P"
+        ".intermediates/Admixture/ALL.bed",
+        ".intermediates/Admixture/ALL.bim",
+        ".intermediates/Admixture/ALL.fam",
 
 rule VALIDATE:
     """
@@ -181,12 +184,12 @@ rule ADMIXTURE:
         ".intermediates/Admixture/ALL.bed",
         ".intermediates/Admixture/ALL.bim",
         ".intermediates/Admixture/ALL.fam",
-        "final/Admixture/EIGENSOFT.pca",
-        "final/Admixture/EIGENSOFT.plot",
-        "final/Admixture/EIGENSOFT.eval",
-        "final/Admixture/EIGENSOFT.log",
-        "final/Admixture/ADMIXTURE.5.Q",
-        "final/Admixture/ADMIXTURE.5.P"
+        # "final/Admixture/EIGENSOFT.pca",
+        # "final/Admixture/EIGENSOFT.plot",
+        # "final/Admixture/EIGENSOFT.eval",
+        # "final/Admixture/EIGENSOFT.log",
+        # "final/Admixture/ADMIXTURE.5.Q",
+        # "final/Admixture/ADMIXTURE.5.P"
 
     params:
         outName = ".intermediates/Admixture/ALL",
@@ -200,14 +203,14 @@ rule ADMIXTURE:
         walltime="900:00:00"
 
     run:
-        shell("module load plink-2; plink2 --vcf {input} --snps-only --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.outName}"),
-        shell("module load admixture-1.3.0; admixture {params.outName}.bed {params.admixtureAssumption}"),
-        shell("mkdir {params.finalOut}"),
-        shell("cp {params.outName}.{params.admixtureAssumption}.P {params.finalOut}/ADMIXTURE.{params.admixtureAssumption}.P"),
-        shell("cp {params.outName}.{params.admixtureAssumption}.Q {params.finalOut}/ADMIXTURE.{params.admixtureAssumption}.Q"),
-        shell("mv {params.outName}.bim {params.outName}.pedsnp"),
-        shell("mv {params.outName}.fam {params.outName}.pedind"),
-        shell("module load eigensoft; smartpca -i {params.outName}.bed -a {params.outName}.pedsnp -b {params.outName}.pedind -o {params.finalOut}/EIGENSOFT.pca -p {params.finalOut}/EIGENSOFT.plot -e {params.finalOut}/EIGENSOFT.eval -l {params.finalOut}/EIGENSOFT.log")
+        shell("module load plink-2; plink2 --vcf {input} --make-bed --out {params.outName}"),
+        # shell("module load admixture-1.3.0; admixture {params.outName}.bed {params.admixtureAssumption}"),
+        # shell("mkdir {params.finalOut}"),
+        # shell("cp {params.outName}.{params.admixtureAssumption}.P {params.finalOut}/ADMIXTURE.{params.admixtureAssumption}.P"),
+        # shell("cp {params.outName}.{params.admixtureAssumption}.Q {params.finalOut}/ADMIXTURE.{params.admixtureAssumption}.Q"),
+        # shell("mv {params.outName}.bim {params.outName}.pedsnp"),
+        # shell("mv {params.outName}.fam {params.outName}.pedind"),
+        # shell("module load eigensoft; smartpca -i {params.outName}.bed -a {params.outName}.pedsnp -b {params.outName}.pedind -o {params.finalOut}/EIGENSOFT.pca -p {params.finalOut}/EIGENSOFT.plot -e {params.finalOut}/EIGENSOFT.eval -l {params.finalOut}/EIGENSOFT.log")
 
 
 rule TRIM_AND_NAME:
