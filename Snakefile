@@ -37,12 +37,15 @@ rule all:
     """
     input:
         [expand(["final/%s/ALL_{location}.%s.{extension}" % (cluster, population) for population in populations[cluster].unique()], extension=finalExtensions, location=locations)for cluster in ['SUPER', 'SUB']],
-        "final/Admixture/EIGENSOFT.pca",
-        "final/Admixture/EIGENSOFT.plot",
-        "final/Admixture/EIGENSOFT.eval",
-        "final/Admixture/EIGENSOFT.log",
-        "final/Admixture/ADMIXTURE.5.Q",
-        "final/Admixture/ADMIXTURE.5.P"
+        # "final/Admixture/EIGENSOFT.pca",
+        # "final/Admixture/EIGENSOFT.plot",
+        # "final/Admixture/EIGENSOFT.eval",
+        # "final/Admixture/EIGENSOFT.log",
+        # "final/Admixture/ADMIXTURE.5.Q",
+        # "final/Admixture/ADMIXTURE.5.P"
+        ".intermediates/Admixture/ALL.bed",
+        ".intermediates/Admixture/ALL.bim",
+        ".intermediates/Admixture/ALL.fam",
 
 rule VALIDATE:
     """
@@ -59,7 +62,7 @@ rule VALIDATE:
         memory="128G"
 
     resources:
-        cpus=28,
+        cpus=10,
         nodes=1,
         queue="long",
         walltime="900:00:00"
@@ -92,7 +95,7 @@ rule LIFTOVER:
         ref="binaries/" + config['refGenomes']['GRCh38']
 
     resources:
-        cpus=28,
+        cpus=10,
         nodes=1,
         queue="long",
         walltime="900:00:00"
@@ -133,7 +136,7 @@ rule ALL_COLLATE:
         ref="binaries/" + config['refGenomes']['GRCh38']
 
     resources:
-        cpus=28,
+        cpus=10,
         nodes=1,
         queue="long",
         walltime="900:00:00"
@@ -160,7 +163,7 @@ rule ALL_ANNOTATE:
         dbSNP='/nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz'
     
     resources:
-        cpus=28,
+        cpus=10,
         nodes=1,
         queue="long",
         walltime="900:00:00"
@@ -177,6 +180,10 @@ rule ADMIXTURE:
         ".intermediates/ANNOTATE/ALL.vcf.gz"
 
     output:
+        ".intermediates/Admixture/ALL.log",
+        ".intermediates/Admixture/ALL.bed",
+        ".intermediates/Admixture/ALL.bim",
+        ".intermediates/Admixture/ALL.fam",
         "final/Admixture/EIGENSOFT.pca",
         "final/Admixture/EIGENSOFT.plot",
         "final/Admixture/EIGENSOFT.eval",
@@ -185,25 +192,26 @@ rule ADMIXTURE:
         "final/Admixture/ADMIXTURE.5.P"
 
     params:
-        outName = ".intermediates/Admixture/ALL",
-        finalOut = 'final/Admixture',
+        path = ".intermediates/Admixture/",
+        finalPath = 'final/Admixture/',
         admixtureAssumption = "5"
     
     resources:
-        cpus=28,
+        cpus=10,
         nodes=1,
         queue="long",
         walltime="900:00:00"
 
     run:
-        shell("module load plink-2; plink2 --vcf {input} --snps-only --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.outName}"),
-        shell("module load admixture-1.3.0; admixture {params.outName}.bed {params.admixtureAssumption}"),
-        directoryExists(params.finalOut),
-        shell("cp {params.outName}.{params.admixtureAssumption}.P {params.finalOut}/ADMIXTURE.{params.admixtureAssumption}.P"),
-        shell("cp {params.outName}.{params.admixtureAssumption}.Q {params.finalOut}/ADMIXTURE.{params.admixtureAssumption}.Q"),
-        shell("mv {params.outName}.bim {params.outName}.pedsnp"),
-        shell("mv {params.outName}.fam {params.outName}.pedind"),
-        shell("module load eigensoft; smartpca -i {params.outName}.bed -a {params.outName}.pedsnp -b {params.outName}.pedind -o {params.finalOut}/EIGENSOFT.pca -p {params.finalOut}/EIGENSOFT.plot -e {params.finalOut}/EIGENSOFT.eval -l {params.finalOut}/EIGENSOFT.log")
+        shell("module load bcftools-1.7; bcftools view -O z -o {params.path}FILTERED.vcf.gz -m2 -M2 -v snps {input}"),
+        shell("module load plink-2; plink2 --vcf {params.path}FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.path}THINNED"),
+        shell("module load admixture-1.3.0; admixture {params.path}THINNED.bed {params.admixtureAssumption}"),
+        directoryExists(params.finalPath),
+        shell("cp {params.path}THINNED.{params.admixtureAssumption}.P {params.finalPath}/ADMIXTURE.{params.admixtureAssumption}.P"),
+        shell("cp {params.path}THINNED.{params.admixtureAssumption}.Q {params.finalPath}/ADMIXTURE.{params.admixtureAssumption}.Q"),
+        shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
+        shell("mv {params.path}THINNED.fam {params.path}.pedind"),
+        shell("module load eigensoft; smartpca -i {params.path}THINNED.bed -a {params.path}THINNED.pedsnp -b {params.path}THINNED.pedind -o {params.finalPath}/EIGENSOFT.pca -p {params.finalPath}/EIGENSOFT.plot -e {params.finalPath}/EIGENSOFT.eval -l {params.finalPath}/EIGENSOFT.log")
 
 
 rule TRIM_AND_NAME:
@@ -260,7 +268,7 @@ rule TRANSPILE_CLUSTERS:
         ".intermediates/REFERENCE/cluster_{cluster}.txt"
 
     resources:
-        cpus=15,
+        cpus=10,
         nodes=1,
         queue="normal",
         walltime="30:00:00"
@@ -287,7 +295,7 @@ rule ALL_ANALYZE:
         prefix = 'ALL_{location}'
     
     resources:
-        cpus=15,
+        cpus=10,
         nodes=1,
         queue="normal",
         walltime="30:00:00"
@@ -309,7 +317,7 @@ rule ALL_VEP:
         transcript_id = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["transcript_id"]
 
     resources:
-        cpus=15,
+        cpus=10,
         nodes=1,
         queue="normal",
         walltime="30:00:00"
