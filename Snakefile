@@ -206,7 +206,7 @@ rule ADMIXTURE:
         shell("module load bcftools-1.7; bcftools view -O z -o {params.path}FILTERED.vcf.gz -m2 -M2 -v snps {input}"),
         shell("module load plink-2; plink2 --vcf {params.path}FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.path}THINNED"),
         shell("module load admixture-1.3.0; admixture {params.path}THINNED.bed {params.admixtureAssumption}"),
-        shell("mkdir {params.finalPath}"),
+        directoryExists(params.finalPath),
         shell("cp {params.path}THINNED.{params.admixtureAssumption}.P {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.P"),
         shell("cp {params.path}THINNED.{params.admixtureAssumption}.Q {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.Q"),
         shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
