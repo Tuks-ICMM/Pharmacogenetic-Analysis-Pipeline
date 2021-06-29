@@ -207,8 +207,8 @@ rule ADMIXTURE:
         shell("module load plink-2; plink2 --vcf {params.path}FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.path}THINNED"),
         shell("module load admixture-1.3.0; admixture {params.path}THINNED.bed {params.admixtureAssumption}"),
         shell("mkdir {params.finalPath}"),
-        shell("cp {params.path}THINNED.{params.admixtureAssumption}.P {params.finalPath}/ADMIXTURE.{params.admixtureAssumption}.P"),
-        shell("cp {params.path}THINNED.{params.admixtureAssumption}.Q {params.finalPath}/ADMIXTURE.{params.admixtureAssumption}.Q"),
+        shell("cp {params.path}THINNED.{params.admixtureAssumption}.P {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.P"),
+        shell("cp {params.path}THINNED.{params.admixtureAssumption}.Q {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.Q"),
         shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
         shell("mv {params.path}THINNED.fam {params.path}.pedind"),
         shell("module load eigensoft; smartpca -i {params.path}THINNED.bed -a {params.path}THINNED.pedsnp -b {params.path}THINNED.pedind -o {params.finalPath}/EIGENSOFT.pca -p {params.finalPath}/EIGENSOFT.plot -e {params.finalPath}/EIGENSOFT.eval -l {params.finalPath}/EIGENSOFT.log")
