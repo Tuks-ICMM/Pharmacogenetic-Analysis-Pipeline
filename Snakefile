@@ -43,9 +43,9 @@ rule all:
         # "final/Admixture/EIGENSOFT.log",
         # "final/Admixture/ADMIXTURE.5.Q",
         # "final/Admixture/ADMIXTURE.5.P"
-        ".intermediates/Admixture/ALL.bed",
-        ".intermediates/Admixture/ALL.bim",
-        ".intermediates/Admixture/ALL.fam",
+        ".intermediates/ADMIXTURE/ALL.bed",
+        ".intermediates/ADMIXTURE/ALL.bim",
+        ".intermediates/ADMIXTURE/ALL.fam",
 
 rule VALIDATE:
     """
@@ -180,10 +180,10 @@ rule ADMIXTURE:
         ".intermediates/ANNOTATE/ALL.vcf.gz"
 
     output:
-        ".intermediates/Admixture/ALL.log",
-        ".intermediates/Admixture/ALL.bed",
-        ".intermediates/Admixture/ALL.bim",
-        ".intermediates/Admixture/ALL.fam",
+        ".intermediates/ADMIXTURE/ALL.log",
+        ".intermediates/ADMIXTURE/ALL.bed",
+        ".intermediates/ADMIXTURE/ALL.bim",
+        ".intermediates/ADMIXTURE/ALL.fam",
         "final/Admixture/EIGENSOFT.pca",
         "final/Admixture/EIGENSOFT.plot",
         "final/Admixture/EIGENSOFT.eval",
@@ -192,7 +192,7 @@ rule ADMIXTURE:
         "final/Admixture/ADMIXTURE.5.P"
 
     params:
-        path = ".intermediates/Admixture/",
+        path = ".intermediates/ADMIXTURE/",
         finalPath = 'final/Admixture/',
         admixtureAssumption = "5"
     
@@ -205,7 +205,7 @@ rule ADMIXTURE:
     run:
         shell("module load bcftools-1.7; bcftools view -O z -o {params.path}FILTERED.vcf.gz -m2 -M2 -v snps {input}"),
         shell("module load plink-2; plink2 --vcf {params.path}FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.path}THINNED"),
-        shell("module load admixture-1.3.0; admixture {params.path}THINNED.bed {params.admixtureAssumption}"),
+        shell("module load admixture-1.3.0; cd {params.path}; admixture {params.path}THINNED.bed {params.admixtureAssumption}"),
         directoryExists(params.finalPath),
         shell("cp {params.path}THINNED.{params.admixtureAssumption}.P {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.P"),
         shell("cp {params.path}THINNED.{params.admixtureAssumption}.Q {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.Q"),
