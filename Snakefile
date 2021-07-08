@@ -41,8 +41,8 @@ rule all:
         # "final/Admixture/EIGENSOFT.plot",
         # "final/Admixture/EIGENSOFT.eval",
         # "final/Admixture/EIGENSOFT.log",
-        # "final/Admixture/ADMIXTURE.5.Q",
-        # "final/Admixture/ADMIXTURE.5.P"
+        "final/Admixture/ADMIXTURE.5.Q",
+        "final/Admixture/ADMIXTURE.5.P"
         ".intermediates/ADMIXTURE/ALL.bed",
         ".intermediates/ADMIXTURE/ALL.bim",
         ".intermediates/ADMIXTURE/ALL.fam",
@@ -184,10 +184,10 @@ rule ADMIXTURE:
         ".intermediates/ADMIXTURE/ALL.bed",
         ".intermediates/ADMIXTURE/ALL.bim",
         ".intermediates/ADMIXTURE/ALL.fam",
-        "final/Admixture/EIGENSOFT.pca",
-        "final/Admixture/EIGENSOFT.plot",
-        "final/Admixture/EIGENSOFT.eval",
-        "final/Admixture/EIGENSOFT.log",
+        # "final/Admixture/EIGENSOFT.pca",
+        # "final/Admixture/EIGENSOFT.plot",
+        # "final/Admixture/EIGENSOFT.eval",
+        # "final/Admixture/EIGENSOFT.log",
         "final/Admixture/ADMIXTURE.5.Q",
         "final/Admixture/ADMIXTURE.5.P"
 
@@ -209,9 +209,9 @@ rule ADMIXTURE:
         directoryExists(params.finalPath),
         shell("mv ./THINNED.{params.admixtureAssumption}.P {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.P"),
         shell("mv ./THINNED.{params.admixtureAssumption}.Q {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.Q"),
-        shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
-        shell("mv {params.path}THINNED.fam {params.path}.pedind"),
-        shell("module load eigensoft; smartpca -i {params.path}THINNED.bed -a {params.path}THINNED.pedsnp -b {params.path}THINNED.pedind -o {params.finalPath}/EIGENSOFT.pca -p {params.finalPath}/EIGENSOFT.plot -e {params.finalPath}/EIGENSOFT.eval -l {params.finalPath}/EIGENSOFT.log")
+        # shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
+        # shell("mv {params.path}THINNED.fam {params.path}.pedind"),
+        # shell("module load eigensoft; smartpca -i {params.path}THINNED.bed -a {params.path}THINNED.pedsnp -b {params.path}THINNED.pedind -o {params.finalPath}/EIGENSOFT.pca -p {params.finalPath}/EIGENSOFT.plot -e {params.finalPath}/EIGENSOFT.eval -l {params.finalPath}/EIGENSOFT.log")
 
 
 rule TRIM_AND_NAME:
