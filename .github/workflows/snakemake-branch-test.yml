@@ -1,0 +1,16 @@
+name: Snakemake Integrity Test
+on:
+  push:
+    branches-ignore:
+      - "main"
+
+jobs:
+  Test-Snakemake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Linting
+        uses: snakemake/snakemake-github-action@v1.19.0
+        with:
+          directory: '.test'
+          snakefile: 'Snakefile'
+          args: '--lint'
