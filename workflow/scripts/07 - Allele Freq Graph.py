@@ -5,14 +5,9 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-from itertools import cycle, islice
-import myvariant as mv
-import numpy as np
-import pyupset as pup
 import json
 # plt.rcParams.update({'font.size': 25})
 sns.set(font_scale=3)
-from statannot import add_stat_annotation
 
 #%%
 

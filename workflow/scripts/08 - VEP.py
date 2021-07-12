@@ -3,8 +3,6 @@
 import gzip
 import io
 import json
-import os
-import sys
 import time
 from typing import Generator, Tuple
 

@@ -5,12 +5,8 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-from itertools import cycle, islice
-import myvariant as mv
-import numpy as np
 import upsetplot as pup
 plt.rcParams.update({'font.size': 7})
-from statannot import add_stat_annotation
 import json
 
 # %%
