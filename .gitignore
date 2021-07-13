@@ -136,3 +136,8 @@ snakejob.*
 input/
 logs/*
 figures/
+.snakemake/
+
+# IDE-related folders:
+.idea/
+.vscode/
