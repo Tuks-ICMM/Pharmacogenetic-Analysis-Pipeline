@@ -13,7 +13,7 @@ finalExtensions=['acount', 'hardy','prune.in', 'prune.out', 'smiss', 'vmiss']
 locations=set(config['locations'].keys())
 samples=set(config['samples'].keys())
 clusters=set(config['cluster']['clusters'])
-populations = pd.read_excel(os.path.join("config", "Clusters.xlsx"), engine='openpyxl')
+populations = pd.read_excel(os.path.join("config", "Clusters.xls"))
 bExtensions=["bed", "bim", "fam"]
 tExtensions=["map", "ped"]
 
