@@ -40,7 +40,7 @@ rule all:
         # "results/FINAL/Admixture/EIGENSOFT.eval",
         # "results/FINAL/Admixture/EIGENSOFT.log",
         "results/FINAL/Admixture/ADMIXTURE.5.Q",
-        "results/FINAL/Admixture/ADMIXTURE.5.P"
+        "results/FINAL/Admixture/ADMIXTURE.5.P",
         "results/ADMIXTURE/ALL.bed",
         "results/ADMIXTURE/ALL.bim",
         "results/ADMIXTURE/ALL.fam",
