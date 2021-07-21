@@ -319,34 +319,28 @@ rule ALL_ANALYZE:
             shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within results/REFERENCE/cluster_{cluster}.txt populations --freq counts --missing --indep-pairwise 50 5 .05 --hardy midp --loop-cats populations --out results/FINAL/{cluster}/{params.prefix}"),
 
 # Add in VEP API calls
-rule ALL_VEP:
-    """
-    Perform Variant Effect prediction with the E! Ensembl VEP tool API.
-    """
+# rule ALL_CALCULATIONS:
+#     """
+#     Perform Variant Effect prediction with the E! Ensembl VEP tool API.
+#     """
     
-    log:
-        "logs/VEP/{location}.log"
+#     log:
+#         "logs/VEP/{location}.log"
     
-    input:
-        vcf="results/FILTER/ALL_{location}_FILTERED.vcf.gz"
+#     input:
+#         vcf="results/FILTER/ALL_{location}_FILTERED.vcf.gz"
 
-    output:
-        excel="results/FINAL/{location}.xlsx"
+#     output:
+#         excel="results/FINAL/{location}.xlsx"
 
-    params:
-        transcript_id = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["transcript_id"]
+#     params:
+#         transcript_id = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["transcript_id"]
 
-    resources:
-        cpus=10,
-        nodes=1,
-        queue="normal",
-        walltime="30:00:00"
+#     resources:
+#         cpus=10,
+#         nodes=1,
+#         queue="normal",
+#         walltime="30:00:00"
 
-    script:
-        "scripts/02 - Allele Freq.py",
-        "scripts/03 - Fishers Exact.py",
-        "scripts/04 - Merge.py",
-        "scripts/05 - UpSetR.py",
-        "scripts/06 - KDE Plot.py",
-        "scripts/07 - Allele Freq Graph.py",
-        "scripts/08 - VEP.py"
+#     script:
+#         "scripts/02 - CALCULATIONS.py"

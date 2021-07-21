@@ -1,7 +1,0 @@
-cluster: "profile/pbs-submit.py --depend \"{dependencies}\""
-cluster-status: "profile/pbs-status.py"
-jobscript: "profile/pbs-jobscript.sh"
-jobs: 8
-immediate-submit: False
-verbose: true
-notemp: true
