@@ -10,6 +10,8 @@ from typing import Generator, Tuple
 
 import pandas as pd
 import requests
+from scipy.stats import fisher_exact
+from statsmodels.stats.multitest import multipletests
 
 pd.options.mode.chained_assignment = None
 
@@ -29,6 +31,10 @@ for cluster in config["cluster"]["clusters"]:
     )[["ID", cluster]]
 popsFile = pd.read_excel(join("..", "..", "config", "Clusters.xlsx"))
 populations = ["AFR", "AMR", "EUR", "EAS", "SAS"]
+
+refPop = "AFR"
+compPop = ["AMR", "EUR", "EAS", "SAS"]
+
 
 #  %%
 
@@ -229,6 +235,54 @@ def CONDEL(sift: int, polyphen: int) -> Tuple[int, str]:
         pred = "neutral"
 
     return (score, pred)
+
+
+def Fishers(input: dict, refPop: str, compPop: list):
+    """Runs a row-wise Fisher's Exact Test between the two listed populations
+    Parameters:
+    input (dict): A dict of DataFrames to work on.
+    pop1 (str): A str matching a column name in each dataset corresponding to that populations frequency data. 
+    compPop (list): A str matching a column name in each dataset corresponding to that populations frequency data.
+    """
+    for key, dataset in input.items():
+        dataset["OR"] = dataset["Count"][["ID", "POS", "REF", "ALT"]]
+        dataset["P"] = dataset["Count"][["ID", "POS", "REF", "ALT"]]
+        for pop in compPop:
+            for key2, direction in {
+                "L": "less",
+                "G": "greater",
+                "T": "two-sided",
+            }.items():
+                oLabel = "{refPop}_{tail}_{pop}".format(
+                    refPop=refPop, tail=key2, pop=pop
+                )
+                pLabel = "{refPop}_{tail}_{pop}".format(
+                    refPop=refPop, tail=key2, pop=pop
+                )
+                dataset["OR"][oLabel] = None
+                dataset["P"][pLabel] = None
+                for index, row in dataset["Count"].iterrows():
+                    contingency = [
+                        [
+                            row["{}_ac".format(refPop)],
+                            row["{}_tc".format(refPop)] - row["{}_ac".format(refPop)],
+                        ],
+                        [
+                            row["{}_ac".format(pop)],
+                            row["{}_tc".format(pop)] - row["{}_ac".format(pop)],
+                        ],
+                    ]
+                    oVal, pVal = fisher_exact(contingency, alternative=direction)
+                    dataset["P"].loc[index, pLabel] = pVal
+                    dataset["OR"].loc[index, oLabel] = oVal
+                dataset["P"][pLabel] = multipletests(
+                    dataset["P"][pLabel], method="bonferroni"
+                )[1]
+        columnsToDrop = list()
+        # for pop in populations:
+        #     columnsToDrop.append("{}_ac".format(pop))
+        #     columnsToDrop.append("{}_tc".format(pop))
+        # dataset.drop(columns=columnsToDrop ,inplace=True)
 
 
 # %%
@@ -627,31 +681,34 @@ for cluster in clusters:
             ["ID", "POS", "REF", "ALT"]
         ]
         for pop in popsFile[cluster].unique():
-            # supplementary[cluster][gene][pop] = 0
-            fishers_data[cluster][gene]["{}_ac".format(pop)] = 0
-            fishers_data[cluster][gene]["{}_tc".format(pop)] = 0
-            frequency_data[cluster][gene] = pd.read_csv(
-                join(
-                    "..",
-                    "..",
-                    "results",
-                    cluster,
-                    "ALL_{gene}.{pop}.acount".format(gene=gene, pop=pop),
-                ),
-                delimiter="\t",
-            ).rename(columns={"#CHROM": "CHROM"})
-            for index, row in frequency_data[cluster][gene].iterrows():
-                supplementary[cluster][gene].loc[
-                    supplementary[cluster][gene]["ID"] == row["ID"], pop
-                ] = freq(row["ALT_CTS"], row["OBS_CT"])
-                fishers_data[cluster][gene].loc[
-                    supplementary[cluster][gene]["ID"] == row["ID"],
-                    "{pop}_ac".format(pop=pop),
-                ] = row["ALT_CTS"]
-                fishers_data[cluster][gene].loc[
-                    supplementary[cluster][gene]["ID"] == row["ID"],
-                    "{pop}_tc".format(pop=pop),
-                ] = row["OBS_CT"]
+            try:
+                # supplementary[cluster][gene][pop] = 0
+                fishers_data[cluster][gene]["{}_ac".format(pop)] = 0
+                fishers_data[cluster][gene]["{}_tc".format(pop)] = 0
+                frequency_data[cluster][gene] = pd.read_csv(
+                    join(
+                        "..",
+                        "..",
+                        "results",
+                        cluster,
+                        "ALL_{gene}.{pop}.acount".format(gene=gene, pop=pop),
+                    ),
+                    delimiter="\t",
+                ).rename(columns={"#CHROM": "CHROM"})
+                for index, row in frequency_data[cluster][gene].iterrows():
+                    supplementary[cluster][gene].loc[
+                        supplementary[cluster][gene]["ID"] == row["ID"], pop
+                    ] = freq(row["ALT_CTS"], row["OBS_CT"])
+                    fishers_data[cluster][gene].loc[
+                        supplementary[cluster][gene]["ID"] == row["ID"],
+                        "{pop}_ac".format(pop=pop),
+                    ] = row["ALT_CTS"]
+                    fishers_data[cluster][gene].loc[
+                        supplementary[cluster][gene]["ID"] == row["ID"],
+                        "{pop}_tc".format(pop=pop),
+                    ] = row["OBS_CT"]
+            except:
+                pass
 
 # %%
 
@@ -662,7 +719,7 @@ for cluster in clusters:
             join(
                 "..",
                 "..",
-                "final",
+                "results",
                 "Supplementary Table",
                 cluster,
                 "{}_Freq.csv".format(gene),
@@ -674,7 +731,7 @@ for cluster in clusters:
             join(
                 "..",
                 "..",
-                "final",
+                "results",
                 "Supplementary Table",
                 cluster,
                 "{}_Count.csv".format(gene),
@@ -682,4 +739,67 @@ for cluster in clusters:
             index=False,
             sep="\t",
         )
+
+
+# %%
+
+# FISHERS EXACT
+
+# %%
+
+# Load the Supplementary Table
+supplementary = dict()
+
+for cluster in clusters:
+    supplementary[cluster] = dict()
+    for gene in genes:
+        supplementary[cluster][gene] = dict()
+        supplementary[cluster][gene]["Count"] = pd.read_csv(
+            join(
+                "..",
+                "..",
+                "results",
+                "Supplementary Table",
+                cluster,
+                "{}_Count.csv".format(gene),
+            ),
+            sep="\t",
+        )
+        supplementary[cluster][gene]["OR"] = dict()
+        supplementary[cluster][gene]["P"] = dict()
+
+# %%
+
+# Run Fisher's Exact test
+Fishers(supplementary["SUPER"], refPop, compPop)
+
+# %%
+
+# Save Fishers Data to CSV
+for gene in genes:
+    supplementary["SUPER"][gene]["P"].to_csv(
+        join(
+            "..",
+            "..",
+            "results",
+            "Supplementary Table",
+            "SUPER",
+            "{}_FishersP.csv".format(gene),
+        ),
+        sep="\t",
+        index=False,
+    )
+    supplementary["SUPER"][gene]["OR"].to_csv(
+        join(
+            "..",
+            "..",
+            "results",
+            "Supplementary Table",
+            "SUPER",
+            "{}_FishersOR.csv".format(gene),
+        ),
+        sep="\t",
+        index=False,
+    )
+# %%
 
