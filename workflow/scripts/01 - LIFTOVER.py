@@ -5,8 +5,8 @@ from snakemake import shell
 # %%
 
 # Define constant:
-config = snakemake["config"]
-wildcards = snakemake["wildcards"]
+config = snakemake.config
+wildcards = snakemake.wildcards
 
 # %%
 
