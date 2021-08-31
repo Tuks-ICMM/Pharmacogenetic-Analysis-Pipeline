@@ -7,6 +7,7 @@ from snakemake import shell
 # Define constant:
 config = snakemake.config
 wildcards = snakemake.wildcards
+params = snakemake.params
 
 # %%
 
