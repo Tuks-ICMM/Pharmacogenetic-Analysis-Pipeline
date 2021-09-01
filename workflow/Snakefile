@@ -5,17 +5,19 @@ import pandas as pd
 
 # min_version("6.0")
 
+
 # DEFINE CONFIG FILE FOR SNAKEMAKE:
 configfile: os.path.join("config", "config.json")
 
+
 # DEFINE CONTEXT-VARIABLES:
-finalExtensions=['acount', 'hardy','prune.in', 'prune.out', 'smiss', 'vmiss']
-locations=set(config['locations'].keys())
-samples=set(config['samples'].keys())
-clusters=set(config['cluster']['clusters'])
+finalExtensions = ["acount", "hardy", "prune.in", "prune.out", "smiss", "vmiss"]
+locations = set(config["locations"].keys())
+samples = set(config["samples"].keys())
+clusters = set(config["cluster"]["clusters"])
 populations = pd.read_excel(os.path.join("config", "Clusters.xls"))
-bExtensions=["bed", "bim", "fam"]
-tExtensions=["map", "ped"]
+bExtensions = ["bed", "bim", "fam"]
+tExtensions = ["map", "ped"]
 
 # Define a list to store a merge-list of dataset names:
 mergeList = list()
@@ -24,17 +26,27 @@ mergeList = list()
 onstart:
     include: "rules/common.smk"
 
+
 # BEGIN DEFINING RULES:
 rule all:
     """
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
-
     log:
-        "logs/ALL/ALL.log"
-
+        "logs/ALL/ALL.log",
     input:
-        [expand(["results/FINAL/%s/ALL_{location}.%s.{extension}" % (cluster, population) for population in populations[cluster].unique()], extension=finalExtensions, location=locations)for cluster in ['SUPER', 'SUB']],
+        [
+            expand(
+                [
+                    "results/FINAL/%s/ALL_{location}.%s.{extension}"
+                    % (cluster, population)
+                    for population in populations[cluster].unique()
+                ],
+                extension=finalExtensions,
+                location=locations,
+            )
+            for cluster in ["SUPER", "SUB"]
+        ],
         # "results/FINAL/Admixture/EIGENSOFT.pca",
         # "results/FINAL/Admixture/EIGENSOFT.plot",
         # "results/FINAL/Admixture/EIGENSOFT.eval",
@@ -45,137 +57,136 @@ rule all:
         "results/ADMIXTURE/ALL.bim",
         "results/ADMIXTURE/ALL.fam",
 
+
 rule VALIDATE:
     """
     Perform validation of VCF format as well as REF alleles and strip out INFO tags.
     """
-
     log:
-        "logs/VALIDATE/{sample}.log"
-
+        "logs/VALIDATE/{sample}.log",
     input:
-        "input/{sample}.vcf.gz"
-
+        "input/{sample}.vcf.gz",
     output:
         "results/PREP/{sample}.vcf.gz",
-
     params:
-        memory="128G"
-
+        memory="128G",
     resources:
         cpus=10,
         nodes=1,
         queue="long",
-        walltime="900:00:00"
-    
+        walltime="900:00:00",
     run:
         # Remove variant types we cant yet analyse:
-        shell("module load gatk-4.0.12.0; gatk SelectVariants  -V {input} --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O results/PREP/{wildcards.sample}_FILTERED.vcf.gz"),
+        shell(
+            "module load gatk-4.0.12.0; gatk SelectVariants  -V {input} --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O results/PREP/{wildcards.sample}_FILTERED.vcf.gz"
+        ),
         # Strip out INFO tags:
-        shell("module load bcftools-1.7; bcftools annotate -x INFO -O z -o results/PREP/{wildcards.sample}_NO_INFO.vcf.gz results/PREP/{wildcards.sample}_FILTERED.vcf.gz"),
+        shell(
+            "module load bcftools-1.7; bcftools annotate -x INFO -O z -o results/PREP/{wildcards.sample}_NO_INFO.vcf.gz results/PREP/{wildcards.sample}_FILTERED.vcf.gz"
+        ),
         # Regenerate and verify the VCF header:
-        shell("module load picard-2.17.11; java -Xmx{params.memory} -jar $PICARD FixVcfHeader I=results/PREP/{wildcards.sample}_NO_INFO.vcf.gz O={output}")
+        shell(
+            "module load picard-2.17.11; java -Xmx{params.memory} -jar $PICARD FixVcfHeader I=results/PREP/{wildcards.sample}_NO_INFO.vcf.gz O={output}"
+        )
 
 
 rule LIFTOVER:
     """
     Lift Variants onto same Reference build. Otherwise we cant merge them or analyse them in context of each other.
     """
-
     log:
-        "logs/LIFTOVER/{sample}.log"
-    
+        "logs/LIFTOVER/{sample}.log",
     input:
         "results/PREP/{sample}.vcf.gz",
-
     output:
-        "results/LIFTOVER/{sample}.vcf.gz"
-
+        "results/LIFTOVER/{sample}.vcf.gz",
     params:
-        prefix= lambda wildcards: "results/LIFTOVER/{sample}_LIFTED".format(sample=wildcards.sample),
-        exclusionList= lambda wildcards: "results/LIFTOVER/{sample}_EXCLUDE.dat".format(sample=wildcards.sample),
+        prefix=lambda wildcards: "results/LIFTOVER/{sample}_LIFTED".format(
+            sample=wildcards.sample
+        ),
+        exclusionList=(
+            lambda wildcards: "results/LIFTOVER/{sample}_EXCLUDE.dat".format(
+                sample=wildcards.sample
+            )
+        ),
         chainFile="binaries/hg19ToHg38.over.chain",
         LiftOver="binaries/liftOverPlink.py",
         rmBadLifts="binaries/rmBadLifts.py",
-        ref= os.path.join("binaries", config['refGenomes']['GRCh38'])
-
+        ref=os.path.join("binaries", config["refGenomes"]["GRCh38"]),
     resources:
         cpus=10,
         nodes=1,
         queue="long",
-        walltime="900:00:00"
-
+        walltime="900:00:00",
     script:
         "scripts/01 - LIFTOVER.py"
+
 
 rule ALL_COLLATE:
     """
     Collate Datasets together into 1 psudo-dataset for downstream analysis.
     """
-
     log:
-        "logs/COLLATE/ALL.log"
-    
+        "logs/COLLATE/ALL.log",
     input:
-        expand("results/LIFTOVER/{sample}.vcf.gz", sample=samples)
-
+        expand("results/LIFTOVER/{sample}.vcf.gz", sample=samples),
     output:
         "results/COLLATE/ALL.vcf.gz",
-        "results/COLLATE/ALL.vcf.gz.tbi"
-
+        "results/COLLATE/ALL.vcf.gz.tbi",
     params:
-        ref = lambda : os.path.join("binaries", config['refGenomes']['GRCh38'])
-
+        ref=lambda wildcards: os.path.join("binaries", config["refGenomes"]["GRCh38"]),
     resources:
         cpus=10,
         nodes=1,
         queue="long",
-        walltime="900:00:00"
-
+        walltime="900:00:00",
     run:
-        shell("module load bcftools-1.7; bcftools merge -l results/LIFTOVER/merge.list -O z -o results/COLLATE/ALL_PRE.vcf.gz"),
+        shell(
+            "module load bcftools-1.7; bcftools merge -l results/LIFTOVER/merge.list -O z -o results/COLLATE/ALL_PRE.vcf.gz"
+        ),
         shell("module load samtools-1.7; tabix -p vcf results/COLLATE/ALL_PRE.vcf.gz"),
-        shell("module load plink-2; plink2 --vcf results/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out results/COLLATE/ALL_REF"),
-        shell("module load plink-2; plink2 --vcf results/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/ALL"),
+        shell(
+            "module load plink-2; plink2 --vcf results/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out results/COLLATE/ALL_REF"
+        ),
+        shell(
+            "module load plink-2; plink2 --vcf results/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/ALL"
+        ),
         shell("module load samtools-1.7; tabix -p vcf results/COLLATE/ALL.vcf.gz"),
+
 
 rule ALL_ANNOTATE:
     """
     Annotate rsID's in psudo-dataset to facilitate down-stream analysis.
     """
-
     log:
-        "logs/ANNOTATE/ALL.log"
-    
+        "logs/ANNOTATE/ALL.log",
     input:
-        "results/COLLATE/ALL.vcf.gz"
-
+        "results/COLLATE/ALL.vcf.gz",
     output:
-        "results/ANNOTATE/ALL.vcf.gz"
-    
+        "results/ANNOTATE/ALL.vcf.gz",
     resources:
         cpus=10,
         nodes=1,
         queue="long",
-        walltime="900:00:00"
-
-    
-# ToDo: Add refGenome and dbSNP links
+        walltime="900:00:00",
+    # ToDo: Add refGenome and dbSNP links
     run:
-        shell("module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o results/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"),
-        shell("module load plink-2; plink2 --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"),
+        shell(
+            "module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o results/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"
+        ),
+        shell(
+            "module load plink-2; plink2 --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"
+        ),
+
 
 rule ADMIXTURE:
     """
     Perform Admixture analysis on the large psudo-dataset (Requires 100 000 minimum variants to distinguish sub-populations and 10 000 to distinguish super-populations.)
     """
-
     log:
-        "logs/ADMIXTURE/ALL.log"
-    
+        "logs/ADMIXTURE/ALL.log",
     input:
-        "results/ANNOTATE/ALL.vcf.gz"
-
+        "results/ANNOTATE/ALL.vcf.gz",
     output:
         "results/ADMIXTURE/ALL.log",
         "results/ADMIXTURE/ALL.bed",
@@ -186,147 +197,156 @@ rule ADMIXTURE:
         # "results/FINAL/Admixture/EIGENSOFT.eval",
         # "results/FINAL/Admixture/EIGENSOFT.log",
         "results/FINAL/Admixture/ADMIXTURE.5.Q",
-        "results/FINAL/Admixture/ADMIXTURE.5.P"
-
+        "results/FINAL/Admixture/ADMIXTURE.5.P",
     params:
-        path = lambda : os.path.join("results", "ADMIXTURE"),
-        finalPath = lambda : os.path.join("final", "Admixture"),
-        admixtureAssumption = "5"
-    
+        path=lambda wildcards: os.path.join("results", "ADMIXTURE"),
+        finalPath=lambda wildcards: os.path.join("final", "Admixture"),
+        admixtureAssumption="5",
     resources:
         cpus=10,
         nodes=1,
         queue="long",
-        walltime="900:00:00"
-
+        walltime="900:00:00",
     run:
-        shell("module load bcftools-1.7; bcftools view -O z -o {params.path}FILTERED.vcf.gz -m2 -M2 -v snps {input}"),
-        shell("module load plink-2; plink2 --vcf {params.path}FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.path}THINNED"),
-        shell("module load admixture-1.3.0; admixture {params.path}THINNED.bed {params.admixtureAssumption}"),
+        shell(
+            "module load bcftools-1.7; bcftools view -O z -o {params.path}FILTERED.vcf.gz -m2 -M2 -v snps {input}"
+        ),
+        shell(
+            "module load plink-2; plink2 --vcf {params.path}FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out {params.path}THINNED"
+        ),
+        shell(
+            "module load admixture-1.3.0; admixture {params.path}THINNED.bed {params.admixtureAssumption}"
+        ),
         directoryExists(params.finalPath),
-        shell("mv ./THINNED.{params.admixtureAssumption}.P {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.P"),
-        shell("mv ./THINNED.{params.admixtureAssumption}.Q {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.Q"),
+        shell(
+            "mv ./THINNED.{params.admixtureAssumption}.P {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.P"
+        ),
+        shell(
+            "mv ./THINNED.{params.admixtureAssumption}.Q {params.finalPath}ADMIXTURE.{params.admixtureAssumption}.Q"
+        ),
         # shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
         # shell("mv {params.path}THINNED.fam {params.path}.pedind"),
         # shell("module load eigensoft; smartpca -i {params.path}THINNED.bed -a {params.path}THINNED.pedsnp -b {params.path}THINNED.pedind -o {params.finalPath}/EIGENSOFT.pca -p {params.finalPath}/EIGENSOFT.plot -e {params.finalPath}/EIGENSOFT.eval -l {params.finalPath}/EIGENSOFT.log")
+
 
 
 rule TRIM_AND_NAME:
     """
     Trim the whole-genome psudo-datasets down to several regions of interest for Variant analysis and Variant effect prediction.
     """
-
     log:
-        "logs/TRIM/{location}.log"
-    
+        "logs/TRIM/{location}.log",
     input:
-        "results/ANNOTATE/ALL.vcf.gz"
-
+        "results/ANNOTATE/ALL.vcf.gz",
     output:
-        "results/TRIM/ALL_{location}_TRIMMED.vcf.gz"
-
+        "results/TRIM/ALL_{location}_TRIMMED.vcf.gz",
     params:
-        fromBP = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["from"],
-        toBP = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["to"],
-        chr = lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["chromosome"]
-    
+        fromBP=lambda wildcards: config["locations"][wildcards.location]["GRCh38"][
+            "from"
+        ],
+        toBP=lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["to"],
+        chr=lambda wildcards: config["locations"][wildcards.location]["GRCh38"][
+            "chromosome"
+        ],
     resources:
         cpus=10,
         nodes=1,
         queue="normal",
-        walltime="30:00:00"
-
+        walltime="30:00:00",
     run:
-        shell("module load plink-2; plink2 --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}_TRIMMED"),
+        shell(
+            "module load plink-2; plink2 --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}_TRIMMED"
+        ),
 
 
 rule ALL_FILTER:
     """
     Filter out individuals missing 100% of their variant information (Safety Check).
     """
-
     log:
-        "logs/FILTER/{location}.log"
-    
+        "logs/FILTER/{location}.log",
     input:
-        "results/TRIM/ALL_{location}_TRIMMED.vcf.gz"
-
+        "results/TRIM/ALL_{location}_TRIMMED.vcf.gz",
     output:
         "results/FINAL/ALL_{location}.vcf.gz",
-        "results/FILTER/ALL_{location}_FILTERED.log"
-    
+        "results/FILTER/ALL_{location}_FILTERED.log",
     resources:
         cpus=10,
         nodes=1,
         queue="short",
-        walltime="00:30:00"
-
+        walltime="00:30:00",
     run:
-        shell("module load plink-2; plink2 --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_{wildcards.location}_FILTERED"),
-        shell("module load bcftools-1.7; bcftools norm -m - -o results/FINAL/ALL_{wildcards.location}.vcf.gz -O z results/FILTER/ALL_{wildcards.location}_FILTERED.vcf.gz")     
+        shell(
+            "module load plink-2; plink2 --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_{wildcards.location}_FILTERED"
+        ),
+        shell(
+            "module load bcftools-1.7; bcftools norm -m - -o results/FINAL/ALL_{wildcards.location}.vcf.gz -O z results/FILTER/ALL_{wildcards.location}_FILTERED.vcf.gz"
+        )
+
 
 rule TRANSPILE_CLUSTERS:
     """
     Convert Cluster information given in the config file into PLINK-2.0 suitable format.
     """
-
     log:
-        "logs/TRANSPILE/{cluster}.log"
-    
+        "logs/TRANSPILE/{cluster}.log",
     output:
-        "results/REFERENCE/cluster_{cluster}.txt"
-
+        "results/REFERENCE/cluster_{cluster}.txt",
     resources:
         cpus=10,
         nodes=1,
         queue="normal",
-        walltime="30:00:00"
-    
+        walltime="30:00:00",
     run:
-        cluster = pd.read_excel(config['cluster']["file"])
-        cluster['FID'] = cluster['ID']
-        cluster[['ID', 'FID', wildcards.cluster]].to_csv("results/REFERENCE/cluster_{}.txt".format(wildcards.cluster), sep='\t', index=False)
-
+        cluster = pd.read_excel(config["cluster"]["file"])
+        cluster["FID"] = cluster["ID"]
+        cluster[["ID", "FID", wildcards.cluster]].to_csv(
+            "results/REFERENCE/cluster_{}.txt".format(wildcards.cluster),
+            sep="\t",
+            index=False,
+        )
 
 
 rule ALL_ANALYZE:
     """
     Perform Frequency analysis on super populations.
     """
-
     log:
-        "logs/ANALYZE/{cluster}/{subCluster}/{location}.log"
-    
+        "logs/ANALYZE/{cluster}/{subCluster}/{location}.log",
     input:
         expand("results/REFERENCE/cluster_{cluster}.txt", cluster=clusters),
-        vcf="results/FINAL/ALL_{location}.vcf.gz"
-    
+        vcf="results/FINAL/ALL_{location}.vcf.gz",
     output:
-        expand("results/FINAL/{{cluster}}/ALL_{{location}}.{{subCluster}}.{extension}", extension=finalExtensions,)
-
+        expand(
+            "results/FINAL/{{cluster}}/ALL_{{location}}.{{subCluster}}.{extension}",
+            extension=finalExtensions,
+        ),
     params:
-        prefix = 'ALL_{location}'
-    
+        prefix="ALL_{location}",
     resources:
         cpus=10,
         nodes=1,
         queue="normal",
-        walltime="30:00:00"
-
+        walltime="30:00:00",
     run:
         for cluster in clusters:
-            shell("module load plink-2; plink2 --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/{cluster}/{params.prefix}"),
-            shell("module load plink-2; plink2 --vcf {input.vcf} --double-id --within results/REFERENCE/cluster_{cluster}.txt populations --freq counts --missing --indep-pairwise 50 5 .05 --hardy midp --loop-cats populations --out results/FINAL/{cluster}/{params.prefix}"),
+            shell(
+                "module load plink-2; plink2 --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/{cluster}/{params.prefix}"
+            ),
+            shell(
+                "module load plink-2; plink2 --vcf {input.vcf} --double-id --within results/REFERENCE/cluster_{cluster}.txt populations --freq counts --missing --indep-pairwise 50 5 .05 --hardy midp --loop-cats populations --out results/FINAL/{cluster}/{params.prefix}"
+            ),
+
 
 # Add in VEP API calls
 # rule ALL_CALCULATIONS:
 #     """
 #     Perform Variant Effect prediction with the E! Ensembl VEP tool API.
 #     """
-    
+
 #     log:
 #         "logs/VEP/{location}.log"
-    
+
 #     input:
 #         vcf="results/FILTER/ALL_{location}_FILTERED.vcf.gz"
 
