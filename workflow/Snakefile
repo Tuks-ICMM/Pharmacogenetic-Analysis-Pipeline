@@ -347,8 +347,9 @@ rule ALL_ANALYZE:
                 "module load plink-2; plink2 --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/{cluster}/{params.prefix}"
             ),
             shell(
-                "module load plink-2; plink2 --vcf {input.vcf} --double-id --within results/REFERENCE/cluster_{cluster}.txt populations --freq counts --missing --indep-pairwise 50 5 .05 --hardy midp --loop-cats populations --out results/FINAL/{cluster}/{params.prefix}"
+                "module load plink-2; plink2 --vcf {input.vcf} --double-id --within results/REFERENCE/cluster_{cluster}.txt populations --freq counts --missing --hardy midp --loop-cats populations --out results/FINAL/{cluster}/{params.prefix}"
             ),
+            # --indep-pairwise 50 5 .05 removed since this dataset has redundant variant names.
 
 
 # Add in VEP API calls
