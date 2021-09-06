@@ -48,18 +48,18 @@ rule all:
     log:
         "logs/ALL/ALL.log",
     input:
-[
-    expand(
         [
-            "results/FINAL/%s/ALL_{location}.%s.{extension}"
-            % (cluster, population)
-            for population in populations[cluster].unique()
+            expand(
+                [
+                    "results/FINAL/%s/ALL_{location}.%s.{extension}"
+                    % (cluster, population)
+                    for population in populations[cluster].unique()
+                ],
+                extension=finalExtensions,
+                location=locations,
+            )
+            for cluster in ["SUPER", "SUB"]
         ],
-        extension=finalExtensions,
-        location=locations,
-    )
-    for cluster in ["SUPER", "SUB"]
-],
         # "results/FINAL/Admixture/EIGENSOFT.pca",
         # "results/FINAL/Admixture/EIGENSOFT.plot",
         # "results/FINAL/Admixture/EIGENSOFT.eval",
@@ -325,7 +325,7 @@ rule ALL_ANALYZE:
     Perform Frequency analysis on super populations.
     """
     input:
-        ["results/REFERENCE/cluster_%s.txt", % cluster for cluster in ["SUPER", "SUB"]],
+        ["results/REFERENCE/cluster_%s.txt" % (cluster) for cluster in ["SUPER", "SUB"]],
         vcf="results/FINAL/ALL_{location}.vcf.gz",
     output:
         [
