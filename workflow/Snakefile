@@ -331,9 +331,16 @@ rule ALL_ANALYZE:
         vcf="results/FINAL/ALL_{location}.vcf.gz",
     output:
         expand(
-            "results/FINAL/{{cluster}}/ALL_{{location}}.{{subCluster}}.{extension}",
-            extension=finalExtensions,
-        ),
+                [
+                    "results/FINAL/%s/ALL_{location}.%s.{extension}"
+                    % (cluster, population)
+                    for population in populations[cluster].unique()
+                ],
+                extension=finalExtensions,
+                location=locations,
+            )
+            for cluster in ["SUPER", "SUB"]
+            )
     params:
         prefix="ALL_{location}",
     resources:
