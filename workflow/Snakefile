@@ -333,12 +333,11 @@ rule ALL_ANALYZE:
         [
             expand(
                 [
-                    "results/FINAL/%s/ALL_{location}.%s.{extension}"
+                    "results/FINAL/%s/ALL_{{location}}.%s.{extension}"
                     % (cluster, population)
                     for population in populations[cluster].unique()
                 ],
                 extension=finalExtensions,
-                location=locations,
             )
             for cluster in ["SUPER", "SUB"]
         ],
