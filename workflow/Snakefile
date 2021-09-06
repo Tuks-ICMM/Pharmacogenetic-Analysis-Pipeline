@@ -24,7 +24,7 @@ configfile: os.path.join("config", "config.json")
 
 
 # DEFINE CONTEXT-VARIABLES:
-finalExtensions = ["acount", "hardy", "prune.in", "prune.out", "smiss", "vmiss"]
+finalExtensions = ["acount", "hardy", "prune.in", "prune.out", "smiss", "vmiss", "log"]
 locations = set(config["locations"].keys())
 samples = set(config["samples"].keys())
 clusters = set(config["cluster"]["clusters"])
