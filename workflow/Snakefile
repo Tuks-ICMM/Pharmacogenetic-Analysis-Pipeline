@@ -330,7 +330,8 @@ rule ALL_ANALYZE:
         expand("results/REFERENCE/cluster_{cluster}.txt", cluster=clusters),
         vcf="results/FINAL/ALL_{location}.vcf.gz",
     output:
-        expand(
+        [
+            expand(
                 [
                     "results/FINAL/%s/ALL_{location}.%s.{extension}"
                     % (cluster, population)
@@ -340,7 +341,7 @@ rule ALL_ANALYZE:
                 location=locations,
             )
             for cluster in ["SUPER", "SUB"]
-            )
+        ],
     params:
         prefix="ALL_{location}",
     resources:
