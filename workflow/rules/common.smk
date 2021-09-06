@@ -8,7 +8,7 @@ __credits__ = [
 __license__ = "GPL"
 __version__ = "1.0.0"
 __maintainer__ = "Graeme Ford"
-__email__ = "rob@spot.colorado.edu"
+__email__ = "graeme.ford@tuks.co.za"
 __status__ = "Beta"
 
 
