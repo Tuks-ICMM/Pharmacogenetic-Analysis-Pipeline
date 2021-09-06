@@ -341,7 +341,7 @@ rule ALL_ANALYZE:
                 location=locations,
             )
             for cluster in ["SUPER", "SUB"]
-        ],
+        ]
     params:
         prefix="ALL_{location}",
     resources:
