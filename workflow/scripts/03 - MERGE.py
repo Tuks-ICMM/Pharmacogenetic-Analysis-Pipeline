@@ -1,3 +1,13 @@
+__author__ = "Graeme Ford"
+__credits__ = ["Graeme Ford", "Prof. Michael S. Pepper", "Prof. Fourie Joubert", "Antionette Colic"]
+__license__ = "GPL"
+__version__ = "1.0.0"
+__maintainer__ = "Graeme Ford"
+__email__ = "rob@spot.colorado.edu"
+__status__ = "Beta"
+
+
+
 # %%
 
 # Import Dependancies
