@@ -325,7 +325,7 @@ rule ALL_ANALYZE:
     Perform Frequency analysis on super populations.
     """
     log:
-        "logs/ANALYZE/{cluster}/{subCluster}/{location}.log",
+        "logs/ANALYZE/{cluster}/{location}.log",
     input:
         expand("results/REFERENCE/cluster_{cluster}.txt", cluster=clusters),
         vcf="results/FINAL/ALL_{location}.vcf.gz",
@@ -341,7 +341,7 @@ rule ALL_ANALYZE:
                 location=locations,
             )
             for cluster in ["SUPER", "SUB"]
-        ]
+        ],
     params:
         prefix="ALL_{location}",
     resources:
