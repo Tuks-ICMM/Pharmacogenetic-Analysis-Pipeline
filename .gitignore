@@ -132,6 +132,7 @@ dmypy.json
 # Analysis-related outputs:
 .intermediates
 final
+results/
 snakejob.*
 input/
 logs/*
