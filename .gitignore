@@ -131,8 +131,7 @@ dmypy.json
 
 # Analysis-related outputs:
 .intermediates
-final
-results/
+results/*
 snakejob.*
 input/
 logs/*
@@ -142,3 +141,6 @@ figures/
 # IDE-related folders:
 .idea/
 .vscode/
+
+# Antimatch pattern:
+!README.md

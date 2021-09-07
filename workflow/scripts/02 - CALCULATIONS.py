@@ -1,11 +1,15 @@
 __author__ = "Graeme Ford"
-__credits__ = ["Graeme Ford", "Prof. Michael S. Pepper", "Prof. Fourie Joubert", "Antionette Colic"]
+__credits__ = [
+    "Graeme Ford",
+    "Prof. Michael S. Pepper",
+    "Prof. Fourie Joubert",
+    "Antionette Colic",
+]
 __license__ = "GPL"
 __version__ = "1.0.0"
 __maintainer__ = "Graeme Ford"
 __email__ = "graeme.ford@tuks.co.za"
 __status__ = "Beta"
-
 
 
 # %%
@@ -27,29 +31,23 @@ pd.options.mode.chained_assignment = None
 
 # %%
 
+# %%
+
 # Set constants and functions to be used:
 # locations = snakemake.config['locations'].keys()
 with open(join("..", "..", "config", "config.json")) as f:
     config = json.load(f)
 
 clusters = config["cluster"]["clusters"]
-genes = config["locations"]
+genes = config["locations"].keys()
 geneSummary = dict()
 for cluster in config["cluster"]["clusters"]:
     geneSummary[cluster] = pd.read_excel(
         join("..", "..", "config", "{}".format(config["cluster"]["file"]))
     )[["ID", cluster]]
 popsFile = pd.read_excel(join("..", "..", "config", "Clusters.xlsx"))
-populations = ["AFR", "AMR", "EUR", "EAS", "SAS"]
-
 refPop = "AFR"
 compPop = ["AMR", "EUR", "EAS", "SAS"]
-
-
-#  %%
-
-#  Set POST Variables and Headers:
-locations = config["locations"].keys()
 populations = ["AFR", "AMR", "EUR", "EAS", "SAS"]
 endpoint = "https://rest.ensembl.org/vep/homo_sapiens/region/"
 headers = {"Content-Type": "application/json", "Accept": "application/json"}
@@ -251,7 +249,7 @@ def Fishers(input: dict, refPop: str, compPop: list):
     """Runs a row-wise Fisher's Exact Test between the two listed populations
     Parameters:
     input (dict): A dict of DataFrames to work on.
-    pop1 (str): A str matching a column name in each dataset corresponding to that populations frequency data. 
+    pop1 (str): A str matching a column name in each dataset corresponding to that populations frequency data.
     compPop (list): A str matching a column name in each dataset corresponding to that populations frequency data.
     """
     for key, dataset in input.items():
@@ -299,10 +297,8 @@ def Fishers(input: dict, refPop: str, compPop: list):
 
 #  Import Data:
 data = dict()
-for location in locations:
-    data[location] = read_vcf(
-        join("..", "..", "results", "ALL_{}.vcf.gz".format(location))
-    )
+for gene in genes:
+    data[gene] = read_vcf(join("..", "..", "results", "ALL_{}.vcf.gz".format(gene)))
 
 # %%
 
@@ -637,7 +633,7 @@ for dataset_key, dataset in data_received.items():
 
 # Save formatted results to CSV
 for cluster in clusters:
-    for gene in locations:
+    for gene in genes:
         supplementary[gene].to_csv(
             join(
                 "..",
@@ -812,4 +808,3 @@ for gene in genes:
         index=False,
     )
 # %%
-

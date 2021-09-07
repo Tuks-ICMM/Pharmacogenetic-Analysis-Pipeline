@@ -20,7 +20,7 @@
 This is the development repository for a pipeline created to perform frequency analysis on African genetic datasets.
 
 ### Datasets:
-The development of this pipeline currently has approval to use datasets from the following sources:
+The development of this pipeline for the analysis of CYP2A6, CYP2B6 and UGT2B7 currently has approval to use datasets from the following sources:
 - 1000 Genomes (1000g)
 - African Genome Variation Project (AGVP)
 - South African Human Genome Project (SAHGP)
@@ -30,7 +30,7 @@ This has been made using a python-based [domain spesific language (DSL)](https:/
 
 #### Software: 
 Below is a list of software used by this pipeline:
-- PBS/Torque batch scheduler
+- [PBS/Torque batch scheduler](https://adaptivecomputing.com/cherry-services/torque-resource-manager/)
 - [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 - [PLINK-1.9](https://www.cog-genomics.org/plink2)
 - [VCF-Tools](https://vcftools.github.io/index.html)
@@ -44,16 +44,13 @@ Below is a list of binary dependancies used in this pipeline.
     - Addittional genomes as needed based on input data
 
 ### File Structure:
+This pipeline uses the standardised folder structure, where the workflow itself is located under the `workflow` folder.
 ```
 .
-├── input                   # Analysis-ready data.
-├── .intermediates          # Files generated during analysis (hidden).
-├── scripts                 # Custom scripts used in analysis.
-├── logs                    # SnakeMake Log files.
-├── figures                 # Figures generated from analysis.
-├── final                   # Final results from analysis.
-├── profile                 # Profile setup for PBS/Torque server.
-├── binaries                # Reference Material (Ref Genome, etc).
+├── config                  # All config data (PBS Profile, genes, etc)
+├── resources               # Commonly used resources (WARNING: DEPRECIATING SOON)
+├── results                 # The output of the pipeline
+├── workflow                # The entrypoint to the code of the pipeline
 └── README.md
 ```
 
