@@ -1,18 +1,20 @@
+import os
+import pandas as pd
+
 __author__ = "Graeme Ford"
 __credits__ = [
     "Graeme Ford",
     "Prof. Michael S. Pepper",
     "Prof. Fourie Joubert",
     "Antionette Colic",
+    "Fatima Barmania",
+    "Sarah Turner",
+    "Megan Ryder",
 ]
-__license__ = "GPL"
 __version__ = "1.0.0"
 __maintainer__ = "Graeme Ford"
 __email__ = "graeme.ford@tuks.co.za"
-__status__ = "Beta"
-
-import os
-import pandas as pd
+__status__ = "Development"
 
 # from snakemake.utils import min_version
 

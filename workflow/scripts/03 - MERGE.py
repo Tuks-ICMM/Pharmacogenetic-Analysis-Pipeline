@@ -1,14 +1,6 @@
-__author__ = "Graeme Ford"
-__credits__ = ["Graeme Ford", "Prof. Michael S. Pepper", "Prof. Fourie Joubert", "Antionette Colic"]
-__license__ = "GPL"
-__version__ = "1.0.0"
-__maintainer__ = "Graeme Ford"
-__email__ = "graeme.ford@tuks.co.za"
-__status__ = "Beta"
-
-
-
-# %%
+#!/usr/bin/env python
+"""A Python script designed to merge multiple CSV files into an excel file.
+"""
 
 # Import Dependancies
 import glob
@@ -19,7 +11,21 @@ from os.path import join
 
 import pandas as pd
 
-# %%
+__author__ = "Graeme Ford"
+__credits__ = [
+    "Graeme Ford",
+    "Prof. Michael S. Pepper",
+    "Prof. Fourie Joubert",
+    "Antionette Colic",
+    "Fatima Barmania",
+    "Sarah Turner",
+    "Megan Ryder",
+]
+__version__ = "1.0.0"
+__maintainer__ = "Graeme Ford"
+__email__ = "graeme.ford@tuks.co.za"
+__status__ = "Development"
+
 
 # Declare Constants and Functions:
 with open(join("..", "..", "config", "config.json")) as f:
@@ -29,7 +35,6 @@ clusters = config["cluster"]["clusters"]
 populations = ["AFR", "AMR", "EUR", "EAS", "SAS"]
 tests = ["VEP", "Freq", "Count", "FishersP", "FishersOR"]
 
-# %%
 
 # Import data to merge:
 data = dict()
@@ -68,7 +73,7 @@ for file in glob.glob(
         delimiter="\t",
     )
 
-# %%
+
 # Import data to merge:
 # data = dict()
 # for cluster in clusters:
@@ -84,8 +89,6 @@ for file in glob.glob(
 # else:
 #     data[cluster][gene][test] = pd.read_csv("../final/Supplementary Table/{cluster}/{gene}_{test}.csv".format(cluster=cluster, gene=gene, test=test), delimiter='\t')
 
-
-# %%
 
 # Compile a VEP + Freq sheet for analysis sake:
 for cluster in data.keys():
@@ -111,8 +114,6 @@ for cluster in data.keys():
                 )
 
 
-# %%
-
 # Save data to Excel
 for cluster in clusters:
     for gene in genes:
@@ -136,4 +137,3 @@ for cluster in clusters:
                     "first_column": True,
                 }
                 worksheet.add_table(0, 0, max_row - 1, max_col - 1, options)
-# %%

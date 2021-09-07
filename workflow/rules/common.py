@@ -1,15 +1,21 @@
+#!/usr/bin/env python
+"""A set of standard functions made available to the pipeline rules at runtime.
+"""
+
 __author__ = "Graeme Ford"
 __credits__ = [
     "Graeme Ford",
     "Prof. Michael S. Pepper",
     "Prof. Fourie Joubert",
     "Antionette Colic",
+    "Fatima Barmania",
+    "Sarah Turner",
+    "Megan Ryder",
 ]
-__license__ = "GPL"
 __version__ = "1.0.0"
 __maintainer__ = "Graeme Ford"
 __email__ = "graeme.ford@tuks.co.za"
-__status__ = "Beta"
+__status__ = "Development"
 
 
 def directoryExists(path: str):

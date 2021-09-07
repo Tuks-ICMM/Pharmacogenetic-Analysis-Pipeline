@@ -1,23 +1,32 @@
-__author__ = "Graeme Ford"
-__credits__ = ["Graeme Ford", "Prof. Michael S. Pepper", "Prof. Fourie Joubert", "Antionette Colic"]
-__license__ = "GPL"
-__version__ = "1.0.0"
-__maintainer__ = "Graeme Ford"
-__email__ = "graeme.ford@tuks.co.za"
-__status__ = "Beta"
+#!/usr/bin/env python
+"""A Python script designed to calculate frequencies, FishersExact and Variant Effect Predictions.
+"""
 
-# %%
+
 import os
 from snakemake import shell
 
-# %%
+__author__ = "Graeme Ford"
+__credits__ = [
+    "Graeme Ford",
+    "Prof. Michael S. Pepper",
+    "Prof. Fourie Joubert",
+    "Antionette Colic",
+    "Fatima Barmania",
+    "Sarah Turner",
+    "Megan Ryder",
+]
+__version__ = "1.0.0"
+__maintainer__ = "Graeme Ford"
+__email__ = "graeme.ford@tuks.co.za"
+__status__ = "Development"
+
 
 # Define constant:
 config = snakemake.config
 wildcards = snakemake.wildcards
 params = snakemake.params
 
-# %%
 
 # Define functions:
 def directoryExists(path: str):
@@ -29,8 +38,6 @@ def directoryExists(path: str):
     if not os.path.exists(path):
         os.makedirs(path)
 
-
-# %%
 
 print("Determining Liftover requirements now...")
 if config["samples"][wildcards.sample]["refGenome"] != "GRCh38":
@@ -69,5 +76,3 @@ if config["samples"][wildcards.sample]["refGenome"] != "GRCh38":
     shell(
         "echo 'results/LIFTOVER/{wildcards.sample}.vcf.gz' >> results/LIFTOVER/merge.list"
     )
-
-# %%

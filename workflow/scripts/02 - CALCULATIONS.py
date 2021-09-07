@@ -1,18 +1,7 @@
-__author__ = "Graeme Ford"
-__credits__ = [
-    "Graeme Ford",
-    "Prof. Michael S. Pepper",
-    "Prof. Fourie Joubert",
-    "Antionette Colic",
-]
-__license__ = "GPL"
-__version__ = "1.0.0"
-__maintainer__ = "Graeme Ford"
-__email__ = "graeme.ford@tuks.co.za"
-__status__ = "Beta"
+#!/usr/bin/env python
+"""A Python script designed to run Frequency, Fishers Exact Test and Variant Effect Prediction calculations and calls.
+"""
 
-
-# %%
 # Import dependancies
 import gzip
 import io
@@ -29,9 +18,22 @@ from statsmodels.stats.multitest import multipletests
 
 pd.options.mode.chained_assignment = None
 
-# %%
 
-# %%
+__author__ = "Graeme Ford"
+__credits__ = [
+    "Graeme Ford",
+    "Prof. Michael S. Pepper",
+    "Prof. Fourie Joubert",
+    "Antionette Colic",
+    "Fatima Barmania",
+    "Sarah Turner",
+    "Megan Ryder",
+]
+__version__ = "1.0.0"
+__maintainer__ = "Graeme Ford"
+__email__ = "graeme.ford@tuks.co.za"
+__status__ = "Development"
+
 
 # Set constants and functions to be used:
 # locations = snakemake.config['locations'].keys()
@@ -106,8 +108,6 @@ probabilities = {
     ),
 }
 
-
-# %%
 
 # Define formulas for later use:
 def read_vcf(path: str) -> pd.DataFrame:
@@ -293,21 +293,17 @@ def Fishers(input: dict, refPop: str, compPop: list):
         # dataset.drop(columns=columnsToDrop ,inplace=True)
 
 
-# %%
-
 #  Import Data:
 data = dict()
 for gene in genes:
     data[gene] = read_vcf(join("..", "..", "results", "ALL_{}.vcf.gz".format(gene)))
 
-# %%
 
 # Sub-Divide data:
 data_generator = dict()
 for dataset in data:
     data_generator[dataset] = chunk(data[dataset], 100)
 
-# %%
 
 # Compile and format request bodies:
 data_to_send = dict()
@@ -325,7 +321,6 @@ for dataset in data_generator:
             temp_list.extend(generate_notation(row, dataset))
         data_to_send[dataset].append(dict(variants=temp_list))
 
-# %%
 
 # Perform API calls:
 data_received = dict()
@@ -348,7 +343,6 @@ for dataset_key, dataset in data_to_send.items():
                 decoded = r.json()
                 data_received[dataset_key] = data_received[dataset_key] + decoded
 
-# %%
 
 # Iterate through each response and compile its values:
 supplementary = dict()
@@ -629,7 +623,6 @@ for dataset_key, dataset in data_received.items():
                             ] = None
                         break
 
-# %%
 
 # Save formatted results to CSV
 for cluster in clusters:
@@ -648,10 +641,9 @@ for cluster in clusters:
         )
         # supplementary.to_excel(snakemake.output['excel'], sheet_name=snakemake.wildcards.location)
 
-# %%
 
 # FREQUENCY CALCULATIONS
-# %%
+
 
 # Retrive VEP data:
 supplementary = dict()
@@ -670,8 +662,6 @@ for cluster in clusters:
             ),
             sep="\t",
         )[["ID", "POS", "REF", "ALT"]]
-
-# %%
 
 
 # Calculate frequencies
@@ -716,7 +706,6 @@ for cluster in clusters:
             except:
                 pass
 
-# %%
 
 # Save the resulting dataframe back to its excel file:
 for cluster in clusters:
@@ -747,11 +736,8 @@ for cluster in clusters:
         )
 
 
-# %%
-
 # FISHERS EXACT
 
-# %%
 
 # Load the Supplementary Table
 supplementary = dict()
@@ -774,12 +760,10 @@ for cluster in clusters:
         supplementary[cluster][gene]["OR"] = dict()
         supplementary[cluster][gene]["P"] = dict()
 
-# %%
 
 # Run Fisher's Exact test
 Fishers(supplementary["SUPER"], refPop, compPop)
 
-# %%
 
 # Save Fishers Data to CSV
 for gene in genes:
@@ -807,4 +791,3 @@ for gene in genes:
         sep="\t",
         index=False,
     )
-# %%
