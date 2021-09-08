@@ -134,6 +134,7 @@ dmypy.json
 results/*
 snakejob.*
 input/
+final/
 logs/*
 figures/
 .snakemake/
