@@ -1,0 +1,59 @@
+{
+  "refGenomes": {
+    "GRCh38": "GRCh38.fa.gz"
+  },
+  "samples": {
+    "1000g": {
+      "refGenome": "GRCh37",
+      "format": "Plink Binary",
+      "requiresSexing": false,
+      "exclusions": ["rs199808813"]
+    },
+    "AGVP": {
+      "refGenome": "GRCh37",
+      "format": "Plink Binary",
+      "requiresSexing": false,
+      "exclusions": ["rs199808813"]
+      
+    },
+    "SAHGP": {
+      "refGenome": "GRCh37",
+      "format": "Plink Binary",
+      "requiresSexing": false,
+      "exclusions": ["rs199808813"]
+    }
+  },
+  "locations": {
+    "CYP2A6": {
+      "GRCh38": {
+        "transcript_id": ["NM_000762.6", "ENST00000600495.1", "ENST00000596719.5", "ENST00000599960.1"],
+        "chromosome": 19,
+        "strand": "-1",
+        "from": 40842850,
+        "to": 40851138
+      }
+    },
+    "CYP2B6": {
+      "GRCh38": {
+        "transcript_id": ["NM_000767.5", "ENST00000593831.1", "ENST00000598834.2", "ENST00000597612.1", "ENST00000594187.1"],
+        "chromosome": 19,
+        "strand": "1",
+        "from": 40988570,
+        "to": 41021110
+      }
+    },
+    "UGT2B7": {
+      "GRCh38": {
+        "transcript_id": ["NM_001074.4", "ENST00000508661.5", "ENST00000622664.1", "ENST00000502942.5", "ENST00000509763.1"],
+        "chromosome": 4,
+        "strand": "1",
+        "from": 69045214,
+        "to": 69112987
+      }
+    }
+  },
+  "cluster": {
+    "clusters": ["SUPER", "SUB"],
+    "file": "Clusters.xlsx"
+  }
+}

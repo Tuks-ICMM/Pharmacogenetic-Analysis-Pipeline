@@ -123,6 +123,25 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Dev Stuff:
+.DS_Store
+
+# Snakemake stuff:
+.snakemake/
+
 # Analysis-related outputs:
-Intermediates
-Final
+.intermediates
+results/*
+snakejob.*
+input/
+final/
+logs/*
+figures/
+.snakemake/
+
+# IDE-related folders:
+.idea/
+.vscode/
+
+# Antimatch pattern:
+!README.md

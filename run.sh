@@ -1,11 +1,10 @@
 #!/bin/bash
-#PBS -q normal
-#PBS -l walltime=05:00:00
-#PBS -l nodes=1:ppn=24
+#PBS -q long
+#PBS -l walltime=900:00:00
+#PBS -l nodes=1:ppn=1
 #PBS -k oe
-#PBS -o /nlustre/users/graeme/pipeline-2020/Logs/QSUB.log
-#PBS -e /nlustre/users/graeme/pipeline-2020/Logs/QSUB.err
-#PBS -N Snakemake Pipeline
+#PBS -N Snakemake
 
-module load python-3.6.6
-snakemake --cluster-config cluster.json
+module load python-3.8.2
+cd /nlustre/users/graeme/pipeline-2020/
+snakemake --cluster-config config/cluster.json --profile config/PBS-Torque-Profile 
