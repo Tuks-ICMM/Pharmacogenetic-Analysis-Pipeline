@@ -362,41 +362,41 @@ rule ALL_ANALYZE:
 
 
 # Add in VEP API calls
-rule ALL_CALCULATIONS:
-    """
-    Perform Variant Effect prediction with the E! Ensembl VEP tool API.
-    """
-    log:
-        "logs/VEP/{location}.log",
-    input:
-        vcf="results/FILTER/ALL_{location}_FILTERED.vcf.gz",
-    output:
-        expand("results/FINAL/{cluster}-{location}.xlsx"),
-    params:
-        transcript_id=lambda wildcards: config["locations"][wildcards.location][
-            "GRCh38"
-        ]["transcript_id"],
-    resources:
-        cpus=10,
-        nodes=1,
-        queue="normal",
-        walltime="30:00:00",
-    script:
-        "scripts/02 - CALCULATIONS.py"
+# rule ALL_CALCULATIONS:
+#     """
+#     Perform Variant Effect prediction with the E! Ensembl VEP tool API.
+#     """
+#     log:
+#         "logs/VEP/{location}.log",
+#     input:
+#         vcf="results/FILTER/ALL_{location}_FILTERED.vcf.gz",
+#     output:
+#         expand("results/FINAL/{cluster}-{location}.xlsx"),
+#     params:
+#         transcript_id=lambda wildcards: config["locations"][wildcards.location][
+#             "GRCh38"
+#         ]["transcript_id"],
+#     resources:
+#         cpus=10,
+#         nodes=1,
+#         queue="normal",
+#         walltime="30:00:00",
+#     script:
+#         "scripts/02 - CALCULATIONS.py"
 
 
-rule COMPILE_EXCEL:
-    """
-    Compile all calculations into final excel for distribution and analysis.
-    """
-    input:
-        vcf="results/FILTER/ALL_{location}_FILTERED.vcf.gz",
-    output:
-        expand("results/FINAL/{cluster}-{location}.xlsx"),
-    resources:
-        cpus=10,
-        nodes=1,
-        queue="normal",
-        walltime="30:00:00",
-    script:
-        "scripts/03 - MERGE.py"
+# rule COMPILE_EXCEL:
+#     """
+#     Compile all calculations into final excel for distribution and analysis.
+#     """
+#     input:
+#         vcf="results/FILTER/ALL_{location}_FILTERED.vcf.gz",
+#     output:
+#         expand("results/FINAL/{cluster}-{location}.xlsx"),
+#     resources:
+#         cpus=10,
+#         nodes=1,
+#         queue="normal",
+#         walltime="30:00:00",
+#     script:
+#         "scripts/03 - MERGE.py"

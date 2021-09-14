@@ -38,7 +38,7 @@ __status__ = "Development"
 
 # Set constants and functions to be used:
 # locations = snakemake.config['locations'].keys()
-with open(join("config", "config.json")) as f:
+with open(join("..", "..", "config", "config.json")) as f:
     config = json.load(f)
 
 clusters = config["cluster"]["clusters"]
@@ -46,9 +46,9 @@ genes = config["locations"].keys()
 geneSummary = dict()
 for cluster in config["cluster"]["clusters"]:
     geneSummary[cluster] = pd.read_excel(
-        join("config", "{}".format(config["cluster"]["file"]))
+        join("..", "..", "config", "{}".format(config["cluster"]["file"]))
     )[["ID", cluster]]
-popsFile = pd.read_excel(join("config", "Clusters.xlsx"))
+popsFile = pd.read_excel(join("..", "..", "config", "Clusters.xlsx"))
 refPop = "AFR"
 compPop = ["AMR", "EUR", "EAS", "SAS"]
 populations = ["AFR", "AMR", "EUR", "EAS", "SAS"]
@@ -98,12 +98,12 @@ cutoff = {"SIFT": 0.15, "PolyPhen": 0.28, "Condel": 0.46}
 maximums = {"SIFT": 1, "PolyPhen": 1}
 probabilities = {
     "SIFT": pd.read_csv(
-        join("config", "CONDEL", "sift.data"),
+        join("..", "..", "config", "CONDEL", "sift.data"),
         delimiter="\t",
         names=["Score", "Deleterious", "Normal"],
     ),
     "PolyPhen": pd.read_csv(
-        join("config", "CONDEL", "polyphen.data"),
+        join("..", "..", "config", "CONDEL", "polyphen.data"),
         delimiter="\t",
         names=["Score", "Deleterious", "Normal"],
     ),
@@ -307,7 +307,7 @@ def Fishers(input: dict, refPop: str, compPop: list):
 #  Import Data:
 data = dict()
 for gene in genes:
-    data[gene] = read_vcf(join("results", "ALL_{}.vcf.gz".format(gene)))
+    data[gene] = read_vcf(join("..", "..", "results", "ALL_{}.vcf.gz".format(gene)))
 
 
 # Sub-Divide data:
@@ -637,10 +637,12 @@ for dataset_key, dataset in data_received.items():
 
 # Save formatted results to CSV
 for cluster in clusters:
-    directoryExists(join("results", "Supplementary Table", cluster))
+    directoryExists(join("..", "..", "results", "Supplementary Table", cluster))
     for gene in genes:
         supplementary[gene].to_csv(
             join(
+                "..",
+                "..",
                 "results",
                 "Supplementary Table",
                 cluster,
@@ -663,6 +665,8 @@ for cluster in clusters:
     for gene in genes:
         supplementary[cluster][gene] = pd.read_csv(
             join(
+                "..",
+                "..",
                 "results",
                 "Supplementary Table",
                 cluster,
@@ -690,6 +694,8 @@ for cluster in clusters:
             fishers_data[cluster][gene]["{}_tc".format(pop)] = 0
             frequency_data[cluster][gene] = pd.read_csv(
                 join(
+                    "..",
+                    "..",
                     "results",
                     "FINAL",
                     cluster,
@@ -716,6 +722,8 @@ for cluster in clusters:
     for gene in genes:
         supplementary[cluster][gene].to_csv(
             join(
+                "..",
+                "..",
                 "results",
                 "Supplementary Table",
                 cluster,
@@ -726,6 +734,8 @@ for cluster in clusters:
         )
         fishers_data[cluster][gene].to_csv(
             join(
+                "..",
+                "..",
                 "results",
                 "Supplementary Table",
                 cluster,
@@ -748,6 +758,8 @@ for cluster in clusters:
         supplementary[cluster][gene] = dict()
         supplementary[cluster][gene]["Count"] = pd.read_csv(
             join(
+                "..",
+                "..",
                 "results",
                 "Supplementary Table",
                 cluster,
@@ -767,6 +779,8 @@ Fishers(supplementary["SUPER"], refPop, compPop)
 for gene in genes:
     supplementary["SUPER"][gene]["P"].to_csv(
         join(
+            "..",
+            "..",
             "results",
             "Supplementary Table",
             "SUPER",
@@ -777,6 +791,8 @@ for gene in genes:
     )
     supplementary["SUPER"][gene]["OR"].to_csv(
         join(
+            "..",
+            "..",
             "results",
             "Supplementary Table",
             "SUPER",

@@ -28,7 +28,7 @@ __status__ = "Development"
 
 
 # Declare Constants and Functions:
-with open(join("config", "config.json")) as f:
+with open(join("..", "..", "config", "config.json")) as f:
     config = json.load(f)
 genes = config["locations"]
 clusters = config["cluster"]["clusters"]
@@ -38,7 +38,9 @@ tests = ["VEP", "Freq", "Count", "FishersP", "FishersOR"]
 
 # Import data to merge:
 data = dict()
-for file in glob.glob(join("results", "Supplementary Table", "*", "*_*.csv")):
+for file in glob.glob(
+    join("..", "..", "results", "Supplementary Table", "*", "*_*.csv")
+):
     if platform.system() == "Windows":
         path = file.replace("\\", "/")
     else:
@@ -61,6 +63,8 @@ for file in glob.glob(join("results", "Supplementary Table", "*", "*_*.csv")):
 
     data[cluster][gene][test] = pd.read_csv(
         join(
+            "..",
+            "..",
             "results",
             "Supplementary Table",
             g.group(1),
@@ -118,6 +122,8 @@ for cluster in clusters:
     for gene in genes:
         with pd.ExcelWriter(
             join(
+                "..",
+                "..",
                 "results",
                 "{cluster}-{gene}.xlsx".format(cluster=cluster, gene=gene),
             ),
