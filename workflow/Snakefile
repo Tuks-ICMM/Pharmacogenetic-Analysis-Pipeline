@@ -313,7 +313,7 @@ rule TRANSPILE_CLUSTERS:
         queue="normal",
         walltime="30:00:00",
     run:
-        cluster = pd.read_excel(config["cluster"]["file"])
+        cluster = pd.read_excel(join("config", config["cluster"]["file"]))
         cluster["FID"] = cluster["ID"]
         cluster[["ID", "FID", wildcards.cluster]].to_csv(
             "results/REFERENCE/cluster_{}.txt".format(wildcards.cluster),
