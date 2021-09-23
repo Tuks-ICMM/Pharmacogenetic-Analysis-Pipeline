@@ -1,5 +1,5 @@
-import os
 import pandas as pd
+from os.path import join
 
 __author__ = "Graeme Ford"
 __credits__ = [
@@ -22,7 +22,7 @@ __status__ = "Development"
 
 
 # DEFINE CONFIG FILE FOR SNAKEMAKE:
-configfile: os.path.join("config", "config.json")
+configfile: join("config", "config.json")
 
 
 # DEFINE CONTEXT-VARIABLES:
@@ -30,7 +30,7 @@ finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.ou
 locations = set(config["locations"].keys())
 samples = set(config["samples"].keys())
 clusters = set(config["cluster"]["clusters"])
-populations = pd.read_excel(os.path.join("config", "Clusters.xls"))
+populations = pd.read_excel(join("config", "Clusters.xls"))
 bExtensions = ["bed", "bim", "fam"]
 tExtensions = ["map", "ped"]
 
@@ -127,7 +127,7 @@ rule LIFTOVER:
         chainFile="binaries/hg19ToHg38.over.chain",
         LiftOver="binaries/liftOverPlink.py",
         rmBadLifts="binaries/rmBadLifts.py",
-        ref=os.path.join("binaries", config["refGenomes"]["GRCh38"]),
+        ref=join("binaries", config["refGenomes"]["GRCh38"]),
     resources:
         cpus=10,
         nodes=1,
@@ -149,7 +149,7 @@ rule ALL_COLLATE:
         "results/COLLATE/ALL.vcf.gz",
         "results/COLLATE/ALL.vcf.gz.tbi",
     params:
-        ref=lambda wildcards: os.path.join("binaries", config["refGenomes"]["GRCh38"]),
+        ref=lambda wildcards: join("binaries", config["refGenomes"]["GRCh38"]),
     resources:
         cpus=10,
         nodes=1,
@@ -214,8 +214,8 @@ rule ADMIXTURE:
         "results/FINAL/Admixture/ADMIXTURE.5.Q",
         "results/FINAL/Admixture/ADMIXTURE.5.P",
     params:
-        path=lambda wildcards: os.path.join("results", "ADMIXTURE"),
-        finalPath=lambda wildcards: os.path.join("final", "Admixture"),
+        path=lambda wildcards: join("results", "ADMIXTURE"),
+        finalPath=lambda wildcards: join("final", "Admixture"),
         admixtureAssumption="5",
     resources:
         cpus=10,
