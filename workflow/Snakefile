@@ -124,10 +124,10 @@ rule LIFTOVER:
                 sample=wildcards.sample
             )
         ),
-        chainFile="binaries/hg19ToHg38.over.chain",
-        LiftOver="binaries/liftOverPlink.py",
-        rmBadLifts="binaries/rmBadLifts.py",
-        ref=join("binaries", config["refGenomes"]["GRCh38"]),
+        chainFile=join("resources", "hg19ToHg38.over.chain"),
+        LiftOver=join("resources", "liftOverPlink.py"),
+        rmBadLifts=join("resources", "rmBadLifts.py"),
+        ref=join("resources", config["refGenomes"]["GRCh38"]),
     resources:
         cpus=10,
         nodes=1,
