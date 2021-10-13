@@ -128,6 +128,7 @@ rule LIFTOVER:
         LiftOver=join("resources", "liftOverPlink.py"),
         rmBadLifts=join("resources", "rmBadLifts.py"),
         ref=join("resources", config["refGenomes"]["GRCh38"]),
+        mem=next((f'-Xmx{item["memory"]}' for item in config['environment']['queues'] if item["name"] == "long"), '')
     resources:
         cpus=10,
         nodes=1,
