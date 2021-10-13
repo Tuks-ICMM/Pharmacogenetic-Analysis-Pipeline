@@ -82,6 +82,11 @@
     "file": "Clusters.xlsx"
   },
   "environment": {
+    "email": {
+      "address": "graeme.ford@tuks.co.za",
+      "conditions": ["o", "e" ]
+    },
+    "working-directory": "/nlustre/users/graeme/pipeline-2020",
     "queues": [
       {
         "name": "long",
