@@ -150,7 +150,7 @@ rule ALL_COLLATE:
         "results/COLLATE/ALL.vcf.gz",
         "results/COLLATE/ALL.vcf.gz.tbi",
     params:
-        ref=lambda wildcards: join("binaries", config["refGenomes"]["GRCh38"]),
+        ref=lambda wildcards: join("resources", config["refGenomes"]["GRCh38"]),
     resources:
         cpus=10,
         nodes=1,
