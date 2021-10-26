@@ -145,3 +145,4 @@ figures/
 
 # Antimatch pattern:
 !README.md
+.run.sh

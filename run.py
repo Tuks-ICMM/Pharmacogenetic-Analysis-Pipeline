@@ -1,34 +1,36 @@
 from os.path import join
-from os import open
 from json import load
+from subprocess import run
 
-with open(join("..", "config", "config.json"), "r") as file_content:
+with open(join("config", "config.json"), "r") as file_content:
     config = load(file_content)
 
-if config.environment:
-    if config.environment.email:
-        email = "-M "
-        email_conditions = "-k "
-        for condition in config.environment.email.conditions:
-            email_conditions = email_conditions + condition
-        if config.environment.email.name:
-            email = email + config.environment.email.name
+PBS_Headers = [
+    "#!/usr/bin/env bash",
+    "#PBS -q long",
+    "#PBS -l walltime=900:00:00",
+    "#PBS -l nodes=1:ppn=1",
+    "#PBS -N Snakemake",
+]
 
-
-file = [
-    "#!/usr/bin/env bash\n",
-    "#PBS -q long\n",
-    "#PBS -l walltime=900:00:00\n",
-    "#PBS -l nodes=1:ppn=1\n",
-    "#PBS -k {}\n".format("".join(config.environment.email.conditions)),
-    "#PBS -M {}".format(email),
-    "#PBS -N Snakemake\n",
+PBS_Body = [
     "module load python-3.8.2",
     "cd {};".format(config["environment"]["working-directory"]),
     "snakemake --cluster-config config/cluster.json --profile config/PBS-Torque-Profile",
 ]
 
-with open("./.run.sh", "w") as run:
-    run.writelines(file)
+if "environment" in config:
+    if "email" in config["environment"]:
+        if "condition" in config["environment"]["email"]:
+            email_conditions = "#PBS -k "
+            for condition in config["environment"]["email"]["conditions"]:
+                email_conditions += condition
+            PBS_Headers.append(email_conditions)
+        if "address" in config["environment"]["email"]:
+            PBS_Headers.append("#PBS -M " + config["environment"]["email"]["address"])
 
-open("qsub ./.run.sh")
+
+with open(".run.sh", "w") as file:
+    file.writelines("\n".join(PBS_Headers + PBS_Body))
+
+run(["qsub", ".run.sh"], shell=True)
