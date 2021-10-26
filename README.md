@@ -79,174 +79,174 @@ All Snakemake generated files are all labeled according to `<sample_name>.<file-
     folder named according to the process that produced it.
     > E.g. intermediates/liftover/1000g.vcf
 
-    #### Folders:
-    All user generated folders should use camelCase naming conventions, where the first letter of a multi-word name is
-    lower-case and spaces are removed with the initial letter of the following word capitalised.
-    > E.g. thisIsATestExample
+#### Folders:
+All user generated folders should use camelCase naming conventions, where the first letter of a multi-word name is
+lower-case and spaces are removed with the initial letter of the following word capitalised.
+> E.g. thisIsATestExample
 
-    All snakemake generated folders use the following folder structure:
-    ```
-    .
-    └── intermediates
-    └── <ruleName>
+All snakemake generated folders use the following folder structure:
+```
+.
+└── intermediates
+└── <ruleName>
+  └── <file_name>.<extension>
       └── <file_name>.<extension>
           └── <file_name>.<extension>
-              └── <file_name>.<extension>
-                  ```
+```
 
-                  ## Usage:
-                  1. use the `cd` command to navigate to the root repository directory containing the `Snakefile`.
-                  2. To start the pipeline and produce the default list of files, simply call `snakemake` on the command
-                  line with appropriate arguments. _(E.g. `--profile` and `--cluster-config` flags)_
-                  3. To generate a runtime report, detailing figures produced and performance-related numbers, use the
-                  `--report` snakemake flag _(This requires that you have the
-                  [`Jinja2`](https://jinja.palletsprojects.com/en/2.11.x/) python package installed.)_. The HTML file
-                  produced is completely self-contained and can be shared as needed. You can view it using any web
-                  browser such as firefox or Google Chrome, etc.
+## Usage:
+1. use the `cd` command to navigate to the root repository directory containing the `Snakefile`.
+2. To start the pipeline and produce the default list of files, simply call `snakemake` on the command
+line with appropriate arguments. _(E.g. `--profile` and `--cluster-config` flags)_
+3. To generate a runtime report, detailing figures produced and performance-related numbers, use the
+`--report` snakemake flag _(This requires that you have the
+[`Jinja2`](https://jinja.palletsprojects.com/en/2.11.x/) python package installed.)_. The HTML file
+produced is completely self-contained and can be shared as needed. You can view it using any web
+browser such as firefox or Google Chrome, etc.
 
-                  ## Roadmap:
-                  See our [Projects tab](/projects) and [Issues tracker](/issues) for a list of proposed features (and
-                  known issues).
+## Roadmap:
+See our [Projects tab](/projects) and [Issues tracker](/issues) for a list of proposed features (and
+known issues).
 
-                  ## Versioning:
-                  We use the [SemVer](http://semver.org/) syntax to manage and maintain version numbers. For the
-                  versions available, see the [releases on this repository
-                  here](https://github.com/SgtPorkChops/SASDGHUB/releases).
+## Versioning:
+We use the [SemVer](http://semver.org/) syntax to manage and maintain version numbers. For the
+versions available, see the [releases on this repository
+here](https://github.com/SgtPorkChops/SASDGHUB/releases).
 
 
-                  ## Acknowledgements:
-                  Many thanks to the following individuals who have been instrumental to the success of this project:
-                  <table>
-                    <tr>
-                      <a href="https://github.com/G-kodes">
-                        <td style="text-align:center;">
-                          <div>
-                            <img src=https://avatars0.githubusercontent.com/u/25722914?s=100&v=4" width="100"
-                              alt="Graeme Ford" />
-                          </div>
-                          <h4>Author</h4>
-                          <hr />
-                          <h4>
-                            <strong>
-                              <a href="https://www.linkedin.com/in/graeme-ford/" target="_blank">
-                                Graeme Ford
-                              </a>
-                            </strong>
-                          </h4>
-                          <h6>
-                            <italic>
-                              <a href="https://github.com/orgs/Tuks-ICMM/people/G-kodes" target="_blank">
-                                G-Kodes
-                              </a>
-                            </italic>
-                          </h6>
-                        </td>
-                      </a>
-                      <td style="text-align:center;">
-                        <div>
-                          <img src="https://www.up.ac.za/media/shared/489/ZP_Images/michael-pepper-message.zp39643.jpg"
-                            width="100" alt="Prof. Michael S. Pepper" />
-                        </div>
-                        <h4>Supervisor</h4>
-                        <hr />
-                        <h4>
-                          <strong>
-                            <a href="https://www.up.ac.za/institute-for-cellular-and-molecular-medicine/article/2019297/professor-michael-s-pepper"
-                              target="_blank">Prof. Michael Pepper
-                            </a>
-                          </strong>
-                        </h4>
-                      </td>
-                      <td style="text-align:center;">
-                        <div>
-                          <img src="https://avatars.githubusercontent.com/u/3425899?s=96&v=4" width="100"
-                            alt="Prof. Fourie Joubert" />
-                        </div>
-                        <h4>Co-Supervisor</h4>
-                        <hr />
-                        <h4>
-                          <strong>
-                            <a href="https://www.up.ac.za/the-genomics-research-institute/article/1929131/professor-fourie-joubert"
-                              target="_blank">
-                              Prof. Fourie Joubert
-                            </a>
-                          </strong>
-                        </h4>
-                        <h6>
-                          <italic>
-                            <a href="https://github.com/orgs/Tuks-ICMM/people/fouriejoubert" target="_blank">
-                              fouriejoubert
-                            </a>
-                          </italic>
-                        </h6>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="text-align:center;">
-                        <div>
-                          <img src="https://avatars.githubusercontent.com/u/87174188?s=96&v=4" width="100"
-                            alt="Prof. Fourie Joubert" />
-                        </div>
-                        <h4>Tester</h4>
-                        <hr />
-                        <h4>
-                          <strong>
-                            <a href="https://www.linkedin.com/in/fatima-barmania-a1201238/" target="_blank">
-                              Fatima Barmania-Faruk
-                            </a>
-                          </strong>
-                        </h4>
-                        <h6>
-                          <italic>
-                            <a href="https://github.com/orgs/Tuks-ICMM/people/Fatimabp" target="_blank">
-                              Fatimabp
-                            </a>
-                          </italic>
-                        </h6>
-                      </td>
-                      <td style="text-align:center;">
-                        <div>
-                          <img src="https://avatars.githubusercontent.com/u/80751008?s=96&v=4" width="100"
-                            alt="PMegan Ryder" />
-                        </div>
-                        <h4>Tester</h4>
-                        <hr />
-                        <h4>
-                          <strong>
-                            <a href="https://www.linkedin.com/in/megan-ryder-b312b0159/" target="_blank">
-                              Megan Ryder
-                            </a>
-                          </strong>
-                        </h4>
-                        <h6>
-                          <italic>
-                            <a href="https://github.com/orgs/Tuks-ICMM/people/Megs47" target="_blank">
-                              Megs47
-                            </a>
-                          </italic>
-                        </h6>
-                      </td>
-                      <td style="text-align:center;">
-                        <div>
-                          <img src="https://avatars.githubusercontent.com/u/80751008?s=96&v=4" width="100"
-                            alt="PMegan Ryder" />
-                        </div>
-                        <h4>Tester</h4>
-                        <hr />
-                        <h4>
-                          <strong>
-                            <a href="https://www.linkedin.com/in/megan-ryder-b312b0159/" target="_blank">
-                              Sarah Turner
-                            </a>
-                          </strong>
-                        </h4>
-                        <h6>
-                          <italic>
-                            <a href="https://github.com/orgs/Tuks-ICMM/people/sarahsaraht" target="_blank">
-                              sarahsaraht
-                            </a>
-                          </italic>
-                        </h6>
-                      </td>
-                    </tr>
-                  </table>
+## Acknowledgements:
+Many thanks to the following individuals who have been instrumental to the success of this project:
+<table>
+  <tr>
+    <a href="https://github.com/G-kodes">
+      <td style="text-align:center;">
+        <div>
+          <img src=https://avatars0.githubusercontent.com/u/25722914?s=100&v=4" width="100"
+            alt="Graeme Ford" />
+        </div>
+        <h4>Author</h4>
+        <hr />
+        <h4>
+          <strong>
+            <a href="https://www.linkedin.com/in/graeme-ford/" target="_blank">
+              Graeme Ford
+            </a>
+          </strong>
+        </h4>
+        <h6>
+          <italic>
+            <a href="https://github.com/orgs/Tuks-ICMM/people/G-kodes" target="_blank">
+              G-Kodes
+            </a>
+          </italic>
+        </h6>
+      </td>
+    </a>
+    <td style="text-align:center;">
+      <div>
+        <img src="https://www.up.ac.za/media/shared/489/ZP_Images/michael-pepper-message.zp39643.jpg"
+          width="100" alt="Prof. Michael S. Pepper" />
+      </div>
+      <h4>Supervisor</h4>
+      <hr />
+      <h4>
+        <strong>
+          <a href="https://www.up.ac.za/institute-for-cellular-and-molecular-medicine/article/2019297/professor-michael-s-pepper"
+            target="_blank">Prof. Michael Pepper
+          </a>
+        </strong>
+      </h4>
+    </td>
+    <td style="text-align:center;">
+      <div>
+        <img src="https://avatars.githubusercontent.com/u/3425899?s=96&v=4" width="100"
+          alt="Prof. Fourie Joubert" />
+      </div>
+      <h4>Co-Supervisor</h4>
+      <hr />
+      <h4>
+        <strong>
+          <a href="https://www.up.ac.za/the-genomics-research-institute/article/1929131/professor-fourie-joubert"
+            target="_blank">
+            Prof. Fourie Joubert
+          </a>
+        </strong>
+      </h4>
+      <h6>
+        <italic>
+          <a href="https://github.com/orgs/Tuks-ICMM/people/fouriejoubert" target="_blank">
+            fouriejoubert
+          </a>
+        </italic>
+      </h6>
+    </td>
+  </tr>
+  <tr>
+    <td style="text-align:center;">
+      <div>
+        <img src="https://avatars.githubusercontent.com/u/87174188?s=96&v=4" width="100"
+          alt="Prof. Fourie Joubert" />
+      </div>
+      <h4>Tester</h4>
+      <hr />
+      <h4>
+        <strong>
+          <a href="https://www.linkedin.com/in/fatima-barmania-a1201238/" target="_blank">
+            Fatima Barmania-Faruk
+          </a>
+        </strong>
+      </h4>
+      <h6>
+        <italic>
+          <a href="https://github.com/orgs/Tuks-ICMM/people/Fatimabp" target="_blank">
+            Fatimabp
+          </a>
+        </italic>
+      </h6>
+    </td>
+    <td style="text-align:center;">
+      <div>
+        <img src="https://avatars.githubusercontent.com/u/80751008?s=96&v=4" width="100"
+          alt="PMegan Ryder" />
+      </div>
+      <h4>Tester</h4>
+      <hr />
+      <h4>
+        <strong>
+          <a href="https://www.linkedin.com/in/megan-ryder-b312b0159/" target="_blank">
+            Megan Ryder
+          </a>
+        </strong>
+      </h4>
+      <h6>
+        <italic>
+          <a href="https://github.com/orgs/Tuks-ICMM/people/Megs47" target="_blank">
+            Megs47
+          </a>
+        </italic>
+      </h6>
+    </td>
+    <td style="text-align:center;">
+      <div>
+        <img src="https://avatars.githubusercontent.com/u/80751008?s=96&v=4" width="100"
+          alt="PMegan Ryder" />
+      </div>
+      <h4>Tester</h4>
+      <hr />
+      <h4>
+        <strong>
+          <a href="https://www.linkedin.com/in/megan-ryder-b312b0159/" target="_blank">
+            Sarah Turner
+          </a>
+        </strong>
+      </h4>
+      <h6>
+        <italic>
+          <a href="https://github.com/orgs/Tuks-ICMM/people/sarahsaraht" target="_blank">
+            sarahsaraht
+          </a>
+        </italic>
+      </h6>
+    </td>
+  </tr>
+</table>
