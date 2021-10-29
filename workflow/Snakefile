@@ -313,6 +313,7 @@ rule TRANSPILE_CLUSTERS:
         nodes=search("nodes", "TRANSPILE_CLUSTERS"),
         queue=search("queue", "TRANSPILE_CLUSTERS"),
         walltime=search("walltime", "TRANSPILE_CLUSTERS"),
+    conda: join("envs", "snakemake.yml")
     script:
         join("scripts", "01 - TRANSPILE_CLUSTERS.py")
         
