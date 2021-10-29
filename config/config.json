@@ -75,9 +75,42 @@
     "working-directory": "/nlustre/users/graeme/pipeline-2020",
     "queues": [
       {
-        "name": "long",
+        "queue": "long",
         "walltime": "900:00:00",
-        "memory": "128G"
+        "memory": "128G",
+        "cores": 10,
+        "nodes": 1,
+        "rules": [
+          "VALIDATE",
+          "LIFTOVER",
+          "ANNOTATE",
+          "ADMIXTURE",
+          "COLLATE"
+        ]
+      },
+      {
+        "queue": "normal",
+        "walltime": "30:00:00",
+        "memory": "128G",
+        "cores": 10,
+        "nodes": 1,
+        "rules": [
+          "TRIM_AND_NAME",
+          "TRANSPILE_CLUSTERS",
+          "PLINK",
+          "CALCULATIONS",
+          "COMPILE_EXCEL"
+        ]
+      },
+      {
+        "queue": "short",
+        "walltime": "00:30:00",
+        "memory": "128G",
+        "cores": 10,
+        "nodes": 1,
+        "rules": [
+          "FILTER"
+        ]
       }
     ]
   }
