@@ -1,7 +1,6 @@
 import pandas as pd
 from os.path import join
 from snakemake.utils import validate
-
 from snakemake.utils import min_version
 
 __author__ = "Graeme Ford"
@@ -25,8 +24,9 @@ min_version("6.0")
 
 # DEFINE CONFIG FILE FOR SNAKEMAKE:
 configfile: join("config", "config.json")
+validate(config, join("..", "config", ".schema", "config.schema.json"))
 pepfile: join("config", "pep.yaml")
-
+# pepschema: join("..", "config", ".schema", "pep.schema.yaml")
 
 # DEFINE CONTEXT-VARIABLES:
 finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.out",
@@ -133,8 +133,9 @@ rule LIFTOVER:
         nodes=search("nodes", "LIFTOVER"),
         queue=search("queue", "LIFTOVER"),
         walltime=search("walltime", "LIFTOVER"),
+    conda: join("envs", "snakemake.yml")
     script:
-        "scripts/01 - LIFTOVER.py"
+        join("scripts", "00 - LIFTOVER.py")
 
 
 rule ALL_COLLATE:
@@ -312,14 +313,9 @@ rule TRANSPILE_CLUSTERS:
         nodes=search("nodes", "TRANSPILE_CLUSTERS"),
         queue=search("queue", "TRANSPILE_CLUSTERS"),
         walltime=search("walltime", "TRANSPILE_CLUSTERS"),
-    run:
-        cluster = pd.read_excel(join("config", config["cluster"]["file"]))
-        cluster["FID"] = cluster["ID"]
-        cluster[["ID", "FID", wildcards.cluster]].to_csv(
-            "results/REFERENCE/cluster_{}.txt".format(wildcards.cluster),
-            sep="\t",
-            index=False,
-        )
+    script:
+        join("scripts", "01 - TRANSPILE_CLUSTERS.py")
+        
 
 
 rule PLINK:

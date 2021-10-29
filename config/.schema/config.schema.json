@@ -60,37 +60,41 @@
         },
         "locations": {
             "description": "The unique identifier for a product",
-            "type": "object",
-            "properties": {
-                "name": {
-                    "description": "The name of the region (Ideally gene name where applicable) that will be studied",
-                    "type": "string"
-                },
-                "transcripts": {
-                    "description": "A ordered (in terms of priority) list of transcript IDs with which to retrive variant effect prediction results from",
-                    "type": "array",
-                    "items": {
+            "type": "array",
+            "items": {
+                "description": "An object representing a genomic location",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "description": "The name of the region (Ideally gene name where applicable) that will be studied",
                         "type": "string"
                     },
-                    "uniqueItems": true
-                },
-                "chromosome": {
-                    "description": "The chromosome that this region is located on, using numerical nomenclature",
-                    "type": "number",
-                    "minimum": 1,
-                    "maximum": 23
-                },
-                "strand": {
-                    "description": "A string indicating the forward or reverse strand using numerical nomenclature",
-                    "type": "string"
-                },
-                "start": {
-                    "description": "The start base pair coordinates for the region of interest",
-                    "type": "number"
-                },
-                "stop": {
-                    "description": "The stop base pair coordinates for the region of interest",
-                    "type": "number"
+                    "transcripts": {
+                        "description": "A ordered (in terms of priority) list of transcript IDs with which to retrive variant effect prediction results from",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "uniqueItems": true
+                    },
+                    "chromosome": {
+                        "description": "The chromosome that this region is located on, using numerical nomenclature",
+                        "type": "number",
+                        "minimum": 1,
+                        "maximum": 23
+                    },
+                    "strand": {
+                        "description": "A string indicating the forward or reverse strand using numerical nomenclature",
+                        "type": "string"
+                    },
+                    "start": {
+                        "description": "The start base pair coordinates for the region of interest",
+                        "type": "number"
+                    },
+                    "stop": {
+                        "description": "The stop base pair coordinates for the region of interest",
+                        "type": "number"
+                    }
                 }
             },
             "required": [
