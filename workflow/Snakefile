@@ -212,10 +212,10 @@ rule ADMIXTURE:
         # "results/FINAL/Admixture/EIGENSOFT.plot",
         # "results/FINAL/Admixture/EIGENSOFT.eval",
         # "results/FINAL/Admixture/EIGENSOFT.log",
-        "results/FINAL/Admixture/ADMIXTURE.5.Q",
-        "results/FINAL/Admixture/ADMIXTURE.5.P",
+        "results/FINAL/Admixture/Admixture.3.Q",
+        "results/FINAL/Admixture/Admixture.3.P",
     params:
-        admixtureAssumption="5",
+        admixtureAssumption="3",
     resources:
         cpus=search("cores", "ADMIXTURE"),
         nodes=search("nodes", "ADMIXTURE"),
@@ -230,6 +230,12 @@ rule ADMIXTURE:
         ),
         shell(
             "module load admixture-1.3.0; admixture results/ADMIXTURE/THINNED.bed {params.admixtureAssumption}"
+        ),
+        shell(
+            "mv results/ADMIXTURE/THINNED.{params.admixtureAssumption}.P results/FINAL/Admixture.{params.admixtureAssumption}.P"
+        ),
+        shell(
+            "mv results/ADMIXTURE/THINNED.{params.admixtureAssumption}.Q results/FINAL/Admixture.{params.admixtureAssumption}.Q"
         ),
         # shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
         # shell("mv {params.path}THINNED.fam {params.path}.pedind"),
