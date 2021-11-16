@@ -1,0 +1,24 @@
+name: Snakemake Unit Tests
+on:
+  push:
+    branches:
+      - main
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.6", "3.7", "3.8"]
+    steps:
+      - name: Lint
+        uses: snakemake/snakemake-github-action@v1
+        with:
+          directory: ".test"
+          snakefile: "workflow/Snakefile"
+          args: "--lint"
+      - name: Test
+        uses: snakemake/snakemake-github-action@v1
+        with:
+          directory: ".test"
+          snakefile: "workflow/Snakefile"
+          args: "--cores 1 --use-conda --conda-cleanup-pkgs cache"
