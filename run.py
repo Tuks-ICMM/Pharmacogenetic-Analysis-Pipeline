@@ -1,4 +1,4 @@
-from os.path import join, abspath
+from os.path import join, abspath, dirname
 from json import load
 from subprocess import run
 
@@ -15,7 +15,7 @@ PBS_Headers = [
 
 PBS_Body = [
     "module load python-3.8.2",
-    "cd {};".format(abspath(__file__)),
+    "cd {};".format(dirname(abspath(__file__))),
     "snakemake --cluster-config config/cluster.json --profile config/PBS-Torque-Profile",
 ]
 
