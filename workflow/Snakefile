@@ -127,7 +127,7 @@ rule LIFTOVER:
         LiftOver=join("resources", "liftOverPlink.py"),
         rmBadLifts=join("resources", "rmBadLifts.py"),
         ref=join("resources", next(i["file"] for i in config["reference-genomes"] if i["version"] == "GRCh38")),
-        mem=f'-Xmx{search("memory", "LIFTOVER")} '
+        mem=f'-Xmx{search("memory", "LIFTOVER")} ',
         pep=pep
     resources:
         cpus=search("cores", "LIFTOVER"),
