@@ -17,8 +17,8 @@ __email__ = "graeme.ford@tuks.co.za"
 __status__ = "Development"
 
 snakemake.pep.sample_table.reset_index(drop=True)[
-    ["IID", "FID", snakemake.wildcards.cluster]
-].to_csv(
+    ["sample_name", "FID", snakemake.wildcards.cluster]
+].rename(columns={"sample_name": "IID"}).to_csv(
     join("results", "REFERENCE", "cluster_{}.txt".format(snakemake.wildcards.cluster)),
     sep="\t",
     index=False,

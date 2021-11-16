@@ -1,4 +1,4 @@
-IID,dataset,file,reference_genome,SUPER,SUB
+sample_name,dataset,file,reference_genome,SUPER,SUB
 HG002,HG002,HG002.vcf.gz,GRCh38,EUR,GBR
 HG003,HG003,HG003.vcf.gz,GRCh38,AFR,GWD
 HG004,HG004,HG004.vcf.gz,GRCh38,SAS,GIH
