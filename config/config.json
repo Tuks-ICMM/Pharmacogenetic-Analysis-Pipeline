@@ -7,15 +7,15 @@
   ],
   "samples": [
     {
-      "name": "AshkenazimSon",
+      "name": "HG002",
       "reference_version": "GRCh38"
     },
     {
-      "name": "AshkenazimFather",
+      "name": "HG003",
       "reference_version": "GRCh38"
     },
     {
-      "name": "AshkenazimMother",
+      "name": "HG004",
       "reference_version": "GRCh38"
     }
   ],

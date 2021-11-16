@@ -133,7 +133,8 @@ dmypy.json
 .intermediates
 results/*
 snakejob.*
-input/
+input/*
+!input/Ashkenazim*
 final/
 logs/*
 figures/
