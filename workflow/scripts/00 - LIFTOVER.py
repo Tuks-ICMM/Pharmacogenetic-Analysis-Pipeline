@@ -26,7 +26,7 @@ __status__ = "Development"
 config = snakemake.config
 wildcards = snakemake.wildcards
 params = snakemake.params
-samples = snakemake.pep.sample_table.reset_index(drop=True)
+samples = snakemake.params.pep.sample_table.reset_index(drop=True)
 
 
 # Define functions:
