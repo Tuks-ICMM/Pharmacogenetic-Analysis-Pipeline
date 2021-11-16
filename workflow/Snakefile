@@ -263,7 +263,7 @@ rule ADMIXTURE:
             "module load bcftools-1.7; bcftools view -O z -o results/ADMIXTURE/FILTERED.vcf.gz -m2 -M2 -v snps {input}"
         ),
         shell(
-            "module load plink-2; plink2 --vcf results/ADMIXTURE/FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/THINNED"
+            "module load plink-2; plink2 --vcf results/ADMIXTURE/FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/{wildcards.cluster}.{params.admixtureAssumption}"
         ),
         shell(
             "module load admixture-1.3.0; admixture results/ADMIXTURE/THINNED.bed {params.admixtureAssumption}"
