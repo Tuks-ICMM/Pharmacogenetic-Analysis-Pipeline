@@ -44,19 +44,25 @@ def directoryExists(path: str):
 
 print("Determining Liftover requirements now...")
 if (
-    samples.loc[samples["sample_name"] == wildcards.sample]["reference_genome"]
+    samples.loc[samples["sample_name"] == wildcards.sample]["reference_genome"].item()
     != "GRCh38"
 ):
     shell(
         "echo 'Liftover required. All datasets have been mapped to {}'".format(
-            config["samples"][wildcards.sample]["refGenome"]
+            samples.loc[samples["sample_name"] == wildcards.sample][
+                "reference_genome"
+            ].item()
         )
     ),
     shell("module load liftover"),
     if (
-        samples.loc[samples["sample_name"] == wildcards.sample]["reference_genome"]
+        samples.loc[samples["sample_name"] == wildcards.sample][
+            "reference_genome"
+        ].item()
         == "GRCh37"
-        or samples.loc[samples["sample_name"] == wildcards.sample]["reference_genome"]
+        or samples.loc[samples["sample_name"] == wildcards.sample][
+            "reference_genome"
+        ].item()
         == "Hg19"
     ):
         shell("echo 'Lifting from GRCh37 to GRCh38.'"),
