@@ -28,7 +28,7 @@ __status__ = "Development"
 config = snakemake.config
 wildcards = snakemake.wildcards
 params = snakemake.params
-samples = Project(join("config", "pep.yml")).sample_table.reset_index(drop=True)
+samples = Project(join("config", "pep.yaml")).sample_table.reset_index(drop=True)
 
 
 # Define functions:
