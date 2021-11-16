@@ -39,7 +39,6 @@ finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.ou
 locations = set([i["name"] for i in config["locations"]])
 samples = set([i["name"] for i in config["samples"]])
 clusters = set(config["cluster"]["clusters"])
-populations = pd.read_excel(join("config", "Clusters.xls"))
 bExtensions = ["bed", "bim", "fam"]
 tExtensions = ["map", "ped"]
 
@@ -60,7 +59,7 @@ rule all:
                 [
                     "results/FINAL/%s/ALL_{location}.%s.{extension}"
                     % (cluster, population)
-                    for population in populations[cluster].unique()
+                    for population in list(pep.sample_table[cluster].unique())
                 ],
                 extension=finalExtensions,
                 location=locations,
@@ -372,11 +371,11 @@ rule PLINK:
                 [
                     "results/FINAL/%s/ALL_{{location}}.%s.{extension}"
                     % (cluster, population)
-                    for population in populations[cluster].unique()
+                    for population in list(pep.sample_table[cluster].unique())
                 ],
                 extension=finalExtensions,
             )
-            for cluster in ["SUPER", "SUB"]
+            for cluster in config["cluster"]["clusters"]
         ],
     params:
         prefix="ALL_{location}",
