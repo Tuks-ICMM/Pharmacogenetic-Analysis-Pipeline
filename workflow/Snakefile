@@ -127,8 +127,7 @@ rule LIFTOVER:
         LiftOver=join("resources", "liftOverPlink.py"),
         rmBadLifts=join("resources", "rmBadLifts.py"),
         ref=join("resources", next(i["file"] for i in config["reference-genomes"] if i["version"] == "GRCh38")),
-        mem=f'-Xmx{search("memory", "LIFTOVER")} ',
-        pep=pep
+        mem=f'-Xmx{search("memory", "LIFTOVER")} '
     resources:
         cpus=search("cores", "LIFTOVER"),
         nodes=search("nodes", "LIFTOVER"),
@@ -314,8 +313,6 @@ rule TRANSPILE_CLUSTERS:
         nodes=search("nodes", "TRANSPILE_CLUSTERS"),
         queue=search("queue", "TRANSPILE_CLUSTERS"),
         walltime=search("walltime", "TRANSPILE_CLUSTERS"),
-    params:
-        pep=pep
     conda: join("envs", "snakemake.yml")
     script:
         join("scripts", "01 - TRANSPILE_CLUSTERS.py")
