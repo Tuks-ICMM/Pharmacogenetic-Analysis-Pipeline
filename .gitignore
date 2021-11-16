@@ -134,7 +134,9 @@ dmypy.json
 results/*
 snakejob.*
 input/*
-!input/Ashkenazim*
+!input/HG002*
+!input/HG003*
+!input/HG004*
 final/
 logs/*
 figures/
