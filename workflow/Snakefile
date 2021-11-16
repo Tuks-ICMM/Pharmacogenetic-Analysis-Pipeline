@@ -269,10 +269,10 @@ rule ADMIXTURE:
             "module load admixture-1.3.0; admixture results/ADMIXTURE/THINNED.bed {params.admixtureAssumption}"
         ),
         shell(
-            "mv results/ADMIXTURE/THINNED.{params.admixtureAssumption}.P results/FINAL/Admixture.{params.admixtureAssumption}.P"
+            "mv THINNED.{params.admixtureAssumption}.P results/FINAL/Admixture/{wildcards.cluster}.{params.admixtureAssumption}.P"
         ),
         shell(
-            "mv results/ADMIXTURE/THINNED.{params.admixtureAssumption}.Q results/FINAL/Admixture.{params.admixtureAssumption}.Q"
+            "mv THINNED.{params.admixtureAssumption}.Q results/FINAL/Admixture/{wildcards.cluster}.{params.admixtureAssumption}.Q"
         ),
         # shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
         # shell("mv {params.path}THINNED.fam {params.path}.pedind"),
