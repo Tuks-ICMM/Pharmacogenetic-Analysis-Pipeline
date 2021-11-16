@@ -128,7 +128,7 @@ rule LIFTOVER:
         rmBadLifts=join("resources", "rmBadLifts.py"),
         ref=join("resources", next(i["file"] for i in config["reference-genomes"] if i["version"] == "GRCh38")),
         mem=f'-Xmx{search("memory", "LIFTOVER")} '
-        pep = pep
+        pep=pep
     resources:
         cpus=search("cores", "LIFTOVER"),
         nodes=search("nodes", "LIFTOVER"),
