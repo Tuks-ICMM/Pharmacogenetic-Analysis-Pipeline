@@ -257,13 +257,9 @@ rule TRIM_AND_NAME:
     output:
         "results/TRIM/ALL_{location}_TRIMMED.vcf.gz",
     params:
-        fromBP=lambda wildcards: config["locations"][wildcards.location]["GRCh38"][
-            "from"
-        ],
-        toBP=lambda wildcards: config["locations"][wildcards.location]["GRCh38"]["to"],
-        chr=lambda wildcards: config["locations"][wildcards.location]["GRCh38"][
-            "chromosome"
-        ],
+        fromBP=lambda wildcards: next(i["start"] for i in config["locations"] if i["name"] == wildcards.location),
+        toBP=lambda wildcards: next(i["stop"] for i in config["locations"] if i["name"] == wildcards.location),
+        chr=lambda wildcards: next(i["chromosome"] for i in config["locations"] if i["name"] == wildcards.location),
     resources:
         cpus=search("cores", "TRIM_AND_NAME"),
         nodes=search("nodes", "TRIM_AND_NAME"),
