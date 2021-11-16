@@ -5,6 +5,8 @@
 
 import os
 from snakemake import shell
+from peppy import Project
+from os.path import join
 
 __author__ = "Graeme Ford"
 __credits__ = [
@@ -26,7 +28,7 @@ __status__ = "Development"
 config = snakemake.config
 wildcards = snakemake.wildcards
 params = snakemake.params
-samples = snakemake.params.pep.sample_table.reset_index(drop=True)
+samples = Project(join("config", "pep.yml")).sample_table.reset_index(drop=True)
 
 
 # Define functions:

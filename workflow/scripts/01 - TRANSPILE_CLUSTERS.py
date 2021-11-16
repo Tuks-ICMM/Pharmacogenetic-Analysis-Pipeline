@@ -1,5 +1,6 @@
 import pandas as pd
 from os.path import join
+from peppy import Project
 
 __author__ = "Graeme Ford"
 __credits__ = [
@@ -16,7 +17,7 @@ __maintainer__ = "Graeme Ford"
 __email__ = "graeme.ford@tuks.co.za"
 __status__ = "Development"
 
-snakemake.params.pep.sample_table.reset_index(drop=True)[
+Project(join("config", "pep.yml")).sample_table.reset_index(drop=True)[
     ["sample_name", "FID", snakemake.wildcards.cluster]
 ].rename(columns={"sample_name": "IID"}).to_csv(
     join("results", "REFERENCE", "cluster_{}.txt".format(snakemake.wildcards.cluster)),
