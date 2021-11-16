@@ -11,13 +11,13 @@ jobs:
         python-version: ["3.6", "3.7", "3.8"]
     steps:
       - name: Lint
-        uses: snakemake/snakemake-github-action@v1
+        uses: snakemake/snakemake-github-action@v1.23.0
         with:
           directory: ".test"
           snakefile: "workflow/Snakefile"
           args: "--lint"
       - name: Test
-        uses: snakemake/snakemake-github-action@v1
+        uses: snakemake/snakemake-github-action@v1.23.0
         with:
           directory: ".test"
           snakefile: "workflow/Snakefile"
