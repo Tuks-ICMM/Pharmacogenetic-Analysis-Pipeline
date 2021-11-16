@@ -37,12 +37,12 @@ __status__ = "Development"
 
 
 # Set constants and functions to be used:
-# locations = snakemake.config['locations'].keys()
+# locations = [location["name"] for location in snakemake.config['locations']]
 with open(join("..", "..", "config", "config.json")) as f:
     config = json.load(f)
 
 clusters = config["cluster"]["clusters"]
-genes = config["locations"].keys()
+genes = [location["name"] for location in config["locations"]]
 geneSummary = dict()
 for cluster in config["cluster"]["clusters"]:
     geneSummary[cluster] = pd.read_excel(
@@ -98,12 +98,12 @@ cutoff = {"SIFT": 0.15, "PolyPhen": 0.28, "Condel": 0.46}
 maximums = {"SIFT": 1, "PolyPhen": 1}
 probabilities = {
     "SIFT": pd.read_csv(
-        join("..", "..", "config", "CONDEL", "sift.data"),
+        join("..", "..", "resources", "CONDEL", "sift.data"),
         delimiter="\t",
         names=["Score", "Deleterious", "Normal"],
     ),
     "PolyPhen": pd.read_csv(
-        join("..", "..", "config", "CONDEL", "polyphen.data"),
+        join("..", "..", "resources", "CONDEL", "polyphen.data"),
         delimiter="\t",
         names=["Score", "Deleterious", "Normal"],
     ),
@@ -413,7 +413,7 @@ for dataset_key, dataset in data_received.items():
 
             if "transcript_consequences" in variant:
                 for transcript in config["locations"][dataset_key]["GRCh38"][
-                    "transcript_id"
+                    "transcripts"
                 ]:
                     consequence = next(
                         (

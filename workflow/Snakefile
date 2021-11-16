@@ -1,5 +1,7 @@
 import pandas as pd
 from os.path import join
+from snakemake.utils import validate
+from snakemake.utils import min_version
 
 __author__ = "Graeme Ford"
 __credits__ = [
@@ -16,39 +18,27 @@ __maintainer__ = "Graeme Ford"
 __email__ = "graeme.ford@tuks.co.za"
 __status__ = "Development"
 
-# from snakemake.utils import min_version
-
-# min_version("6.0")
+# Enforce version check
+min_version("6.0")
 
 
 # DEFINE CONFIG FILE FOR SNAKEMAKE:
 configfile: join("config", "config.json")
-
+validate(config, join("..", "config", ".schema", "config.schema.json"))
+pepfile: join("config", "pep.yaml")
+# pepschema: join("..", "config", ".schema", "pep.schema.yaml")
 
 # DEFINE CONTEXT-VARIABLES:
 finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.out",
-locations = set(config["locations"].keys())
-samples = set(config["samples"].keys())
+locations = set([i["name"] for i in config["locations"]])
+samples = set([i["name"] for i in config["samples"]])
 clusters = set(config["cluster"]["clusters"])
 populations = pd.read_excel(join("config", "Clusters.xls"))
 bExtensions = ["bed", "bim", "fam"]
 tExtensions = ["map", "ped"]
 
-# Define a list to store a merge-list of dataset names:
-mergeList = list()
 
-def directoryExists(path: str):
-    """Test weather or not a directory exists. If not, create it.
-
-    Args:
-        path (str): file path of the directory to test.
-    """
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-
-onstart:
-    include: "rules/common.smk"
+include: "rules/common.py"
 
 
 # BEGIN DEFINING RULES:
@@ -93,12 +83,12 @@ rule VALIDATE:
     output:
         "results/PREP/{sample}.vcf.gz",
     params:
-        memory="128G",
+        memory=search("memory", "VALIDATE"),
     resources:
-        cpus=10,
-        nodes=1,
-        queue="long",
-        walltime="900:00:00",
+        cpus=search("cores", "VALIDATE"),
+        nodes=search("nodes", "VALIDATE"),
+        queue=search("queue", "VALIDATE"),
+        walltime=search("walltime", "VALIDATE"),
     run:
         # Remove variant types we cant yet analyse:
         shell(
@@ -136,15 +126,16 @@ rule LIFTOVER:
         chainFile=join("resources", "hg19ToHg38.over.chain"),
         LiftOver=join("resources", "liftOverPlink.py"),
         rmBadLifts=join("resources", "rmBadLifts.py"),
-        ref=join("resources", config["refGenomes"]["GRCh38"]),
-        mem=next((f'-Xmx{item["memory"]}' for item in config['environment']['queues'] if item["name"] == "long"), '')
+        ref=join("resources", next(i["file"] for i in config["reference-genomes"] if i["version"] == "GRCh38")),
+        mem=f'-Xmx{search("memory", "LIFTOVER")} '
     resources:
-        cpus=10,
-        nodes=1,
-        queue="long",
-        walltime="900:00:00",
+        cpus=search("cores", "LIFTOVER"),
+        nodes=search("nodes", "LIFTOVER"),
+        queue=search("queue", "LIFTOVER"),
+        walltime=search("walltime", "LIFTOVER"),
+    conda: join("envs", "snakemake.yml")
     script:
-        "scripts/01 - LIFTOVER.py"
+        join("scripts", "00 - LIFTOVER.py")
 
 
 rule ALL_COLLATE:
@@ -159,12 +150,12 @@ rule ALL_COLLATE:
         "results/COLLATE/ALL.vcf.gz",
         "results/COLLATE/ALL.vcf.gz.tbi",
     params:
-        ref=lambda wildcards: join("resources", config["refGenomes"]["GRCh38"]),
+        ref=lambda wildcards: join("resources", next(i["file"] for i in config["reference-genomes"] if i["version"] == "GRCh38")),
     resources:
-        cpus=10,
-        nodes=1,
-        queue="long",
-        walltime="900:00:00",
+        cpus=search("cores", "COLLATE"),
+        nodes=search("nodes", "COLLATE"),
+        queue=search("queue", "COLLATE"),
+        walltime=search("walltime", "COLLATE"),
     run:
         shell(
             "module load bcftools-1.7; bcftools merge -l results/LIFTOVER/merge.list -O z -o results/COLLATE/ALL_PRE.vcf.gz"
@@ -179,7 +170,7 @@ rule ALL_COLLATE:
         shell("module load samtools-1.7; tabix -p vcf results/COLLATE/ALL.vcf.gz"),
 
 
-rule ALL_ANNOTATE:
+rule ANNOTATE:
     """
     Annotate rsID's in psudo-dataset to facilitate down-stream analysis.
     """
@@ -190,10 +181,10 @@ rule ALL_ANNOTATE:
     output:
         "results/ANNOTATE/ALL.vcf.gz",
     resources:
-        cpus=10,
-        nodes=1,
-        queue="long",
-        walltime="900:00:00",
+        cpus=search("cores", "ANNOTATE"),
+        nodes=search("nodes", "ANNOTATE"),
+        queue=search("queue", "ANNOTATE"),
+        walltime=search("walltime", "ANNOTATE"),
     # ToDo: Add refGenome and dbSNP links
     run:
         shell(
@@ -228,10 +219,10 @@ rule ADMIXTURE:
         finalPath=lambda wildcards: join("final", "Admixture"),
         admixtureAssumption="5",
     resources:
-        cpus=10,
-        nodes=1,
-        queue="long",
-        walltime="900:00:00",
+        cpus=search("cores", "ADMIXTURE"),
+        nodes=search("nodes", "ADMIXTURE"),
+        queue=search("queue", "ADMIXTURE"),
+        walltime=search("walltime", "ADMIXTURE"),
     run:
         shell(
             "module load bcftools-1.7; bcftools view -O z -o {params.path}FILTERED.vcf.gz -m2 -M2 -v snps {input}"
@@ -274,17 +265,17 @@ rule TRIM_AND_NAME:
             "chromosome"
         ],
     resources:
-        cpus=10,
-        nodes=1,
-        queue="normal",
-        walltime="30:00:00",
+        cpus=search("cores", "TRIM_AND_NAME"),
+        nodes=search("nodes", "TRIM_AND_NAME"),
+        queue=search("queue", "TRIM_AND_NAME"),
+        walltime=search("walltime", "TRIM_AND_NAME"),
     run:
         shell(
             "module load plink-2; plink2 --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}_TRIMMED"
         ),
 
 
-rule ALL_FILTER:
+rule FILTER:
     """
     Filter out individuals missing 100% of their variant information (Safety Check).
     """
@@ -296,10 +287,10 @@ rule ALL_FILTER:
         "results/FINAL/ALL_{location}.vcf.gz",
         "results/FILTER/ALL_{location}_FILTERED.log",
     resources:
-        cpus=10,
-        nodes=1,
-        queue="short",
-        walltime="00:30:00",
+        cpus=search("cores", "FILTER"),
+        nodes=search("nodes", "FILTER"),
+        queue=search("queue", "FILTER"),
+        walltime=search("walltime", "FILTER"),
     run:
         shell(
             "module load plink-2; plink2 --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_{wildcards.location}_FILTERED"
@@ -318,24 +309,21 @@ rule TRANSPILE_CLUSTERS:
     output:
         "results/REFERENCE/cluster_{cluster}.txt",
     resources:
-        cpus=10,
-        nodes=1,
-        queue="normal",
-        walltime="30:00:00",
-    run:
-        cluster = pd.read_excel(join("config", config["cluster"]["file"]))
-        cluster["FID"] = cluster["ID"]
-        cluster[["ID", "FID", wildcards.cluster]].to_csv(
-            "results/REFERENCE/cluster_{}.txt".format(wildcards.cluster),
-            sep="\t",
-            index=False,
-        )
+        cpus=search("cores", "TRANSPILE_CLUSTERS"),
+        nodes=search("nodes", "TRANSPILE_CLUSTERS"),
+        queue=search("queue", "TRANSPILE_CLUSTERS"),
+        walltime=search("walltime", "TRANSPILE_CLUSTERS"),
+    conda: join("envs", "snakemake.yml")
+    script:
+        join("scripts", "01 - TRANSPILE_CLUSTERS.py")
+        
 
 
-rule ALL_ANALYZE:
+rule PLINK:
     """
     Perform Frequency analysis on super populations.
     """
+    log: "logs/PLINK/{location}.log"
     input:
         ["results/REFERENCE/cluster_%s.txt" % (cluster) for cluster in ["SUPER", "SUB"]],
         vcf="results/FINAL/ALL_{location}.vcf.gz",
@@ -354,10 +342,10 @@ rule ALL_ANALYZE:
     params:
         prefix="ALL_{location}",
     resources:
-        cpus=10,
-        nodes=1,
-        queue="normal",
-        walltime="30:00:00",
+        cpus=search("cores", "PLINK"),
+        nodes=search("nodes", "PLINK"),
+        queue=search("queue", "PLINK"),
+        walltime=search("walltime", "PLINK"),
     run:
         for cluster in clusters:
             shell(
@@ -372,7 +360,7 @@ rule ALL_ANALYZE:
 
 
 # Add in VEP API calls
-# rule ALL_CALCULATIONS:
+# rule CALCULATIONS:
 #     """
 #     Perform Variant Effect prediction with the E! Ensembl VEP tool API.
 #     """

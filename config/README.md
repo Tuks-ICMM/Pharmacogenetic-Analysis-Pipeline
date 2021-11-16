@@ -1,3 +1,15 @@
+# Pipeline Configuration:
+
+Welcome to the configuration folder. This folder conatins all the configuration ifnormation that controlls our understanding of the environment you are running thsi pipeline on, as well as default scheduler profiles for several common Batch Scheduler environments.
+
+> We currently only support PBS-Torque out the box. You are more than welcome to add in support for your own. If you do, we ask if you would be willing to PR the new profiles to contribute to this repository for the benefit of others.
+
+## Format spesification
+A `config.schema.json` file has been created to validate yoru configuration file to ensure it is properly formatted. **You do not need to go through this yourself**. The pipeline will automatically perform validation for you and inform you if the `config.json` file is not formatted correctly.
+
+Here is a sample, using the genes CYP2A6, CYP2B6 and UGT2B7 with the 1000 Genomes dataset:
+
+```json
 {
   "reference-genomes": [
     {
@@ -75,43 +87,16 @@
     "working-directory": "/nlustre/users/graeme/pipeline-2020",
     "queues": [
       {
-        "queue": "long",
+        "name": "long",
         "walltime": "900:00:00",
-        "memory": "128G",
-        "cores": 10,
-        "nodes": 1,
-        "rules": [
-          "VALIDATE",
-          "LIFTOVER",
-          "ANNOTATE",
-          "ADMIXTURE",
-          "COLLATE"
-        ]
-      },
-      {
-        "queue": "normal",
-        "walltime": "30:00:00",
-        "memory": "128G",
-        "cores": 10,
-        "nodes": 1,
-        "rules": [
-          "TRIM_AND_NAME",
-          "TRANSPILE_CLUSTERS",
-          "PLINK",
-          "CALCULATIONS",
-          "COMPILE_EXCEL"
-        ]
-      },
-      {
-        "queue": "short",
-        "walltime": "00:30:00",
-        "memory": "128G",
-        "cores": 10,
-        "nodes": 1,
-        "rules": [
-          "FILTER"
-        ]
+        "memory": "128G"
       }
     ]
   }
 }
+```
+
+## Notes
+There are a few things to take note of as indicated below.
+
+> More comprehensive descriptions comming soon
