@@ -90,3 +90,10 @@ if (
     shell(
         "echo 'results/LIFTOVER/{wildcards.sample}.vcf.gz' >> results/LIFTOVER/merge.list"
     )
+else:
+    shell(
+        "cp results/PREP/{wildcards.sample}.vcf.gz results/LIFTOVER/{wildcards.sample}.vcf.gz"
+    ),
+    shell(
+        "cp results/PREP/{wildcards.sample}.vcf.gz.tbi results/LIFTOVER/{wildcards.sample}.vcf.gz.tbi"
+    ),
