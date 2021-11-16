@@ -7,11 +7,16 @@
   ],
   "samples": [
     {
-      "name": "1000g",
-      "reference_version": "GRCh37",
-      "exclusions": [
-        "rs199808813"
-      ]
+      "name": "AshkenazimSon",
+      "reference_version": "GRCh38"
+    },
+    {
+      "name": "AshkenazimFather",
+      "reference_version": "GRCh38"
+    },
+    {
+      "name": "AshkenazimMother",
+      "reference_version": "GRCh38"
     }
   ],
   "locations": [
