@@ -24,8 +24,14 @@ min_version("6.0")
 
 # DEFINE CONFIG FILE FOR SNAKEMAKE:
 configfile: join("config", "config.json")
+
+
 validate(config, join("..", "config", ".schema", "config.schema.json"))
+
+
 pepfile: join("config", "pep.yaml")
+
+
 # pepschema: join("..", "config", ".schema", "pep.schema.yaml")
 
 # DEFINE CONTEXT-VARIABLES:
@@ -59,17 +65,29 @@ rule all:
                 extension=finalExtensions,
                 location=locations,
             )
-            for cluster in ["SUPER", "SUB"]
+            for cluster in config["cluster"]["clusters"]
         ],
+        expand(
+            [
+                "results/ADMIXTURE/%s.%s.{ext}"
+                % (cluster, len(pep.sample_table[cluster]))
+                for cluster in config["cluster"]["clusters"]
+            ],
+            cluster=config["cluster"]["clusters"],
+            ext=["bed", "bim", "fam"],
+        ),
+        expand(
+            [
+                "results/FINAL/Admixture/%s.%s.{mode}"
+                % (cluster, len(pep.sample_table[cluster].unique()))
+                for cluster in config["cluster"]["clusters"]
+            ],
+            mode=["P", "Q"],
+        ),
         # "results/FINAL/Admixture/EIGENSOFT.pca",
         # "results/FINAL/Admixture/EIGENSOFT.plot",
         # "results/FINAL/Admixture/EIGENSOFT.eval",
         # "results/FINAL/Admixture/EIGENSOFT.log",
-        "results/FINAL/Admixture/ADMIXTURE.5.Q",
-        "results/FINAL/Admixture/ADMIXTURE.5.P",
-        "results/ADMIXTURE/ALL.bed",
-        "results/ADMIXTURE/ALL.bim",
-        "results/ADMIXTURE/ALL.fam",
 
 
 rule VALIDATE:
@@ -126,14 +144,22 @@ rule LIFTOVER:
         chainFile=join("resources", "hg19ToHg38.over.chain"),
         LiftOver=join("resources", "liftOverPlink.py"),
         rmBadLifts=join("resources", "rmBadLifts.py"),
-        ref=join("resources", next(i["file"] for i in config["reference-genomes"] if i["version"] == "GRCh38")),
-        mem=f'-Xmx{search("memory", "LIFTOVER")} '
+        ref=join(
+            "resources",
+        next(
+            i["file"]
+            for i in config["reference-genomes"]
+        if i["version"] == "GRCh38"
+            ),
+        ),
+        mem=f'-Xmx{search("memory", "LIFTOVER")} ',
     resources:
         cpus=search("cores", "LIFTOVER"),
         nodes=search("nodes", "LIFTOVER"),
         queue=search("queue", "LIFTOVER"),
         walltime=search("walltime", "LIFTOVER"),
-    conda: join("envs", "snakemake.yml")
+    conda:
+        join("envs", "snakemake.yml")
     script:
         join("scripts", "00 - LIFTOVER.py")
 
@@ -150,7 +176,14 @@ rule ALL_COLLATE:
         "results/COLLATE/ALL.vcf.gz",
         "results/COLLATE/ALL.vcf.gz.tbi",
     params:
-        ref=lambda wildcards: join("resources", next(i["file"] for i in config["reference-genomes"] if i["version"] == "GRCh38")),
+        ref=lambda wildcards: join(
+            "resources",
+        next(
+            i["file"]
+            for i in config["reference-genomes"]
+        if i["version"] == "GRCh38"
+            ),
+        ),
     resources:
         cpus=search("cores", "COLLATE"),
         nodes=search("nodes", "COLLATE"),
@@ -200,22 +233,26 @@ rule ADMIXTURE:
     Perform Admixture analysis on the large psudo-dataset (Requires 100 000 minimum variants to distinguish sub-populations and 10 000 to distinguish super-populations.)
     """
     log:
-        "logs/ADMIXTURE/ALL.log",
+        "logs/ADMIXTURE/{cluster}.{estimation}.log",
     input:
         "results/ANNOTATE/ALL.vcf.gz",
     output:
-        "results/ADMIXTURE/ALL.log",
-        "results/ADMIXTURE/ALL.bed",
-        "results/ADMIXTURE/ALL.bim",
-        "results/ADMIXTURE/ALL.fam",
+        expand(
+            "results/ADMIXTURE/{{cluster}}.{{estimation}}.{ext}",
+            ext=["bed", "bim", "fam"],
+        ),
         # "results/FINAL/Admixture/EIGENSOFT.pca",
         # "results/FINAL/Admixture/EIGENSOFT.plot",
         # "results/FINAL/Admixture/EIGENSOFT.eval",
         # "results/FINAL/Admixture/EIGENSOFT.log",
-        "results/FINAL/Admixture/Admixture.3.Q",
-        "results/FINAL/Admixture/Admixture.3.P",
+        expand(
+            "results/FINAL/Admixture/{{cluster}}.{{estimation}}.{mode}",
+            mode=["P", "Q"],
+        ),
     params:
-        admixtureAssumption="3",
+        admixtureAssumption=lambda wildcards: len(
+            pep.sample_table.reset_index(drop=True)[wildcards.cluster].unique()
+        ),
     resources:
         cpus=search("cores", "ADMIXTURE"),
         nodes=search("nodes", "ADMIXTURE"),
@@ -254,9 +291,17 @@ rule TRIM_AND_NAME:
     output:
         "results/TRIM/ALL_{location}_TRIMMED.vcf.gz",
     params:
-        fromBP=lambda wildcards: next(i["start"] for i in config["locations"] if i["name"] == wildcards.location),
-        toBP=lambda wildcards: next(i["stop"] for i in config["locations"] if i["name"] == wildcards.location),
-        chr=lambda wildcards: next(i["chromosome"] for i in config["locations"] if i["name"] == wildcards.location),
+        fromBP=lambda wildcards: next(
+            i["start"] for i in config["locations"] if i["name"] == wildcards.location
+        ),
+        toBP=lambda wildcards: next(
+            i["stop"] for i in config["locations"] if i["name"] == wildcards.location
+        ),
+        chr=lambda wildcards: next(
+            i["chromosome"]
+            for i in config["locations"]
+            if i["name"] == wildcards.location
+        ),
     resources:
         cpus=search("cores", "TRIM_AND_NAME"),
         nodes=search("nodes", "TRIM_AND_NAME"),
@@ -306,17 +351,18 @@ rule TRANSPILE_CLUSTERS:
         nodes=search("nodes", "TRANSPILE_CLUSTERS"),
         queue=search("queue", "TRANSPILE_CLUSTERS"),
         walltime=search("walltime", "TRANSPILE_CLUSTERS"),
-    conda: join("envs", "snakemake.yml")
+    conda:
+        join("envs", "snakemake.yml")
     script:
         join("scripts", "01 - TRANSPILE_CLUSTERS.py")
-        
 
 
 rule PLINK:
     """
     Perform Frequency analysis on super populations.
     """
-    log: "logs/PLINK/{location}.log"
+    log:
+        "logs/PLINK/{location}.log",
     input:
         ["results/REFERENCE/cluster_%s.txt" % (cluster) for cluster in ["SUPER", "SUB"]],
         vcf="results/FINAL/ALL_{location}.vcf.gz",
@@ -374,8 +420,6 @@ rule PLINK:
 #         walltime="30:00:00",
 #     script:
 #         "scripts/02 - CALCULATIONS.py"
-
-
 # rule COMPILE_EXCEL:
 #     """
 #     Compile all calculations into final excel for distribution and analysis.
