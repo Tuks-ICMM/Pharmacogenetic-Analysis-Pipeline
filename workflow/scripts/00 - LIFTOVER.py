@@ -26,6 +26,7 @@ __status__ = "Development"
 config = snakemake.config
 wildcards = snakemake.wildcards
 params = snakemake.params
+samples = snakemake.pep.sample_table.reset_index(drop=True)
 
 
 # Define functions:
@@ -40,7 +41,10 @@ def directoryExists(path: str):
 
 
 print("Determining Liftover requirements now...")
-if config["samples"][wildcards.sample]["refGenome"] != "GRCh38":
+if (
+    samples.loc[samples["sample_name"] == wildcards.sample]["reference_genome"]
+    != "GRCh38"
+):
     shell(
         "echo 'Liftover required. All datasets have been mapped to {}'".format(
             config["samples"][wildcards.sample]["refGenome"]
@@ -48,8 +52,10 @@ if config["samples"][wildcards.sample]["refGenome"] != "GRCh38":
     ),
     shell("module load liftover"),
     if (
-        config["samples"][wildcards.sample]["refGenome"] == "GRCh37"
-        or config["samples"][wildcards.sample]["refGenome"] == "Hg19"
+        samples.loc[samples["sample_name"] == wildcards.sample]["reference_genome"]
+        == "GRCh37"
+        or samples.loc[samples["sample_name"] == wildcards.sample]["reference_genome"]
+        == "Hg19"
     ):
         shell("echo 'Lifting from GRCh37 to GRCh38.'"),
         directoryExists("results/LIFTOVER")
