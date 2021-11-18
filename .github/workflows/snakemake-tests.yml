@@ -11,12 +11,12 @@ jobs:
         python-version: ["3.6", "3.7", "3.8"]
     steps:
       - uses: actions/checkout@v2
-      - name: Linting
+      - name: Dry Run
         uses: snakemake/snakemake-github-action@v1.23.0
         with:
           directory: "."
           snakefile: "workflow/Snakefile"
-          args: "--lint"
+          args: "--dry-run"
 
       - name: Testing
         uses: snakemake/snakemake-github-action@v1.23.0
