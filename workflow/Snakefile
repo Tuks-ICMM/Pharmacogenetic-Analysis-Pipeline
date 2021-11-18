@@ -75,14 +75,14 @@ rule all:
             cluster=config["cluster"]["clusters"],
             ext=["bed", "bim", "fam"],
         ),
-        expand(
-            [
-                "results/FINAL/Admixture/%s.%s.{mode}"
-                % (cluster, len(pep.sample_table[cluster].unique()))
-                for cluster in config["cluster"]["clusters"]
-            ],
-            mode=["P", "Q"],
-        ),
+        # expand(
+        #     [
+        #         "results/FINAL/Admixture/%s.%s.{mode}"
+        #         % (cluster, len(pep.sample_table[cluster].unique()))
+        #         for cluster in config["cluster"]["clusters"]
+        #     ],
+        #     mode=["P", "Q"],
+        # ),
         # "results/FINAL/Admixture/EIGENSOFT.pca",
         # "results/FINAL/Admixture/EIGENSOFT.plot",
         # "results/FINAL/Admixture/EIGENSOFT.eval",
