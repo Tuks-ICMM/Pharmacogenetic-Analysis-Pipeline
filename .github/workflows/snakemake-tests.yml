@@ -13,10 +13,10 @@ jobs:
       - name: DAG Test
         uses: snakemake/snakemake-github-action@v1.23.0
         with:
-          directory: "."
+          directory: ".test"
           snakefile: "workflow/Snakefile"
           args: "--cores 1 --dry-run"
-  unit-tests:
+  lint:
     runs-on: ubuntu-latest
     needs: dry_run
     strategy:
@@ -28,7 +28,14 @@ jobs:
         with:
           directory: ".test"
           snakefile: "workflow/Snakefile"
-          args: "--cores 1 --lint"
+          args: "--lint"
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: dry_run
+    strategy:
+      matrix:
+        python-version: ["3.6", "3.7", "3.8"]
+    steps:
       - name: Test
         uses: snakemake/snakemake-github-action@v1.23.0
         with:
