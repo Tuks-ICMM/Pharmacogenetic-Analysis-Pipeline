@@ -4,6 +4,18 @@ on:
     branches:
       - main
 jobs:
+  dry_run:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.6", "3.7", "3.8"]
+    steps:
+      - name: DAG Test
+        uses: snakemake/snakemake-github-action@v1.23.0
+        with:
+          directory: ".test"
+          snakefile: "workflow/Snakefile"
+          args: "--dry-run"
   unit-tests:
     runs-on: ubuntu-latest
     strategy:
