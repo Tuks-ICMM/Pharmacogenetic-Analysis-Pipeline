@@ -244,10 +244,10 @@ rule ADMIXTURE:
         # "results/FINAL/Admixture/EIGENSOFT.plot",
         # "results/FINAL/Admixture/EIGENSOFT.eval",
         # "results/FINAL/Admixture/EIGENSOFT.log",
-        expand(
-            "results/FINAL/Admixture/{{cluster}}.{{estimation}}.{mode}",
-            mode=["P", "Q"],
-        ),
+        # expand(
+        #     "results/FINAL/Admixture/{{cluster}}.{{estimation}}.{mode}",
+        #     mode=["P", "Q"],
+        # ),
     params:
         admixtureAssumption=lambda wildcards: len(
             pep.sample_table.reset_index(drop=True)[wildcards.cluster].unique()
@@ -264,15 +264,15 @@ rule ADMIXTURE:
         shell(
             "module load plink-2; plink2 --vcf results/ADMIXTURE/FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/{wildcards.cluster}.{params.admixtureAssumption}"
         ),
-        shell(
-            "module load admixture-1.3.0; admixture results/ADMIXTURE/{wildcards.cluster}.{params.admixtureAssumption}.bed {params.admixtureAssumption}"
-        ),
-        shell(
-            "mv THINNED.{params.admixtureAssumption}.P results/FINAL/Admixture/{wildcards.cluster}.{params.admixtureAssumption}.P"
-        ),
-        shell(
-            "mv THINNED.{params.admixtureAssumption}.Q results/FINAL/Admixture/{wildcards.cluster}.{params.admixtureAssumption}.Q"
-        ),
+        # shell(
+        #     "module load admixture-1.3.0; admixture results/ADMIXTURE/{wildcards.cluster}.{params.admixtureAssumption}.bed {params.admixtureAssumption}"
+        # ),
+        # shell(
+        #     "mv THINNED.{params.admixtureAssumption}.P results/FINAL/Admixture/{wildcards.cluster}.{params.admixtureAssumption}.P"
+        # ),
+        # shell(
+        #     "mv THINNED.{params.admixtureAssumption}.Q results/FINAL/Admixture/{wildcards.cluster}.{params.admixtureAssumption}.Q"
+        # ),
         # shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
         # shell("mv {params.path}THINNED.fam {params.path}.pedind"),
         # shell("module load eigensoft; smartpca -i {params.path}THINNED.bed -a {params.path}THINNED.pedsnp -b {params.path}THINNED.pedind -o {params.finalPath}/EIGENSOFT.pca -p {params.finalPath}/EIGENSOFT.plot -e {params.finalPath}/EIGENSOFT.eval -l {params.finalPath}/EIGENSOFT.log")
