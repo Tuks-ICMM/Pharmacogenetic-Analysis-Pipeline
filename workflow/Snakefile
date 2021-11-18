@@ -261,13 +261,13 @@ rule ADMIXTURE:
             "module load plink-2; plink2 --vcf results/ADMIXTURE/FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}"
         ),
         shell(
-            "module load admixture-1.3.0; admixture results/ADMIXTURE/{wildcards.cluster}.{wildacards.estimation}.bed {wildacards.estimation}"
+            "module load admixture-1.3.0; admixture results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}.bed {wildcards.estimation}"
         ),
         shell(
-            "mv THINNED.{wildacards.estimation}.P results/FINAL/Admixture/{wildcards.cluster}.{wildacards.estimation}.P"
+            "mv THINNED.{wildcards.estimation}.P results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.P"
         ),
         shell(
-            "mv THINNED.{wildacards.estimation}.Q results/FINAL/Admixture/{wildcards.cluster}.{wildacards.estimation}.Q"
+            "mv THINNED.{wildcards.estimation}.Q results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.Q"
         ),
         # shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
         # shell("mv {params.path}THINNED.fam {params.path}.pedind"),
