@@ -31,7 +31,7 @@ jobs:
           args: "--lint"
   unit-tests:
     runs-on: ubuntu-latest
-    needs: dry_run
+    needs: lint
     strategy:
       matrix:
         python-version: ["3.6", "3.7", "3.8"]
