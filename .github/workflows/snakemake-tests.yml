@@ -10,6 +10,7 @@ jobs:
       matrix:
         python-version: ["3.6", "3.7", "3.8"]
     steps:
+      - uses: actions/checkout@v2
       - name: Linting
         uses: snakemake/snakemake-github-action@v1.23.0
         with:
