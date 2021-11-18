@@ -244,10 +244,10 @@ rule ADMIXTURE:
         # "results/FINAL/Admixture/EIGENSOFT.plot",
         # "results/FINAL/Admixture/EIGENSOFT.eval",
         # "results/FINAL/Admixture/EIGENSOFT.log",
-        # expand(
-        #     "results/FINAL/Admixture/{{cluster}}.{{estimation}}.{mode}",
-        #     mode=["P", "Q"],
-        # ),
+        expand(
+            "results/FINAL/Admixture/{{cluster}}.{{estimation}}.{mode}",
+            mode=["P", "Q"],
+        ),
     resources:
         cpus=search("cores", "ADMIXTURE"),
         nodes=search("nodes", "ADMIXTURE"),
