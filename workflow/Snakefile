@@ -265,7 +265,7 @@ rule ADMIXTURE:
             "module load plink-2; plink2 --vcf results/ADMIXTURE/FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/{wildcards.cluster}.{params.admixtureAssumption}"
         ),
         shell(
-            "module load admixture-1.3.0; admixture results/ADMIXTURE/THINNED.bed {params.admixtureAssumption}"
+            "module load admixture-1.3.0; admixture results/ADMIXTURE/{wildcards.cluster}.{params.admixtureAssumption}.bed {params.admixtureAssumption}"
         ),
         shell(
             "mv THINNED.{params.admixtureAssumption}.P results/FINAL/Admixture/{wildcards.cluster}.{params.admixtureAssumption}.P"
