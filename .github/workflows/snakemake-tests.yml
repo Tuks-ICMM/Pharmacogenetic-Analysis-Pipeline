@@ -15,7 +15,7 @@ jobs:
         with:
           directory: ".test"
           snakefile: "workflow/Snakefile"
-          args: ""
+          args: "--cores 1 --dry-run"
   unit-tests:
     runs-on: ubuntu-latest
     needs: dry_run
