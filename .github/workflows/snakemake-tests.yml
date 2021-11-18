@@ -13,7 +13,7 @@ jobs:
       - name: DAG Test
         uses: snakemake/snakemake-github-action@v1.23.0
         with:
-          directory: ""
+          directory: "."
           snakefile: "workflow/Snakefile"
           args: "--cores 1 --dry-run"
   unit-tests:
