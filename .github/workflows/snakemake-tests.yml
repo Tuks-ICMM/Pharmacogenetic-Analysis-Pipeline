@@ -6,7 +6,6 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    needs: dry_run
     strategy:
       matrix:
         python-version: ["3.6", "3.7", "3.8"]
