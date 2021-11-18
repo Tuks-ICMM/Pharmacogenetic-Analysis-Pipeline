@@ -28,7 +28,7 @@ jobs:
         with:
           directory: ".test"
           snakefile: "workflow/Snakefile"
-          args: "--lint"
+          args: "--cores 1 --lint"
       - name: Test
         uses: snakemake/snakemake-github-action@v1.23.0
         with:
