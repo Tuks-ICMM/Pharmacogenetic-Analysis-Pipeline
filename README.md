@@ -1,5 +1,8 @@
 # SnakeMake Pharmacogenetics pipeline
 ---
+
+![Build](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/actions/workflows/snakemake-tests.yml/badge.svg)
+
 ## Content Guide:
 1. [About the Project](#about-the-project)
 1. [Datasets](#datasets)
