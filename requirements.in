@@ -5,4 +5,12 @@ peppy
 matplotlib
 myvariant
 statsmodels
+statannot
 upsetplot
+
+# Optional Dependancy for Pands needed for Excel File parsing:
+openpyxl
+xlsxwriter # Must check why we have both
+
+# Formatter
+black

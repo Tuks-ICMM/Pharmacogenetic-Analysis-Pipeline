@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """A Python script designed to merge multiple CSV files into an excel file.
 """
-
+# %%
 # Import Dependancies
 import glob
 import json
@@ -30,7 +30,7 @@ __status__ = "Development"
 # Declare Constants and Functions:
 with open(join("..", "..", "config", "config.json")) as f:
     config = json.load(f)
-genes = config["locations"]
+genes = [i["name"] for i in config["locations"]]
 clusters = config["cluster"]["clusters"]
 populations = ["AFR", "AMR", "EUR", "EAS", "SAS"]
 tests = ["VEP", "Freq", "Count", "FishersP", "FishersOR"]
@@ -104,7 +104,6 @@ for cluster in data.keys():
         for test in tests:
             if test == "FishersP" or test == "FishersOR":
                 suffix = "_" + re.search("^Fishers([A-Z]{1,2})$", test).group(1)
-                print("SUFFIX:", suffix)
                 data[cluster][gene]["ALL"] = pd.merge(
                     data[cluster][gene]["ALL"],
                     data[cluster][gene][test],
@@ -116,7 +115,7 @@ for cluster in data.keys():
                     data[cluster][gene]["ALL"], data[cluster][gene][test]
                 )
 
-
+# %%
 # Save data to Excel
 for cluster in clusters:
     for gene in genes:
@@ -129,7 +128,7 @@ for cluster in clusters:
             ),
             engine="xlsxwriter",
         ) as writer:
-            for test in data[cluster][gene]:
+            for test in list(data[cluster][gene].keys()):
                 df = data[cluster][gene][test]
                 df.to_excel(writer, sheet_name=test, index=False, header=False)
                 worksheet = writer.sheets["{}".format(test)]
@@ -140,3 +139,5 @@ for cluster in clusters:
                     "first_column": True,
                 }
                 worksheet.add_table(0, 0, max_row - 1, max_col - 1, options)
+
+# %%

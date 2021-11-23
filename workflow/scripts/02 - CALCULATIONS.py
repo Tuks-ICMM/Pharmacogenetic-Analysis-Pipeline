@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """A Python script designed to run Frequency, Fishers Exact Test and Variant Effect Prediction calculations and calls.
 """
-
+# %%
 # Import dependancies
 import gzip
 import io
@@ -35,13 +35,15 @@ __maintainer__ = "Graeme Ford"
 __email__ = "graeme.ford@tuks.co.za"
 __status__ = "Development"
 
-
+# %%
 # Set constants and functions to be used:
 # locations = [location["name"] for location in snakemake.config['locations']]
 with open(join("..", "..", "config", "config.json")) as f:
     config = json.load(f)
 
 clusters = config["cluster"]["clusters"]
+
+# %%
 genes = [location["name"] for location in config["locations"]]
 geneSummary = dict()
 for cluster in config["cluster"]["clusters"]:
@@ -55,7 +57,7 @@ populations = ["AFR", "AMR", "EUR", "EAS", "SAS"]
 endpoint = "https://rest.ensembl.org/vep/homo_sapiens/region/"
 headers = {"Content-Type": "application/json", "Accept": "application/json"}
 
-
+# %%
 def generate_params(key):
     params = {
         "hgvs": True,
@@ -93,6 +95,7 @@ def freq(alt: int, total: int) -> int:
         return 999
 
 
+# %%
 condelTests = ["SIFT", "PolyPhen"]
 cutoff = {"SIFT": 0.15, "PolyPhen": 0.28, "Condel": 0.46}
 maximums = {"SIFT": 1, "PolyPhen": 1}
@@ -154,7 +157,7 @@ def generate_notation(row: pd.Series, gene: str) -> str:
         str: HGVS notation for the given variant row.
     """
     alleles = row["ALT"].split(",")
-    notation = list(str())
+    notation = list()
     for allele in alleles:
         if (len(row["REF"]) > len(allele)) | (len(row["REF"]) == len(allele)):
             stop_coordinates = int(row["POS"]) + (len(row["REF"]) - 1)
@@ -171,7 +174,9 @@ def generate_notation(row: pd.Series, gene: str) -> str:
                     P=row["POS"],
                     P2=stop_coordinates,
                     I=allele,
-                    ST=config["locations"][gene]["GRCh38"]["strand"],
+                    ST=next(
+                        i["strand"] for i in config["locations"] if i["name"] == dataset
+                    ),
                 )
             )
         return notation
@@ -304,23 +309,23 @@ def Fishers(input: dict, refPop: str, compPop: list):
         # dataset.drop(columns=columnsToDrop ,inplace=True)
 
 
+# %%
 #  Import Data:
 data = dict()
 for gene in genes:
     data[gene] = read_vcf(join("..", "..", "results", "ALL_{}.vcf.gz".format(gene)))
 
-
+# %%
 # Sub-Divide data:
 data_generator = dict()
 for dataset in data:
     data_generator[dataset] = chunk(data[dataset], 100)
 
-
+# %%
 # Compile and format request bodies:
 data_to_send = dict()
-
 # Iterate through each gene:
-for dataset in data_generator:
+for dataset in list(data_generator.keys()):
     data_to_send[dataset] = list()
 
     # Iterate through each n-sized chunk generated:
@@ -330,9 +335,10 @@ for dataset in data_generator:
         # Iterate through each row in the chunk and add the HGVS notation to the list:
         for index, row in chunk.iterrows():
             temp_list.extend(generate_notation(row, dataset))
+        print(temp_list)
         data_to_send[dataset].append(dict(variants=temp_list))
 
-
+# %%
 # Perform API calls:
 data_received = dict()
 for dataset_key, dataset in data_to_send.items():
@@ -348,6 +354,7 @@ for dataset_key, dataset in data_to_send.items():
                 params=generate_params(dataset_key),
             )
             if not r.ok:
+                print(str(r.reason))
                 time.sleep(2)
             else:
                 requesting = False
@@ -355,6 +362,7 @@ for dataset_key, dataset in data_to_send.items():
                 data_received[dataset_key] = data_received[dataset_key] + decoded
 
 
+# %%
 # Iterate through each response and compile its values:
 supplementary = dict()
 for dataset_key, dataset in data_received.items():
@@ -412,9 +420,7 @@ for dataset_key, dataset in data_received.items():
             ] = "| ".join(co_variants)
 
             if "transcript_consequences" in variant:
-                for transcript in config["locations"][dataset_key]["GRCh38"][
-                    "transcripts"
-                ]:
+                for transcript in next(i['transcripts'] for i in config["locations"] if i['name'] == dataset_key):
                     consequence = next(
                         (
                             n
@@ -801,3 +807,5 @@ for gene in genes:
         sep="\t",
         index=False,
     )
+
+# %%

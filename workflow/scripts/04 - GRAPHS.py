@@ -2,7 +2,7 @@
 """A Python script designed to render a selection of genetics-related graphs.
 """
 
-
+# %%
 import re
 from itertools import cycle, islice
 
@@ -16,9 +16,6 @@ import upsetplot as pup
 plt.rcParams.update({"font.size": 7})
 import json
 from os.path import join
-
-from statannot import add_stat_annotation
-
 
 __author__ = "Graeme Ford"
 __credits__ = [
@@ -39,7 +36,7 @@ __status__ = "Development"
 with open(join("..", "..", "config", "config.json")) as f:
     config = json.load(f)
 # genes = config['locations']
-genes = ["UGT2B7", "CYP2B6"]
+genes = ["CYP2A6", "UGT2B7", "CYP2B6"]
 clusters = config["cluster"]["clusters"]
 populations = pd.read_excel(join("..", "..", "config", "Clusters.xlsx"))
 tests = ["VEP", "Freq", "Count", "FishersP", "FishersOR"]
@@ -53,7 +50,7 @@ for gene in genes:
             join("..", "..", "results", "SUPER-{}.xlsx".format(gene)), sheet_name="Freq"
         ).query(
             " | ".join(
-                ["{} >= 0.04".format(pop) for pop in populations["SUPER"].unique()]
+                ["{} >= 0.01".format(pop) for pop in populations["SUPER"].unique()]
             )
         )
         # data[gene] = pd.melt(data[gene], id_vars=['ID', 'POS', 'REF', 'ALT'], value_vars=['AFR', 'AMR', 'EUR', 'EAS', 'SAS'])
@@ -67,19 +64,21 @@ for gene in genes:
 # Graph Data
 for gene in genes:
     pup.plot(
-        data[gene][["ID"]],
+        data[gene][["ID"]].squeeze(),
         sort_by="cardinality",
         sort_categories_by="cardinality",
         show_percentages=True,
     )
     # pup.catplot(kind='')
-    plt.title(
-        "{} Intersection of alleles accros populations".format(gene),
-        loc="left",
-        size=10,
+    plt.suptitle(
+        "{} alleles (>=1%) accros population intersections".format(gene),
+        fontweight="semibold",
     )
-    # plt.savefig(join("..", "..", "results", "figures", "{}_IntersectionPlot.jpeg".format(gene)), dpi=300)
-
+    plt.savefig(
+        join("..", "..", "results", "figures", "{}_IntersectionPlot.jpeg".format(gene)),
+        dpi=1200,
+    )
+# %%
 
 # KDE PLOTS
 
@@ -231,7 +230,7 @@ for cluster in clusters:
                             pop=pop, gene=gene, type="KDE Plot"
                         ),
                     ),
-                    dpi=300,
+                    dpi=1200,
                 )
 
     else:
@@ -274,5 +273,22 @@ for cluster in clusters:
                         gene=gene, type="KDE Plot"
                     ),
                 ),
-                dpi=300,
+                dpi=1200,
             )
+
+# %%
+
+# variant Types
+d = dict()
+for gene in genes:
+    data["SUPER"][gene]["VEP"]["Gene"] = str(gene)
+# %%
+d = pd.concat(
+    [data["SUPER"][gene]["VEP"]
+     for gene in genes]
+)[["ID", "Gene", "Consequence"]]
+
+# %%
+sns.histplot(data=d, x="Gene")
+# plt.suptitle("Variant Types")
+# %%
