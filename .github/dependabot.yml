@@ -9,8 +9,10 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
-     reviewers:
-         - "G-Kodes"
-     commit-message: "Re-Pinning outdated dependancies"
-     labels: 
-         - "versioning"
+    reviewers:
+      - "G-Kodes"
+    commit-message:
+      prefix: "pip-compile"
+      include: "scope"
+    labels:
+      - "versioning"
