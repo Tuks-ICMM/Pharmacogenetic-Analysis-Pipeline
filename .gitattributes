@@ -1,2 +1,4 @@
 *.P linguist-vendored
 *.Q linguist-vendored
+workflow/Snakefile linguist-language=Snakemake
+workflow/envs/*.yml linguist-language=Conda
