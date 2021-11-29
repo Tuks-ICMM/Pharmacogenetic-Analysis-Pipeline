@@ -577,8 +577,8 @@ smmap==5.0.0 \
     --hash=sha256:2aba19d6a040e78d8b09de5c57e96207b09ed71d8e55ce0959eeee6c8e190d94 \
     --hash=sha256:c840e62059cd3be204b0c9c9f74be2c09d5648eddd4580d9314c3ecde0b30936
     # via gitdb
-snakemake==6.10.0 \
-    --hash=sha256:199a86c8d1fcfdb88c4271a1507b0ab371a15bc407f2dad9b0ab8c43438adff8
+snakemake==6.11.1 \
+    --hash=sha256:fd99230d5e426dde38b9bc085f3796506185bb79a9c439b5300e662b2d424463
     # via -r requirements.in
 statannot==0.2.3 \
     --hash=sha256:17745a40542e157e3f147147425c5da441f62bb698b3644154cedf088d4d0b08 \
@@ -631,9 +631,7 @@ traitlets==5.1.1 \
 typing-extensions==4.0.0 \
     --hash=sha256:2cdf80e4e04866a9b3689a51869016d36db0814d84b8d8a568d22781d45d27ed \
     --hash=sha256:829704698b22e13ec9eaf959122315eabb370b0884400e9818334d8b677023d9
-    # via
-    #   black
-    #   gitpython
+    # via black
 ubiquerg==0.6.2 \
     --hash=sha256:6336c4dc2c64fd759585265ad0a307eb48944368de531fb686447d2a93a5779d \
     --hash=sha256:a9b1388799d4c366f956e0c912819099ad8f6cd0e5d890923cdde197f80d14cf
