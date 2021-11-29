@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import upsetplot as pup
-
+sns.set_style("whitegrid")
 plt.rcParams.update({"font.size": 7})
 import json
 from os.path import join
@@ -281,14 +281,31 @@ for cluster in clusters:
 # variant Types
 d = dict()
 for gene in genes:
-    data["SUPER"][gene]["VEP"]["Gene"] = str(gene)
+    data["SUPER"][gene]["VEP"].assign(Gene=gene)
 # %%
 d = pd.concat(
     [data["SUPER"][gene]["VEP"]
      for gene in genes]
 )[["ID", "Gene", "Consequence"]]
 
+d["Consequence"] = d["Consequence"].str.split(pat=" | ")
+d = d.explode("Consequence")
+d["Consequence"] = d["Consequence"].str.replace("_", " ").str.replace("5", "5'").str.replace("3", "3'").str.capitalize()
+d = d[d["Consequence"] != "|"].reset_index()
+
 # %%
-sns.histplot(data=d, x="Gene")
-# plt.suptitle("Variant Types")
+sns.histplot(data=d, x="Consequence", hue="Gene", multiple="stack")
+plt.suptitle("Variant Types")
+plt.xticks(rotation=45, ha="right")
+
+plt.savefig(
+    join(
+        "..",
+        "..",
+        "results",
+        "figures",
+        "Variant Types.jpeg",
+    ),
+    dpi=1200,
+)
 # %%
