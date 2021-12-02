@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import upsetplot as pup
+
 sns.set_style("whitegrid")
 plt.rcParams.update({"font.size": 7})
 import json
@@ -280,24 +281,31 @@ for cluster in clusters:
 
 # variant Types
 d = dict()
-for gene in genes:
-    data["SUPER"][gene]["VEP"].assign(Gene=gene)
-# %%
-d = pd.concat(
-    [data["SUPER"][gene]["VEP"]
-     for gene in genes]
-)[["ID", "Gene", "Consequence"]]
+d = pd.concat([data["SUPER"][gene]["VEP"].assign(Gene=gene) for gene in genes])[
+    ["ID", "Gene", "Consequence"]
+]
 
 d["Consequence"] = d["Consequence"].str.split(pat=" | ")
 d = d.explode("Consequence")
-d["Consequence"] = d["Consequence"].str.replace("_", " ").str.replace("5", "5'").str.replace("3", "3'").str.capitalize()
+d["Consequence"] = (
+    d["Consequence"]
+    .str.replace("_", " ")
+    .str.replace("5", "5'")
+    .str.replace("3", "3'")
+    .str.capitalize()
+)
 d = d[d["Consequence"] != "|"].reset_index()
 
 # %%
-sns.histplot(data=d, x="Consequence", hue="Gene", multiple="stack")
-plt.suptitle("Variant Types")
+ax = sns.countplot(data=d, x="Consequence", hue="Gene")
+plt.yscale("log")
+for key in range(0, len(ax.containers)):
+    ax.bar_label(ax.containers[key])
+plt.suptitle("Variant Types", size=15)
 plt.xticks(rotation=45, ha="right")
-
+plt.ylabel("Count", size=12)
+plt.xlabel("Consequence", size=12)
+plt.tight_layout()
 plt.savefig(
     join(
         "..",
