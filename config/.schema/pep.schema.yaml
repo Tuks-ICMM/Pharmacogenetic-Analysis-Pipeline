@@ -1,24 +1,31 @@
 name: "Pharmacogenetics Analysis Pipeline"
 description: A single sample used in this analysis, as provided in the PEP sample sheet.
 imports:
-  - http://schema.databio.org/pep/2.0.0.yaml
+  - http://schema.databio.org/pep/2.1.0.yaml
 properties:
-  sample_name:
-    type: string
-    description: Sample identifier
-  dataset:
-    type: string
-    description: A string identifier indicating the name of the dataset. This will be used to name the output.
-  file:
-    type: string
-    decription: A string filename for the data file (.vcf.gz + tabix) in the input folder.
-  reference_genome:
-    type: string
-    description: A string identifier for the reference genome. This will be used to access a correspondingly named FATSA file in the resources folder.
+  samples:
+  type: array
+  items:
+    type: object
+    properties:
+      sample_name:
+        type: string
+        description: Sample identifier
+      dataset:
+        type: string
+        description: A string identifier indicating the name of the dataset. This will be used to name the output.
+      file:
+        type: string
+        decription: A string filename for the data file (.vcf.gz + tabix) in the input folder.
+      reference_genome:
+        type: string
+        description: A string identifier for the reference genome. This will be used to access a correspondingly named FATSA file in the resources folder.
+    required:
+      - sample_name
+      - dataset
+      - file
+      - reference_genome
+    files:
+      - file
 required:
-  - sample_name
-  - dataset
-  - file
-  - reference_genome
-files:
-  - file
+  - samples
