@@ -1,91 +1,145 @@
 {
-  "refGenomes": {
-    "GRCh38": "GRCh38.fa.gz"
-  },
-  "samples": {
-    "1000g": {
-      "refGenome": "GRCh37",
-      "format": "Plink Binary",
-      "requiresSexing": false,
-      "exclusions": ["rs199808813"]
+  "reference-genomes": [
+    {
+      "version": "GRCh38",
+      "file": "GRCh38.fa.gz"
     }
-  },
-  "locations": {
-    "CYP2B6": {
-      "GRCh38": {
-        "transcript_id": "NM_000767.5",
-        "chromosome": 19,
-        "strand": "1",
-        "from": 40988570,
-        "to": 41021110
-      }
+  ],
+  "samples": [
+    {
+      "name": "1000G",
+      "reference_version": "GRCh38"
     },
-    "CYP2C9": {
-      "GRCh38": {
-        "transcript_id": "NM_000771.4",
-        "chromosome": 10,
-        "strand": "1",
-        "from": 94938658,
-        "to": 94990091
-      }
-    },
-    "CYP2C19": {
-      "GRCh38": {
-        "transcript_id": "NM_000769.4",
-        "chromosome": 10,
-        "strand": "1",
-        "from": 94762681,
-        "to": 94855547
-      }
-    },
-    "CYP2D6": {
-      "GRCh38": {
-        "transcript_id": "NM_000106.6",
-        "chromosome": 22,
-        "strand": "-1",
-        "from": 42126499,
-        "to": 42130881
-      }
-    },
-    "CYP4F2": {
-      "GRCh38": {
-        "transcript_id": "NM_001082.5",
-        "chromosome": 19,
-        "strand": "-1",
-        "from": 15878023,
-        "to": 15898077
-      }
-    },
-    "VKORC1": {
-      "GRCh38": {
-        "transcript_id": "NM_024006.6",
-        "chromosome": 16,
-        "strand": "-1",
-        "from": 31090842,
-        "to": 31095980
-      }
-    },
-    "HLA-A": {
-      "GRCh38": {
-        "transcript_id": "NM_002116.8",
-        "chromosome": 6,
-        "strand": "1",
-        "from": 29941260,
-        "to": 29945884
-      }
-    },
-    "HLA-B": {
-      "GRCh38": {
-        "transcript_id": "NM_005514.8",
-        "chromosome": 6,
-        "strand": "-1",
-        "from": 31353872,
-        "to": 31357188
-      }
+    {
+      "name": "SAHGP",
+      "version": "GRCh38"
     }
-  },
+  ],
+  "locations": [
+    {
+      "name": "CYP2B6",
+      "transcripts": [
+        "NM_000767.5"
+      ],
+      "chromosome": 19,
+      "strand": "1",
+      "start": 40988570,
+      "stop": 41021110
+    },
+    {
+      "name": "CYP2C9",
+      "transcript_id": "NM_000771.4",
+      "chromosome": 10,
+      "strand": "1",
+      "from": 94938658,
+      "to": 94990091
+    },
+    {
+      "name": "CYP2C19",
+      "transcripts": [
+        "NM_000769.4"
+      ],
+      "chromosome": 10,
+      "strand": "1",
+      "start": 94762681,
+      "stop": 94855547
+    },
+    {
+      "name": "CYP2D6",
+      "transcript_id": "NM_000106.6",
+      "chromosome": 22,
+      "strand": "-1",
+      "start": 42126499,
+      "stop": 42130881
+    },
+    {
+      "name": "CYP4F2",
+      "transcript_id": "NM_001082.5",
+      "chromosome": 19,
+      "strand": "-1",
+      "start": 15878023,
+      "stop": 15898077
+    },
+    {
+      "name": "VKORC1",
+      "transcript_id": "NM_024006.6",
+      "chromosome": 16,
+      "strand": "-1",
+      "start": 31090842,
+      "stop": 31095980
+    },
+    {
+      "name": "HLA-A",
+      "transcript_id": "NM_002116.8",
+      "chromosome": 6,
+      "strand": "1",
+      "start": 29941260,
+      "stop": 29945884
+    },
+    {
+      "name": "HLA-B",
+      "transcript_id": "NM_005514.8",
+      "chromosome": 6,
+      "strand": "-1",
+      "start": 31353872,
+      "stop": 31357188
+    }
+  ],
   "cluster": {
-    "clusters": ["SUPER", "SUB"],
+    "clusters": [
+      "SUPER",
+      "SUB"
+    ],
     "file": "Clusters.xlsx"
+  },
+  "environment": {
+    "email": {
+      "address": "graeme.ford@tuks.co.za",
+      "conditions": [
+        "o",
+        "e"
+      ]
+    },
+    "working-directory": "/nlustre/users/graeme/pipeline-2020",
+    "queues": [
+      {
+        "queue": "long",
+        "walltime": "900:00:00",
+        "memory": "128G",
+        "cores": 10,
+        "nodes": 1,
+        "rules": [
+          "VALIDATE",
+          "LIFTOVER",
+          "ANNOTATE",
+          "ADMIXTURE",
+          "COLLATE"
+        ]
+      },
+      {
+        "queue": "normal",
+        "walltime": "30:00:00",
+        "memory": "128G",
+        "cores": 10,
+        "nodes": 1,
+        "rules": [
+          "TRIM_AND_NAME",
+          "TRANSPILE_CLUSTERS",
+          "PLINK",
+          "CALCULATIONS",
+          "COMPILE_EXCEL"
+        ]
+      },
+      {
+        "queue": "short",
+        "walltime": "00:30:00",
+        "memory": "128G",
+        "cores": 10,
+        "nodes": 1,
+        "rules": [
+          "FILTER"
+        ]
+      }
+    ]
   }
 }
