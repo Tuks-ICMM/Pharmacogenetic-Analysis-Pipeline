@@ -14,13 +14,13 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - run: "pip install -r requirements.txt"
       - name: Dry Run
         uses: snakemake/snakemake-github-action@v1.23.0
         with:
           directory: "."
           task: "run"
           snakefile: "workflow/Snakefile"
+          stagein: "pip install -r requirements.txt"
           args: "--dry-run"
 
       # Deactivated testing in light of https://github.com/snakemake/snakemake-github-action/issues/18
