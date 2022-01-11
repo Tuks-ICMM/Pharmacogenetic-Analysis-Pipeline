@@ -1,12 +1,15 @@
 snakemake
 seaborn
 pandas
-peppy
 matplotlib
 myvariant
 statsmodels
 statannot
 upsetplot
+
+# PEP Validation Packages
+peppy
+eido
 
 # Optional Dependancy for Pands needed for Excel File parsing:
 openpyxl

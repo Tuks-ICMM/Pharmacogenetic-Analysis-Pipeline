@@ -78,6 +78,10 @@ docutils==0.18.1 \
     --hash=sha256:23010f129180089fbcd3bc08cfefccb3b890b0050e1ca00c867036e9d161b98c \
     --hash=sha256:679987caf361a7539d76e584cbeddc311e3aee937877c87346f31debc63e9d06
     # via snakemake
+eido==0.1.5 \
+    --hash=sha256:468a09f03176235361018801c2fe9ac0e1a759449389ecaea9453a15e872baa7 \
+    --hash=sha256:fbe48eba95ccc1795dc8b1c025bf1c16498b63fcf43f5821d58dcc1528aafb3d
+    # via -r requirements.in
 et-xmlfile==1.1.0 \
     --hash=sha256:8eb9e2bc2f8c97e37a2dc85a09ecdcdec9d8a396530a6d5a33b30b9a92da0c5c \
     --hash=sha256:a2ba85d1d6a74ef63837eed693bcb89c3f752169b0e3e7ae5b16ca5e1b3deada
@@ -110,6 +114,7 @@ jsonschema==4.3.3 \
     --hash=sha256:eb7a69801beb7325653aa8fd373abbf9ff8f85b536ab2812e5e8287b522fb6a2 \
     --hash=sha256:f210d4ce095ed1e8af635d15c8ee79b586f656ab54399ba87b8ab87e5bff0ade
     # via
+    #   eido
     #   nbformat
     #   snakemake
 jupyter-core==4.9.1 \
@@ -165,7 +170,9 @@ kiwisolver==1.3.2 \
 logmuse==0.2.7 \
     --hash=sha256:691fc43118feddeaf41b57cd8b8ed5c8e6071948e57a2b824b9c690712e858a8 \
     --hash=sha256:a4692c44ddfa912c3cb149ca4c7545f80119aa7485868fd1412e7c647e9a7e7e
-    # via peppy
+    # via
+    #   eido
+    #   peppy
 matplotlib==3.5.1 \
     --hash=sha256:14334b9902ec776461c4b8c6516e26b450f7ebe0b3ef8703bf5cdfbbaecf774a \
     --hash=sha256:2252bfac85cec7af4a67e494bfccf9080bcba8a0299701eab075f48847cca907 \
@@ -284,6 +291,7 @@ pandas==1.3.5 \
     --hash=sha256:fe95bae4e2d579812865db2212bb733144e34d0c6785c0685329e5b60fcb85dd
     # via
     #   -r requirements.in
+    #   eido
     #   peppy
     #   seaborn
     #   statsmodels
@@ -299,7 +307,9 @@ patsy==0.5.2 \
 peppy==0.31.2 \
     --hash=sha256:2f8b19ca3e034afea77aa11d2b8d30982adc4b0ce44bae6d8ecd5cf0da0af002 \
     --hash=sha256:f26fc9a4ba55bb803d7e7249a1db50b27bb7d9f83bc2072b7a1d8849af5a6478
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   eido
 pillow==9.0.0 \
     --hash=sha256:03b27b197deb4ee400ed57d8d4e572d2d8d80f825b6634daf6e2c18c3c6ccfa6 \
     --hash=sha256:0b281fcadbb688607ea6ece7649c5d59d4bbd574e90db6cd030e9e85bde9fecc \
@@ -582,6 +592,7 @@ ubiquerg==0.6.2 \
     --hash=sha256:a9b1388799d4c366f956e0c912819099ad8f6cd0e5d890923cdde197f80d14cf
     # via
     #   attmap
+    #   eido
     #   peppy
 upsetplot==0.6.0 \
     --hash=sha256:542875e306257a3f79bd36aacf1abc99bfe440b5da56d2af2e1c8065f9f4f987
