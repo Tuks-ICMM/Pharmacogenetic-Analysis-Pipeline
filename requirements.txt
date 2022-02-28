@@ -654,7 +654,7 @@ wrapt==1.13.3 \
     --hash=sha256:f9c51d9af9abb899bd34ace878fbec8bf357b3194a10c4e8e0a25512826ef056 \
     --hash=sha256:fd76c47f20984b43d93de9a82011bb6e5f8325df6c9ed4d8310029a55fa361ea
     # via snakemake
-xlsxwriter==3.0.2 \
-    --hash=sha256:1aa65166697c42284e82f5bf9a33c2e913341eeef2b262019c3f5b5334768765 \
-    --hash=sha256:53005f03e8eb58f061ebf41d5767c7495ee0772c2396fe26b7e0ca22fa9c2570
+xlsxwriter==3.0.3 \
+    --hash=sha256:df0aefe5137478d206847eccf9f114715e42aaea077e6a48d0e8a2152e983010 \
+    --hash=sha256:e89f4a1d2fa2c9ea15cde77de95cd3fd8b0345d0efb3964623f395c8c4988b7f
     # via -r requirements.in
