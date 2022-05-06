@@ -4,9 +4,10 @@
 
 
 import os
-from snakemake import shell
-from peppy import Project
 from os.path import join
+
+from peppy import Project
+from snakemake import shell
 
 __author__ = "Graeme Ford"
 __credits__ = [
@@ -43,60 +44,56 @@ def directoryExists(path: str):
 
 
 print("Determining Liftover requirements now...")
-if (
-    samples.loc[samples["sample_name"] == wildcards.sample]["reference_genome"].item()
-    != "GRCh38"
-):
-    shell(
-        "echo 'Liftover required. All datasets have been mapped to {}'".format(
-            samples.loc[samples["sample_name"] == wildcards.sample][
-                "reference_genome"
-            ].item()
-        )
-    ),
-    shell("module load liftover"),
-    if (
-        samples.loc[samples["sample_name"] == wildcards.sample][
-            "reference_genome"
-        ].item()
-        == "GRCh37"
-        or samples.loc[samples["sample_name"] == wildcards.sample][
-            "reference_genome"
-        ].item()
-        == "Hg19"
-    ):
-        shell("echo 'Lifting from GRCh37 to GRCh38.'"),
-        directoryExists("results/LIFTOVER")
+listed_refs: list = samples.loc[samples["dataset"] == wildcards.sample][
+    "reference_genome"
+].unique()
+if len(listed_refs) == 1:
+    if listed_refs[0] != "GRCh38":
         shell(
-            "module load plink-2; plink2 --vcf results/PREP/{wildcards.sample}.vcf.gz --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out results/LIFTOVER/{wildcards.sample}_PREP --export vcf-4.2 bgz --output-chr chr26"
-        ),
-        shell("sleep 60; tabix -p vcf results/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
-        shell(
-            "module load picard-2.17.11; java {params.mem} -jar $PICARD LiftoverVcf I=results/LIFTOVER/{wildcards.sample}_PREP.vcf.gz O=results/LIFTOVER/{wildcards.sample}.vcf.gz C={params.chainFile} REJECT=results/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"
-        ),
-    # TODO: Add conditionals for other human reference genome builds
-    else:
-        print(
-            "No liftover required. Dataset {} is already mapped to GRCh38.".format(
-                wildcards.sample
+            "echo 'Liftover required. All datasets have been mapped to {}'".format(
+                listed_refs[0]
             )
         ),
-        shell("touch results/LIFTOVER/{wildcards.sample}_EXCLUDE.dat"),
+        shell("module load liftover"),
+        if listed_refs[0] == "GRCh37" or listed_refs[0] == "Hg19":
+            shell("echo 'Lifting from GRCh37 to GRCh38.'"),
+            directoryExists("results/LIFTOVER")
+            shell(
+                "module load plink-2; plink2 --vcf results/PREP/{wildcards.sample}.vcf.gz --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out results/LIFTOVER/{wildcards.sample}_PREP --export vcf-4.2 bgz --output-chr chr26"
+            ),
+            shell(
+                "sleep 60; tabix -p vcf results/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"
+            ),
+            shell(
+                "module load picard-2.17.11; java {params.mem} -jar $PICARD LiftoverVcf I=results/LIFTOVER/{wildcards.sample}_PREP.vcf.gz O=results/LIFTOVER/{wildcards.sample}.vcf.gz C={params.chainFile} REJECT=results/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"
+            ),
+        # TODO: Add conditionals for other human reference genome builds
+        else:
+            print(
+                "No liftover required. Dataset {} is already mapped to GRCh38.".format(
+                    wildcards.sample
+                )
+            ),
+            shell("touch results/LIFTOVER/{wildcards.sample}_EXCLUDE.dat"),
+            shell(
+                "module load plink-1.9; plink --map input/{wildcards.sample}.map --ped input/{wildcards.sample}.ped --allow-extra-chr --chr 1-22 --recode vcf --keep-allele-order --exclude {params.exclusionList} --out results/LIFTOVER/{wildcards.sample}"
+            ),
+        # shell("bgzip results/LIFTOVER/{wildcards.sample}.vcf"),
+        shell("sleep 1m; tabix -f -p vcf results/LIFTOVER/{wildcards.sample}.vcf.gz"),
         shell(
-            "module load plink-1.9; plink --map input/{wildcards.sample}.map --ped input/{wildcards.sample}.ped --allow-extra-chr --chr 1-22 --recode vcf --keep-allele-order --exclude {params.exclusionList} --out results/LIFTOVER/{wildcards.sample}"
+            "echo 'results/LIFTOVER/{wildcards.sample}.vcf.gz' >> results/LIFTOVER/merge.list"
+        )
+    else:
+        shell(
+            "cp results/PREP/{wildcards.sample}.vcf.gz results/LIFTOVER/{wildcards.sample}.vcf.gz"
         ),
-    # shell("bgzip results/LIFTOVER/{wildcards.sample}.vcf"),
-    shell("sleep 1m; tabix -f -p vcf results/LIFTOVER/{wildcards.sample}.vcf.gz"),
-    shell(
-        "echo 'results/LIFTOVER/{wildcards.sample}.vcf.gz' >> results/LIFTOVER/merge.list"
-    )
+        shell(
+            "cp results/PREP/{wildcards.sample}.vcf.gz.tbi results/LIFTOVER/{wildcards.sample}.vcf.gz.tbi"
+        ),
+        shell(
+            "echo 'results/LIFTOVER/{wildcards.sample}.vcf.gz' >> results/LIFTOVER/merge.list"
+        )
 else:
-    shell(
-        "cp results/PREP/{wildcards.sample}.vcf.gz results/LIFTOVER/{wildcards.sample}.vcf.gz"
-    ),
-    shell(
-        "cp results/PREP/{wildcards.sample}.vcf.gz.tbi results/LIFTOVER/{wildcards.sample}.vcf.gz.tbi"
-    ),
-    shell(
-        "echo 'results/LIFTOVER/{wildcards.sample}.vcf.gz' >> results/LIFTOVER/merge.list"
+    print(
+        "There is an issue. We filtered your samples file (PEP Spesification) and found that when filtering based on dataset, there were either no reference genomes for a dataset, or more than one in a single dataset. Thats bad... please fix that..."
     )
