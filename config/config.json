@@ -3,7 +3,11 @@
     {
       "version": "GRCh38",
       "file_path": [
-        "resources",
+        "/",
+        "nlustre",
+        "users",
+        "graeme",
+        "GRCh38",
         "GRCh38.fa.gz"
       ]
     }

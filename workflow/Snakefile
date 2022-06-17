@@ -144,12 +144,11 @@ rule LIFTOVER:
         LiftOver=join("resources", "liftOverPlink.py"),
         rmBadLifts=join("resources", "rmBadLifts.py"),
         ref=join(
-            "resources",
-        next(
-            i["file_path"]
-            for i in config["reference-genomes"]
-        if i["version"] == "GRCh38"
-            ),
+            *next(
+                i["file_path"]
+                for i in config["reference-genomes"]
+            if i["version"] == "GRCh38"
+                ),
         ),
         mem=f'-Xmx{search("memory", "LIFTOVER")} ',
     resources:
@@ -176,9 +175,8 @@ rule ALL_COLLATE:
         "results/COLLATE/ALL.vcf.gz.tbi",
     params:
         ref=lambda wildcards: join(
-            "resources",
-        next(
-            i["file"]
+        *next(
+            i["file_path"]
             for i in config["reference-genomes"]
         if i["version"] == "GRCh38"
             ),
