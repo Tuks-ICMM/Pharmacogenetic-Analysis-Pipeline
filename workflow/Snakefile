@@ -174,7 +174,7 @@ rule ALL_COLLATE:
     log:
         "logs/COLLATE/ALL.log",
     input:
-        expand("results/LIFTOVER/{sample}.vcf.gz", sample=samples),
+        expand("results/LIFTOVER/{sample}.vcf.gz", sample=samples["sample_name"]),
     output:
         "results/COLLATE/ALL.vcf.gz",
         "results/COLLATE/ALL.vcf.gz.tbi",
