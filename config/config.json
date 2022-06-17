@@ -2,38 +2,12 @@
   "reference-genomes": [
     {
       "version": "GRCh38",
-      "file_path": "GRCh38.fa.gz"
+      "file_path": [
+        "resources",
+        "GRCh38.fa.gz"
+      ]
     }
   ],
-  "samples": [
-    {
-      "name": "GnomAD",
-      "reference_version": "GRCh38",
-      "file_path": "/nlustre/users/graeme/GnomeAD/v3.1.2/HGDP+1KG/gnomad.genomes.v3.1.2.hgdp_tgp.chr21.vcf.bgz",
-      "exclusions": []
-    }
-  ],
-  "locations": [
-    {
-      "name": "OLIG2",
-      "transcripts": [
-        "ENST00000382357.4",
-        "ENST00000333337.3",
-        "ENST00000430860.1"
-      ],
-      "chromosome": 21,
-      "strand": "1",
-      "start": 33025835,
-      "stop": 33029296
-    }
-  ],
-  "cluster": {
-    "clusters": [
-      "SUPER",
-      "SUB"
-    ],
-    "file": "Clusters.xlsx"
-  },
   "environment": {
     "email": {
       "address": "graeme.ford@tuks.co.za",
