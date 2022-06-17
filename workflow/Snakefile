@@ -42,8 +42,7 @@ transcripts = read_csv(join("input", "transcripts.csv"))
 
 # DEFINE CONTEXT-VARIABLES:
 finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.out",
-locations = set([i["name"] for i in locations["location_name"]])
-samples = set([i["name"] for i in samples["sample_name"]])
+locations = set([i for i in locations["location_name"]])
 clusters = set([cluster for cluster in samples.keys() if cluster not in set("sample_name", "dataset")])
 bExtensions = ["bed", "bim", "fam"]
 tExtensions = ["map", "ped"]
@@ -102,7 +101,7 @@ rule VALIDATE:
     log:
         "logs/VALIDATE/{sample}.log",
     input:
-        lambda wildcards: next(dataset["file_path"] for dataset in config["samples"] if dataset["name"] == wildcards.sample ),
+        lambda wildcards: samples.loc[samples["dataset"] == wildcards.samples]["file_path"]
     output:
         "results/PREP/{sample}.vcf.gz",
     params:
