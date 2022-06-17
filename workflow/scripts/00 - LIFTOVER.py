@@ -6,7 +6,7 @@
 import os
 from os.path import join
 
-from peppy import Project
+from pandas import read_csv
 from snakemake import shell
 
 __author__ = "Graeme Ford"
@@ -29,7 +29,7 @@ __status__ = "Development"
 config = snakemake.config
 wildcards = snakemake.wildcards
 params = snakemake.params
-samples = Project(join("config", "pep.yaml")).sample_table.reset_index(drop=True)
+samples = read_csv(join("input", "samples.csv"))
 
 
 # Define functions:
