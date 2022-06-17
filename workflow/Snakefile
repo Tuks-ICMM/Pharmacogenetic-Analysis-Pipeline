@@ -370,7 +370,7 @@ rule PLINK:
                 [
                     "results/FINAL/%s/ALL_{{location}}.%s.{extension}"
                     % (cluster, population)
-                    for population in list(pep.sample_table[cluster].unique())
+                    for population in list(samples[cluster].unique())
                 ],
                 extension=finalExtensions,
             )
