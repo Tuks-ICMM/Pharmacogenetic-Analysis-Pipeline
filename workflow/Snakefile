@@ -96,7 +96,7 @@ rule VALIDATE:
     log:
         "logs/VALIDATE/{sample}.log",
     input:
-        lambda wildcards: next(dataset["file_path"] for dataset in config["samples"] if dataset["name"] == wildcards.samples ),
+        lambda wildcards: next(dataset["file_path"] for dataset in config["samples"] if dataset["name"] == wildcards.sample ),
     output:
         "results/PREP/{sample}.vcf.gz",
     params:

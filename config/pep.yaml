@@ -1,3 +1,5 @@
 description: "Schema for PEP sample declaration information for this workflow"
 pep_version: "2.1.0"
 sample_table: "samples.csv"
+gene_table: "genes.csv"
+dataset_table: "datasets.csv"
