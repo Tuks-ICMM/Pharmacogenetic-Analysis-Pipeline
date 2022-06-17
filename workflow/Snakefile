@@ -84,7 +84,7 @@ rule all:
             [
                 "results/FINAL/Admixture/%s.%s.{mode}"
                 % (cluster, len(samples[cluster].unique()))
-                for cluster in config["cluster"]["clusters"]
+                for cluster in clusters
             ],
             mode=["P", "Q"],
         ),
