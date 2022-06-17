@@ -34,10 +34,10 @@ min_version("6.0")
 
 # pepschema: join("..", "config", ".schema", "pep.schema.yaml")
 
-locations = read_csv(join("..", "input", "locations.csv"))
-samples = read_csv(join("..", "input", "samples.csv"))
-datasets = read_csv(join("..", "input", "datasets.csv"))
-transcripts = read_csv(join("..", "input", "transcripts.csv"))
+locations = read_csv(join("input", "locations.csv"))
+samples = read_csv(join("input", "samples.csv"))
+datasets = read_csv(join("input", "datasets.csv"))
+transcripts = read_csv(join("input", "transcripts.csv"))
 
 
 # DEFINE CONTEXT-VARIABLES:
