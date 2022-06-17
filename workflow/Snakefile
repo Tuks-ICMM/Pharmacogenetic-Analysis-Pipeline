@@ -146,7 +146,7 @@ rule LIFTOVER:
         ref=join(
             "resources",
         next(
-            i["file"]
+            i["file_path"]
             for i in config["reference-genomes"]
         if i["version"] == "GRCh38"
             ),
