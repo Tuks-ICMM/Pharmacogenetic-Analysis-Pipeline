@@ -374,7 +374,7 @@ rule PLINK:
                 ],
                 extension=finalExtensions,
             )
-            for cluster in config["cluster"]["clusters"]
+            for cluster in clusters
         ],
     params:
         prefix="ALL_{location}",
