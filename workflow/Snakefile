@@ -23,16 +23,16 @@ min_version("6.0")
 
 
 # DEFINE CONFIG FILE FOR SNAKEMAKE:
-configfile: join("config", "config.json")
+# configfile: join("config", "config.json")
 
 
-validate(config, join("..", "config", ".schema", "config.schema.json"))
+# validate(config, join("..", "config", ".schema", "config.schema.json"))
 
 
-pepfile: join("config", "pep.yaml")
+# pepfile: join("config", "pep.yaml")
 
 
-pepschema: join("..", "config", ".schema", "pep.schema.yaml")
+# pepschema: join("..", "config", ".schema", "pep.schema.yaml")
 
 # DEFINE CONTEXT-VARIABLES:
 finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.out",
