@@ -36,9 +36,9 @@ min_version("6.0")
 
 # DEFINE CONTEXT-VARIABLES:
 finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.out",
-locations = set([i["name"] for i in config["locations"]])
-samples = set([i["name"] for i in config["samples"]])
-clusters = set(config["cluster"]["clusters"])
+locations = set([i["name"] for i in locations["location_name"]])
+samples = set([i["name"] for i in samples["sample_name"]])
+clusters = set([cluster for cluster in samples.keys() if cluster not in set("sample_name", "dataset")])
 bExtensions = ["bed", "bim", "fam"]
 tExtensions = ["map", "ped"]
 
