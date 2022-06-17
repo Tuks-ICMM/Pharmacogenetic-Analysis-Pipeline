@@ -1,4 +1,4 @@
-import pandas as pd
+from pandas import read_csv
 from os.path import join
 from snakemake.utils import validate
 from snakemake.utils import min_version
@@ -33,6 +33,12 @@ min_version("6.0")
 
 
 # pepschema: join("..", "config", ".schema", "pep.schema.yaml")
+
+locations = read_csv(join("..", "input", "locations.csv"))
+samples = read_csv(join("..", "input", "samples.csv"))
+datasets = read_csv(join("..", "input", "datasets.csv"))
+transcripts = read_csv(join("..", "input", "transcripts.csv"))
+
 
 # DEFINE CONTEXT-VARIABLES:
 finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.out",
