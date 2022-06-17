@@ -69,21 +69,21 @@ rule all:
                 extension=finalExtensions,
                 location=locations,
             )
-            for cluster in config["cluster"]["clusters"]
+            for cluster in clusters
         ],
         expand(
             [
                 "results/ADMIXTURE/%s.%s.{ext}"
-                % (cluster, len(pep.sample_table[cluster]))
-                for cluster in config["cluster"]["clusters"]
+                % (cluster, len(samples[cluster].unique()))
+                for cluster in clusters
             ],
-            cluster=config["cluster"]["clusters"],
+            cluster=clusters,
             ext=["bed", "bim", "fam"],
         ),
         expand(
             [
                 "results/FINAL/Admixture/%s.%s.{mode}"
-                % (cluster, len(pep.sample_table[cluster].unique()))
+                % (cluster, len(samples[cluster].unique()))
                 for cluster in config["cluster"]["clusters"]
             ],
             mode=["P", "Q"],
