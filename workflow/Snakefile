@@ -34,10 +34,10 @@ configfile: join("config", "config.json")
 
 # pepschema: join("..", "config", ".schema", "pep.schema.yaml")
 
-locations = read_csv(join("input", "locations.csv"))
-samples = read_csv(join("input", "samples.csv"))
-datasets = read_csv(join("input", "datasets.csv"))
-transcripts = read_csv(join("input", "transcripts.csv"))
+locations = read_csv(join("input", "locations.csv"), header=0)
+samples = read_csv(join("input", "samples.csv"), header=0)
+datasets = read_csv(join("input", "datasets.csv"), header=0)
+transcripts = read_csv(join("input", "transcripts.csv"), header=0)
 
 
 # DEFINE CONTEXT-VARIABLES:
