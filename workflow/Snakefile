@@ -42,7 +42,6 @@ transcripts = read_csv(join("input", "transcripts.csv"), header=0)
 
 # DEFINE CONTEXT-VARIABLES:
 finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.out",
-locations = set([i for i in locations["location_name"]])
 clusters = set([cluster for cluster in samples.keys() if cluster not in ["sample_name", "dataset"]])
 bExtensions = ["bed", "bim", "fam"]
 tExtensions = ["map", "ped"]
