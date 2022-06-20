@@ -139,10 +139,6 @@ idna==3.3 \
     --hash=sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff \
     --hash=sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d
     # via requests
-importlib-resources==5.8.0 \
-    --hash=sha256:568c9f16cb204f9decc8d6d24a572eeea27dacbb4cee9e6b03a8025736769751 \
-    --hash=sha256:7952325ffd516c05a8ad0858c74dff2c3343f136fe66a6002b2623dd1d43f223
-    # via jsonschema
 jinja2==3.1.2 \
     --hash=sha256:31351a702a408a9e7595a8fc6150fc3f43bb6bf7e319770cbc0db9df9437e852 \
     --hash=sha256:6088930bfe239f0e6710546ab9c19c9ef35e29792895fed6e6e31a023a182a61
@@ -620,8 +616,8 @@ smmap==5.0.0 \
     --hash=sha256:2aba19d6a040e78d8b09de5c57e96207b09ed71d8e55ce0959eeee6c8e190d94 \
     --hash=sha256:c840e62059cd3be204b0c9c9f74be2c09d5648eddd4580d9314c3ecde0b30936
     # via gitdb
-snakemake==7.8.2 \
-    --hash=sha256:b73ac610b5250d6b9626c512eeffd59df89c57d28dcd5775a2270739c1cc2358
+snakemake==7.8.3 \
+    --hash=sha256:d4c6c3c94c2277cafe8dc45fddb500b58d9f43f160b3229ed87251d268253def
     # via -r requirements.in
 statannot==0.2.3 \
     --hash=sha256:17745a40542e157e3f147147425c5da441f62bb698b3644154cedf088d4d0b08 \
@@ -673,12 +669,6 @@ traitlets==5.3.0 \
     # via
     #   jupyter-core
     #   nbformat
-typing-extensions==4.2.0 \
-    --hash=sha256:6657594ee297170d19f67d55c05852a874e7eb634f4f753dbd667855e07c1708 \
-    --hash=sha256:f1c24655a0da0d1b67f07e17a5e6b2a105894e6824b92096378bb3668ef02376
-    # via
-    #   black
-    #   rich
 ubiquerg==0.6.2 \
     --hash=sha256:6336c4dc2c64fd759585265ad0a307eb48944368de531fb686447d2a93a5779d \
     --hash=sha256:a9b1388799d4c366f956e0c912819099ad8f6cd0e5d890923cdde197f80d14cf
@@ -767,7 +757,3 @@ yte==1.5.1 \
     --hash=sha256:6d0b315b78af83276d78f5f67c107c84238f772a76d74f4fc77905b46f3731f5 \
     --hash=sha256:fd646bc47c355f202f14b7476996de4a31501cf1e107ac7ad8e19edcd786d30b
     # via snakemake
-zipp==3.8.0 \
-    --hash=sha256:56bf8aadb83c24db6c4b577e13de374ccfb67da2078beba1d037c17980bf43ad \
-    --hash=sha256:c4f6e5bbf48e74f7a38e7cc5b0480ff42b0ae5178957d564d18932525d5cf099
-    # via importlib-resources
