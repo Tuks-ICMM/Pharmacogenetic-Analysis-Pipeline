@@ -206,8 +206,8 @@ rule ALL_COLLATE:
         elif dataset["dataset_name"].size < 1:
             pass
         else:
-            shell(f"cp results/LIFTOVER/{datasets["dataset_name"][0]}.vcf.gz results/COLLATE/ALL.vcf.gz"),
-            shell(f"cp results/LIFTOVER/{datasets["dataset_name"][0]}.vcf.gz.tbi results/COLLATE/ALL.vcf.gz.tbi"),
+            shell(f"cp results/LIFTOVER/{datasets['dataset_name'][0]}.vcf.gz results/COLLATE/ALL.vcf.gz"),
+            shell(f"cp results/LIFTOVER/{datasets['dataset_name'][0]}.vcf.gz.tbi results/COLLATE/ALL.vcf.gz.tbi"),
 
 
 rule ANNOTATE:
