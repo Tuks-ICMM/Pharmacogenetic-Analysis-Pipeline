@@ -18,8 +18,7 @@ __email__ = "graeme.ford@tuks.co.za"
 __status__ = "Development"
 
 samples = read_csv(join("input", "samples.csv"))
-samples["FID"] = samples["sample_name"]
-samples[["sample_name", "FID", snakemake.wildcards.cluster]].rename(
+samples[["sample_name", snakemake.wildcards.cluster]].rename(
     columns={"sample_name": "IID"}
 ).to_csv(
     join("results", "REFERENCE", "cluster_{}.txt".format(snakemake.wildcards.cluster)),
