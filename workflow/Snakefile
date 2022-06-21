@@ -191,17 +191,23 @@ rule ALL_COLLATE:
         queue=search("queue", "COLLATE"),
         walltime=search("walltime", "COLLATE"),
     run:
-        shell(
-            "module load bcftools-1.7; bcftools merge -l results/LIFTOVER/merge.list -O z -o results/COLLATE/ALL_PRE.vcf.gz"
-        ),
-        shell("module load samtools-1.7; tabix -p vcf results/COLLATE/ALL_PRE.vcf.gz"),
-        shell(
-            "module load plink-2; plink2 --vcf results/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out results/COLLATE/ALL_REF"
-        ),
-        shell(
-            "module load plink-2; plink2 --vcf results/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/ALL"
-        ),
-        shell("module load samtools-1.7; tabix -p vcf results/COLLATE/ALL.vcf.gz"),
+        if dataset["dataset_name"].size > 1:
+            shell(
+                "module load bcftools-1.7; bcftools merge -l results/LIFTOVER/merge.list -O z -o results/COLLATE/ALL_PRE.vcf.gz"
+            ),
+            shell("module load samtools-1.7; tabix -p vcf results/COLLATE/ALL_PRE.vcf.gz"),
+            shell(
+                "module load plink-2; plink2 --vcf results/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out results/COLLATE/ALL_REF"
+            ),
+            shell(
+                "module load plink-2; plink2 --vcf results/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/ALL"
+            ),
+            shell("module load samtools-1.7; tabix -p vcf results/COLLATE/ALL.vcf.gz"),
+        elif dataset["dataset_name"].size < 1:
+            pass
+        else:
+            shell(f"cp results/LIFTOVER/{datasets["dataset_name"][0]}.vcf.gz results/COLLATE/ALL.vcf.gz"),
+            shell(f"cp results/LIFTOVER/{datasets["dataset_name"][0]}.vcf.gz.tbi results/COLLATE/ALL.vcf.gz.tbi"),
 
 
 rule ANNOTATE:
