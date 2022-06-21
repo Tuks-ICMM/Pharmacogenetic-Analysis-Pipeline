@@ -17,3 +17,4 @@ xlsxwriter # Must check why we have both
 
 # Formatter
 black
+snakefmt

@@ -1,4 +1,4 @@
-import pandas as pd
+from pandas import read_csv
 from os.path import join
 from snakemake.utils import validate
 from snakemake.utils import min_version
@@ -26,19 +26,23 @@ min_version("6.0")
 configfile: join("config", "config.json")
 
 
-validate(config, join("..", "config", ".schema", "config.schema.json"))
+# validate(config, join("..", "config", ".schema", "config.schema.json"))
 
 
-pepfile: join("config", "pep.yaml")
+# pepfile: join("config", "pep.yaml")
 
 
-pepschema: join("..", "config", ".schema", "pep.schema.yaml")
+# pepschema: join("..", "config", ".schema", "pep.schema.yaml")
+
+locations = read_csv(join("input", "locations.csv"), header=0)
+samples = read_csv(join("input", "samples.csv"), header=0)
+datasets = read_csv(join("input", "datasets.csv"), header=0)
+transcripts = read_csv(join("input", "transcripts.csv"), header=0)
+
 
 # DEFINE CONTEXT-VARIABLES:
 finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.out",
-locations = set([i["name"] for i in config["locations"]])
-samples = set([i["name"] for i in config["samples"]])
-clusters = set(config["cluster"]["clusters"])
+clusters = set([cluster for cluster in samples.keys() if cluster not in ["sample_name", "dataset"]])
 bExtensions = ["bed", "bim", "fam"]
 tExtensions = ["map", "ped"]
 
@@ -59,27 +63,27 @@ rule all:
                 [
                     "results/FINAL/%s/ALL_{location}.%s.{extension}"
                     % (cluster, population)
-                    for population in list(pep.sample_table[cluster].unique())
+                    for population in list(samples[cluster].unique())
                 ],
                 extension=finalExtensions,
-                location=locations,
+                location=locations["location_name"],
             )
-            for cluster in config["cluster"]["clusters"]
+            for cluster in clusters
         ],
         expand(
             [
                 "results/ADMIXTURE/%s.%s.{ext}"
-                % (cluster, len(pep.sample_table[cluster]))
-                for cluster in config["cluster"]["clusters"]
+                % (cluster, len(samples[cluster].unique()))
+                for cluster in clusters
             ],
-            cluster=config["cluster"]["clusters"],
+            cluster=clusters,
             ext=["bed", "bim", "fam"],
         ),
         expand(
             [
                 "results/FINAL/Admixture/%s.%s.{mode}"
-                % (cluster, len(pep.sample_table[cluster].unique()))
-                for cluster in config["cluster"]["clusters"]
+                % (cluster, len(samples[cluster].unique()))
+                for cluster in clusters
             ],
             mode=["P", "Q"],
         ),
@@ -96,7 +100,7 @@ rule VALIDATE:
     log:
         "logs/VALIDATE/{sample}.log",
     input:
-        lambda wildcards: next(dataset["file_path"] for dataset in config["samples"] if dataset["name"] == wildcards.samples ),
+        lambda wildcards: datasets.loc[datasets["dataset_name"] == wildcards.sample, "file"].item()
     output:
         "results/PREP/{sample}.vcf.gz",
     params:
@@ -144,12 +148,11 @@ rule LIFTOVER:
         LiftOver=join("resources", "liftOverPlink.py"),
         rmBadLifts=join("resources", "rmBadLifts.py"),
         ref=join(
-            "resources",
-        next(
-            i["file_path"]
-            for i in config["reference-genomes"]
-        if i["version"] == "GRCh38"
-            ),
+            *next(
+                i["file_path"]
+                for i in config["reference-genomes"]
+            if i["version"] == "GRCh38"
+                ),
         ),
         mem=f'-Xmx{search("memory", "LIFTOVER")} ',
     resources:
@@ -170,15 +173,14 @@ rule ALL_COLLATE:
     log:
         "logs/COLLATE/ALL.log",
     input:
-        expand("results/LIFTOVER/{sample}.vcf.gz", sample=samples),
+        expand("results/LIFTOVER/{sample}.vcf.gz", sample=samples["sample_name"]),
     output:
         "results/COLLATE/ALL.vcf.gz",
         "results/COLLATE/ALL.vcf.gz.tbi",
     params:
         ref=lambda wildcards: join(
-            "resources",
-        next(
-            i["file"]
+        *next(
+            i["file_path"]
             for i in config["reference-genomes"]
         if i["version"] == "GRCh38"
             ),
@@ -286,17 +288,9 @@ rule TRIM_AND_NAME:
     output:
         "results/TRIM/ALL_{location}_TRIMMED.vcf.gz",
     params:
-        fromBP=lambda wildcards: next(
-            i["start"] for i in config["locations"] if i["name"] == wildcards.location
-        ),
-        toBP=lambda wildcards: next(
-            i["stop"] for i in config["locations"] if i["name"] == wildcards.location
-        ),
-        chr=lambda wildcards: next(
-            i["chromosome"]
-            for i in config["locations"]
-            if i["name"] == wildcards.location
-        ),
+        fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "start"].item(),
+        toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "stop"].item(),
+        chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
     resources:
         cpus=search("cores", "TRIM_AND_NAME"),
         nodes=search("nodes", "TRIM_AND_NAME"),
@@ -367,11 +361,11 @@ rule PLINK:
                 [
                     "results/FINAL/%s/ALL_{{location}}.%s.{extension}"
                     % (cluster, population)
-                    for population in list(pep.sample_table[cluster].unique())
+                    for population in list(samples[cluster].unique())
                 ],
                 extension=finalExtensions,
             )
-            for cluster in config["cluster"]["clusters"]
+            for cluster in clusters
         ],
     params:
         prefix="ALL_{location}",

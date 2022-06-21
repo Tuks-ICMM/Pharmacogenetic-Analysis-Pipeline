@@ -2,73 +2,17 @@
   "reference-genomes": [
     {
       "version": "GRCh38",
-      "file": "GRCh38.fa.gz"
+      "file_path": [
+        "/",
+        "nlustre",
+        "users",
+        "graeme",
+        "PUBLIC",
+        "GRCh38",
+        "GRCh38.fa.gz"
+      ]
     }
   ],
-  "samples": [
-    {
-      "name": "HG002",
-      "reference_version": "GRCh38"
-    },
-    {
-      "name": "HG003",
-      "reference_version": "GRCh38"
-    },
-    {
-      "name": "HG004",
-      "reference_version": "GRCh38"
-    }
-  ],
-  "locations": [
-    {
-      "name": "CYP2A6",
-      "transcripts": [
-        "NM_000762.6",
-        "ENST00000600495.1",
-        "ENST00000596719.5",
-        "ENST00000599960.1"
-      ],
-      "chromosome": 19,
-      "strand": "-1",
-      "start": 40842850,
-      "stop": 40851138
-    },
-    {
-      "name": "CYP2B6",
-      "transcripts": [
-        "NM_000767.5",
-        "ENST00000593831.1",
-        "ENST00000598834.2",
-        "ENST00000597612.1",
-        "ENST00000594187.1"
-      ],
-      "chromosome": 19,
-      "strand": "1",
-      "start": 40988570,
-      "stop": 41021110
-    },
-    {
-      "name": "UGT2B7",
-      "transcripts": [
-        "NM_001074.4",
-        "ENST00000508661.5",
-        "ENST00000622664.1",
-        "ENST00000502942.5",
-        "ENST00000509763.1"
-      ],
-      "chromosome": 4,
-      "strand": "1",
-      "start": 69045214,
-      "stop": 69112987
-    }
-  ],
-  "cluster": {
-    "clusters": [
-      "SUPER",
-      "SUB"
-    ],
-    "file": "Clusters.xlsx"
-  },
   "environment": {
     "email": {
       "address": "graeme.ford@tuks.co.za",
@@ -77,44 +21,26 @@
         "e"
       ]
     },
-    "working-directory": "/nlustre/users/graeme/pipeline-2020",
+    "working-directory": "/nlustre/users/graeme/PUBLIC/GnomeAD_pipeline_test/",
     "queues": [
       {
         "queue": "long",
         "walltime": "900:00:00",
         "memory": "128G",
-        "cores": 10,
-        "nodes": 1,
+        "cores": "10",
+        "nodes": "1",
         "rules": [
+          "all",
           "VALIDATE",
           "LIFTOVER",
+          "COLLATE",
+          "ALL_COLLATE",
           "ANNOTATE",
           "ADMIXTURE",
-          "COLLATE"
-        ]
-      },
-      {
-        "queue": "normal",
-        "walltime": "30:00:00",
-        "memory": "128G",
-        "cores": 10,
-        "nodes": 1,
-        "rules": [
           "TRIM_AND_NAME",
+          "FILTER",
           "TRANSPILE_CLUSTERS",
-          "PLINK",
-          "CALCULATIONS",
-          "COMPILE_EXCEL"
-        ]
-      },
-      {
-        "queue": "short",
-        "walltime": "00:30:00",
-        "memory": "128G",
-        "cores": 10,
-        "nodes": 1,
-        "rules": [
-          "FILTER"
+          "PLINK"
         ]
       }
     ]
