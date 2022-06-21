@@ -386,7 +386,7 @@ rule PLINK:
                 "module load plink-2; plink2 --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/{cluster}/{params.prefix}"
             ),
             shell(
-                "module load plink-2; plink2 --vcf {input.vcf} --pheno iid-only results/REFERENCE/cluster_{cluster}.txt --loop-cat {cluster} --freq counts --missing --hardy midp --out results/FINAL/{cluster}/{params.prefix}"
+                "module load plink-2; plink2 --vcf {input.vcf} --pheno iid-only results/REFERENCE/cluster_{cluster}.txt --loop-cats {cluster} --freq counts --missing --hardy midp --out results/FINAL/{cluster}/{params.prefix}"
             )
 
 
