@@ -100,7 +100,7 @@ rule VALIDATE:
     log:
         "logs/VALIDATE/{sample}.log",
     input:
-        lambda wildcards: datasets.loc[datasets["dataset_name"] == wildcards.sample, "file_path"].item()
+        lambda wildcards: datasets.loc[datasets["dataset_name"] == wildcards.sample, "file"].item()
     output:
         "results/PREP/{sample}.vcf.gz",
     params:
