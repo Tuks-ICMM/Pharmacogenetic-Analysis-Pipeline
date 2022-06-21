@@ -100,7 +100,7 @@ rule VALIDATE:
     log:
         "logs/VALIDATE/{sample}.log",
     input:
-        lambda wildcards: datasets.loc[datasets["dataset_name"] == wildcards.sample, "file"].item()
+        lambda wildcards: datasets.loc[datasets["dataset_name"] == wildcards.sample, "file_path"].item()
     output:
         "results/PREP/{sample}.vcf.gz",
     params:
@@ -173,7 +173,7 @@ rule ALL_COLLATE:
     log:
         "logs/COLLATE/ALL.log",
     input:
-        expand("results/LIFTOVER/{sample}.vcf.gz", sample=samples["sample_name"]),
+        expand("results/LIFTOVER/{sample}.vcf.gz", sample=datasets["dataset_name"]),
     output:
         "results/COLLATE/ALL.vcf.gz",
         "results/COLLATE/ALL.vcf.gz.tbi",
