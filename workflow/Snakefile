@@ -70,15 +70,15 @@ rule all:
             )
             for cluster in clusters
         ],
-        expand(
-            [
-                "results/ADMIXTURE/%s.%s.{ext}"
-                % (cluster, len(samples[cluster].unique()))
-                for cluster in clusters
-            ],
-            cluster=clusters,
-            ext=["bed", "bim", "fam"],
-        ),
+        # expand(
+        #     [
+        #         "results/ADMIXTURE/%s.%s.{ext}"
+        #         % (cluster, len(samples[cluster].unique()))
+        #         for cluster in clusters
+        #     ],
+        #     cluster=clusters,
+        #     ext=["bed", "bim", "fam"],
+        # ),
         expand(
             [
                 "results/FINAL/Admixture/%s.%s.{mode}"
