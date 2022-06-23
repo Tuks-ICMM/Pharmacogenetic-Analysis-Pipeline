@@ -50,11 +50,11 @@ listed_refs: list = datasets.loc[
 if listed_refs != "GRCh38":
     shell(
         "echo 'Liftover required. All datasets have been mapped to {}'".format(
-            listed_refs[0]
+            listed_refs
         )
     ),
     shell("module load liftover"),
-    if listed_refs[0] == "GRCh37" or listed_refs[0] == "Hg19":
+    if listed_refs == "GRCh37" or listed_refs == "Hg19":
         shell("echo 'Lifting from GRCh37 to GRCh38.'"),
         directoryExists("results/LIFTOVER")
         shell(
