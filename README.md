@@ -1,9 +1,16 @@
 # SnakeMake Pharmacogenetics pipeline
+
 ---
 
+[cc-by]: http://creativecommons.org/licenses/by/4.0/
+[cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
+[cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg
+
 ![Build](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/actions/workflows/snakemake-tests.yml/badge.svg)
+[![CC BY 4.0][cc-by-shield]][cc-by]
 
 ## Content Guide:
+
 1. [About the Project](#about-the-project)
 1. [Datasets](#datasets)
 1. [Built with](#built-with)
@@ -19,10 +26,14 @@
 1. [Acknowledgments](#acknowledgements)
 
 ---
+
 ## About the project:
-This is the development repository for a pipeline created to perform frequency analysis on African genetic datasets.
+
+This is the development repository for a pipeline created to perform frequency analysis on African genetic datasets. This work is licensed under a
+[Creative Commons Attribution 4.0 International License][cc-by].
 
 ### Datasets:
+
 This pipeline is designed to accept variant call format data in the form of `.vcf` files. Due to some of the
 bioinformatics software used internally, these files are required to be compressed using BG-zip compression, and
 provided with an accompanying Tabix index file. Both of these peices of software are provided by
@@ -30,13 +41,14 @@ provided with an accompanying Tabix index file. Both of these peices of software
 compressed format of your data, and a block index, allowing the software to decompress portions of your file and access
 spesific entries without having to decompress the entire file.
 
->This is also just good practice and **should** be a bioinformatics software standard
+> This is also just good practice and **should** be a bioinformatics software standard
 
 > Please be advised, BG-zip compression is **not** the same as gzip compression such as that provided by linuxes gzip
-command. Though the final output is still block-level compression and is operable by both programs, you will need BG-zip
-compression in order to create a Tabix index.
+> command. Though the final output is still block-level compression and is operable by both programs, you will need BG-zip
+> compression in order to create a Tabix index.
 
 ### Built with:
+
 This has been made using a python-based [domain spesific language
 (DSL)](https://www.jetbrains.com/mps/concepts/domain-specific-languages/) called
 [Snakemake](https://snakemake.readthedocs.io/en/stable/) and coded to run on a PBS/Torque environment using the `qsub`
@@ -44,24 +56,31 @@ command (this is set by the profile folder). As such, it needs to be run on a se
 batch scheduling software.
 
 #### Software:
+
 Below is a list of software used by this pipeline:
+
 - [PBS/Torque batch scheduler](https://adaptivecomputing.com/cherry-services/torque-resource-manager/)
 - [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 - [PLINK-2.0](https://www.cog-genomics.org/plink2)
 - [VCF-Tools](https://vcftools.github.io/index.html)
 - [liftOverPlink](https://github.com/sritchie73/liftOverPlink)(Binaries contained within this repo. _**Update at own
-risk!**_)
+  risk!**_)
 - [liftOver](https://genome.ucsc.edu/cgi-bin/hgLiftOver)(Required dependancy for liftOverPlink)
 - [e! Ensembl VEP API](https://www.ensembl.org/info/docs/tools/vep/index.html)
+
 #### Binaries:
+
 Below is a list of binary dependancies used in this pipeline.
+
 - Reference Genomes [_(properly compressed with accompanying index and dictionary
-files)_](https://gatk.broadinstitute.org/hc/en-us/articles/360035531652-FASTA-Reference-genome-format)
+  files)_](https://gatk.broadinstitute.org/hc/en-us/articles/360035531652-FASTA-Reference-genome-format)
 - GRCh 38
 - Addittional genomes as needed based on input data
 
 ### File Structure:
+
 This pipeline uses the standardised folder structure, where the workflow itself is located under the `workflow` folder.
+
 ```
 .
 ├── config # All config data (PBS Profile, genes, etc)
@@ -74,20 +93,24 @@ This pipeline uses the standardised folder structure, where the workflow itself 
 This project uses the following naming conventions:
 
 #### Files:
+
 All user generated files should be named using under-score naming conventions. Spaces are replaced with an underscore
 and co capital letters are used.
+
 > E.g. this_is_a_test_example.txt
 
 All Snakemake generated files are all labeled according to `<sample_name>.<file-extension>` format and stored in a
-    folder named according to the process that produced it.
-    > E.g. intermediates/liftover/1000g.vcf
+folder named according to the process that produced it. > E.g. intermediates/liftover/1000g.vcf
 
 #### Folders:
+
 All user generated folders should use camelCase naming conventions, where the first letter of a multi-word name is
 lower-case and spaces are removed with the initial letter of the following word capitalised.
+
 > E.g. thisIsATestExample
 
 All snakemake generated folders use the following folder structure:
+
 ```
 .
 └── intermediates
@@ -98,27 +121,31 @@ All snakemake generated folders use the following folder structure:
 ```
 
 ## Usage:
+
 1. use the `cd` command to navigate to the root repository directory containing the `Snakefile`.
 2. To start the pipeline and produce the default list of files, simply call `snakemake` on the command
-line with appropriate arguments. _(E.g. `--profile` and `--cluster-config` flags)_
+   line with appropriate arguments. _(E.g. `--profile` and `--cluster-config` flags)_
 3. To generate a runtime report, detailing figures produced and performance-related numbers, use the
-`--report` snakemake flag _(This requires that you have the
-[`Jinja2`](https://jinja.palletsprojects.com/en/2.11.x/) python package installed.)_. The HTML file
-produced is completely self-contained and can be shared as needed. You can view it using any web
-browser such as firefox or Google Chrome, etc.
+   `--report` snakemake flag _(This requires that you have the
+   [`Jinja2`](https://jinja.palletsprojects.com/en/2.11.x/) python package installed.)_. The HTML file
+   produced is completely self-contained and can be shared as needed. You can view it using any web
+   browser such as firefox or Google Chrome, etc.
 
 ## Roadmap:
+
 See our [Projects tab](/projects) and [Issues tracker](/issues) for a list of proposed features (and
 known issues).
 
 ## Versioning:
+
 We use the [SemVer](http://semver.org/) syntax to manage and maintain version numbers. For the
 versions available, see the [releases on this repository
 here](https://github.com/SgtPorkChops/SASDGHUB/releases).
 
-
 ## Acknowledgements:
+
 Many thanks to the following individuals who have been instrumental to the success of this project:
+
 <table>
   <tr>
     <a href="https://github.com/G-kodes">
@@ -253,3 +280,5 @@ Many thanks to the following individuals who have been instrumental to the succe
     </td>
   </tr>
 </table>
+
+[![CC BY 4.0][cc-by-image]][cc-by]
