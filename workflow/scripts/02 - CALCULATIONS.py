@@ -66,7 +66,7 @@ ENDPOINT = "https://rest.ensembl.org/vep/homo_sapiens/region/"
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
 # %%
-def generate_params(input_gene: str) -> dict:
+def generate_params(transcription_paramaters: DataFrame, input_gene: str) -> dict:
     """Returns generated parameters suitable for the E! Ensembl VEP tool API.
 
     Returns:
