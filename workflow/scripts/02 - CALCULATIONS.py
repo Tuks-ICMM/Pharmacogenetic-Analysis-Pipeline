@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-"""A Python script designed to run Frequency, Fishers Exact Test and Variant Effect Prediction calculations and calls.
+"""
+A Python script designed to run Frequency, Fishers Exact Test and
+Variant Effect Prediction calculations and calls.
 """
 # %%
 # Import dependancies
 import gzip
 import io
 import json
-import sys
 import time
-from os.path import join, exists
 from os import makedirs
+from os.path import exists, join
 from typing import Generator, Tuple
 
 import pandas as pd
@@ -27,7 +28,6 @@ __credits__ = [
     "Prof. Fourie Joubert",
     "Antionette Colic",
     "Fatima Barmania",
-    "Sarah Turner",
     "Megan Ryder",
 ]
 __version__ = "1.0.0"
@@ -36,29 +36,42 @@ __email__ = "graeme.ford@tuks.co.za"
 __status__ = "Development"
 
 # %%
-# Set constants and functions to be used:
-# locations = [location["name"] for location in snakemake.config['locations']]
-with open(join("..", "..", "config", "config.json")) as f:
-    config = json.load(f)
 
-clusters = config["cluster"]["clusters"]
+####################################################
+############ IMPORT ALL CONTEXTUAL DATA ############
+####################################################
 
-# %%
-genes = [location["name"] for location in config["locations"]]
-geneSummary = dict()
-for cluster in config["cluster"]["clusters"]:
-    geneSummary[cluster] = pd.read_excel(
-        join("..", "..", "config", "{}".format(config["cluster"]["file"]))
-    )[["ID", cluster]]
-popsFile = pd.read_excel(join("..", "..", "config", "Clusters.xlsx"))
-refPop = "AFR"
-compPop = ["AMR", "EUR", "EAS", "SAS"]
-populations = ["AFR", "AMR", "EUR", "EAS", "SAS"]
-endpoint = "https://rest.ensembl.org/vep/homo_sapiens/region/"
-headers = {"Content-Type": "application/json", "Accept": "application/json"}
+# Import all clustering provided for this analysis from ../../input/samples.csv
+CLUSTER_DATA = pd.read_csv(join("..", "..", "input", "samples.csv"))
+CLUSTERS = set(CLUSTER_DATA.keys())
+CLUSTERS.remove("sample_name")
+CLUSTERS.remove("dataset")
+
+LOCATIONS = pd.read_csv(join("..", "..", "input", "locations.csv"))
+LOCATION_NAMES = LOCATIONS["location_name"].unique().tolist()
+
+TRANSCRIPTS = pd.read_csv(join("..", "..", "input", "transcripts.csv"))
 
 # %%
-def generate_params(key):
+# geneSummary = dict()
+# for cluster in clusters:
+#     geneSummary[cluster] = pd.read_excel(
+#         join("..", "..", "config", "{}".format(config["cluster"]["file"]))
+#     )[["ID", cluster]]
+# popsFile = pd.read_excel(join("..", "..", "config", "Clusters.xlsx"))
+REFERENCE_POPULATION = "AFR"
+COMPARISON_POPULATIONS = ["AMR", "EUR", "EAS", "SAS"]
+POPULATIONS = ["AFR", "AMR", "EUR", "EAS", "SAS"]
+ENDPOINT = "https://rest.ensembl.org/vep/homo_sapiens/region/"
+HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
+
+# %%
+def generate_params(input_gene: str) -> dict:
+    """Returns generated parameters suitable for the E! Ensembl VEP tool API.
+
+    Returns:
+        dict: A dictionary of parameters suitable for the VEP API.
+    """
     params = {
         "hgvs": True,
         "CADD": True,
@@ -68,7 +81,9 @@ def generate_params(key):
         "refseq": True,
         "LoF": True,
         "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
-        # 'transcript_id': config['locations'][key]["GRCh38"]["transcript_id"]
+        "transcript_id": TRANSCRIPTS.loc[
+            TRANSCRIPTS["gene_name"] == input_gene, "transcript_id"
+        ].tolist(),
     }
     return params
     # if key == 'CYP2A6':
@@ -96,10 +111,10 @@ def freq(alt: int, total: int) -> int:
 
 
 # %%
-condelTests = ["SIFT", "PolyPhen"]
-cutoff = {"SIFT": 0.15, "PolyPhen": 0.28, "Condel": 0.46}
-maximums = {"SIFT": 1, "PolyPhen": 1}
-probabilities = {
+CONDEL_TESTS = ["SIFT", "PolyPhen"]
+TEST_MINIMUM_CUTOFFS = {"SIFT": 0.15, "PolyPhen": 0.28, "Condel": 0.46}
+TEST_MAXIMUM_CUTOFFS = {"SIFT": 1, "PolyPhen": 1}
+PROBABILITIES = {
     "SIFT": pd.read_csv(
         join("..", "..", "resources", "CONDEL", "sift.data"),
         delimiter="\t",
@@ -113,7 +128,7 @@ probabilities = {
 }
 
 
-def directoryExists(path: str):
+def directory_exists(path: str):
     """Test weather or not a directory exists. If not, create it.
 
     Args:
@@ -125,14 +140,17 @@ def directoryExists(path: str):
 
 # Define formulas for later use:
 def read_vcf(path: str) -> pd.DataFrame:
-    """Function to import a VCF file as a Pandas dataframe. Does not include Genotype columns. CREDIT: https://gist.github.com/dceoy/99d976a2c01e7f0ba1c813778f9db744
+    """
+    Function to import a VCF file as a Pandas dataframe. Does not include Genotype columns.
+    CREDIT: https://gist.github.com/dceoy/99d976a2c01e7f0ba1c813778f9db744
+
     Args:
         path (str): Path to the VCF file in question
     Returns:
         Dataframe: A Pandas Dataframe of the VCF files content.
     """
-    with gzip.open(path, "rt") as f:
-        lines = [l for l in f if not l.startswith("##")]
+    with gzip.open(path, "rt") as file:
+        lines = [l for l in file if not l.startswith("##")]
     return pd.read_csv(
         io.StringIO("".join(lines)),
         dtype={
@@ -149,40 +167,34 @@ def read_vcf(path: str) -> pd.DataFrame:
     ).rename(columns={"#CHROM": "CHROM"})
 
 
-def generate_notation(row: pd.Series, gene: str) -> str:
-    """Parses a row and returns the HGVS notation to query E! Ensembl.
+def generate_notation(input_row: pd.Series, input_dataset: str) -> str:
+    """
+    Parses a row and returns the HGVS notation to query E! Ensembl.
+
     Args:
         row (Series): A row (generated from .iterrows() method) for which notation is needed.
     Returns:
         str: HGVS notation for the given variant row.
     """
-    alleles = row["ALT"].split(",")
+    alleles = input_row["ALT"].split(",")
     notation = list()
     for allele in alleles:
-        if (len(row["REF"]) > len(allele)) | (len(row["REF"]) == len(allele)):
-            stop_coordinates = int(row["POS"]) + (len(row["REF"]) - 1)
+        if (len(input_row["REF"]) > len(allele)) | (
+            len(input_row["REF"]) == len(allele)
+        ):
+            stop_coordinates = int(input_row["POS"]) + (len(input_row["REF"]) - 1)
             notation.append(
-                "{S}:{P}-{P2}:1/{I}".format(
-                    S=row["CHROM"], P=row["POS"], P2=stop_coordinates, I=allele
-                )
+                f"{input_row['CHROM']}:{input_row['POS']}-{stop_coordinates}:1/{allele}"
             )
-        elif len(row["REF"]) < len(allele):
-            stop_coordinates = int(row["POS"]) + len(row["REF"])
+        elif len(input_row["REF"]) < len(allele):
+            stop_coordinates = int(input_row["POS"]) + len(input_row["REF"])
             notation.append(
-                "{S}:{P}-{P2}:{ST}/{I}".format(
-                    S=row["CHROM"],
-                    P=row["POS"],
-                    P2=stop_coordinates,
-                    I=allele,
-                    ST=next(
-                        i["strand"] for i in config["locations"] if i["name"] == dataset
-                    ),
-                )
+                f"{input_row['CHROM']}:{input_row['POS']}-{stop_coordinates}:{LOCATIONS.loc[LOCATIONS['location_name'] == input_dataset, 'strand'].item()}/{allele}"
             )
         return notation
 
 
-def chunk(dataset: pd.DataFrame, size: int) -> Generator:
+def chunk(input_data: pd.DataFrame, size: int) -> Generator:
     """Renders a generator to yield chunks of data from the original file.
     Args:
         dataset (pd.DataFrame): The dataset to divide into chunks.
@@ -192,24 +204,24 @@ def chunk(dataset: pd.DataFrame, size: int) -> Generator:
     Yields:
         Generator: [description]
     """
-    return (dataset[pos : pos + size] for pos in range(0, len(dataset), size))
+    return (input_data[pos : pos + size] for pos in range(0, len(input_data), size))
 
 
-def merge(value: set) -> str:
+def merge(input_row: set) -> str:
     """Generate row value to save in df
     Args:
         value (set): The set you wish to convert
     Returns:
         str: The converted value, ready to store.
     """
-    r = list(value)
-    if len(r) == 1:
-        return str(r[0])
+    row_value_as_list = list(input_row)
+    if len(row_value_as_list) == 1:
+        return str(row_value_as_list[0])
     else:
-        return " | ".join(value)
+        return " | ".join(input_row)
 
 
-def CONDEL(sift: int, polyphen: int) -> Tuple[int, str]:
+def condel_weighted_score(sift: int, polyphen: int) -> Tuple[int, str]:
     """Function to calculate a weighted average score accross SIFT and PolyPhenV2 scores.
     Args:
         sift (int): A number indicating the likelyhood a variant affects protein function (Based on sequence homology and protein function)
@@ -220,33 +232,33 @@ def CONDEL(sift: int, polyphen: int) -> Tuple[int, str]:
 
     score = int()
 
-    if sift <= cutoff["SIFT"]:
-        score += (1 - sift / maximums["SIFT"]) * (
+    if sift <= TEST_MINIMUM_CUTOFFS["SIFT"]:
+        score += (1 - sift / TEST_MAXIMUM_CUTOFFS["SIFT"]) * (
             1
-            - probabilities["SIFT"]
-            .loc[probabilities["SIFT"]["Score"] == sift, "Normal"]
+            - PROBABILITIES["SIFT"]
+            .loc[PROBABILITIES["SIFT"]["Score"] == sift, "Normal"]
             .values[0]
         )
     else:
-        score += (1 - sift / maximums["SIFT"]) * (
+        score += (1 - sift / TEST_MAXIMUM_CUTOFFS["SIFT"]) * (
             1
-            - probabilities["SIFT"]
-            .loc[probabilities["SIFT"]["Score"] == sift, "Deleterious"]
+            - PROBABILITIES["SIFT"]
+            .loc[PROBABILITIES["SIFT"]["Score"] == sift, "Deleterious"]
             .values[0]
         )
 
-    if polyphen >= cutoff["PolyPhen"]:
-        score += (polyphen / maximums["PolyPhen"]) * (
+    if polyphen >= TEST_MINIMUM_CUTOFFS["PolyPhen"]:
+        score += (polyphen / TEST_MAXIMUM_CUTOFFS["PolyPhen"]) * (
             1
-            - probabilities["PolyPhen"]
-            .loc[probabilities["PolyPhen"]["Score"] == polyphen, "Normal"]
+            - PROBABILITIES["PolyPhen"]
+            .loc[PROBABILITIES["PolyPhen"]["Score"] == polyphen, "Normal"]
             .values[0]
         )
     else:
-        score += (polyphen / maximums["PolyPhen"]) * (
+        score += (polyphen / TEST_MAXIMUM_CUTOFFS["PolyPhen"]) * (
             1
-            - probabilities["PolyPhen"]
-            .loc[probabilities["PolyPhen"]["Score"] == polyphen, "Deleterious"]
+            - PROBABILITIES["PolyPhen"]
+            .loc[PROBABILITIES["PolyPhen"]["Score"] == polyphen, "Deleterious"]
             .values[0]
         )
 
@@ -261,48 +273,60 @@ def CONDEL(sift: int, polyphen: int) -> Tuple[int, str]:
     return (score, pred)
 
 
-def Fishers(input: dict, refPop: str, compPop: list):
+def fishers_exact_test(
+    input_row: dict, reference_population: str, comparison_population: list[str]
+):
     """Runs a row-wise Fisher's Exact Test between the two listed populations
     Parameters:
     input (dict): A dict of DataFrames to work on.
     pop1 (str): A str matching a column name in each dataset corresponding to that populations frequency data.
     compPop (list): A str matching a column name in each dataset corresponding to that populations frequency data.
     """
-    for key, dataset in input.items():
-        dataset["OR"] = dataset["Count"][["ID", "POS", "REF", "ALT"]]
-        dataset["P"] = dataset["Count"][["ID", "POS", "REF", "ALT"]]
-        for pop in compPop:
+    for fishers_exact_internal_key, fishers_exact_internal_dataset in input_row.items():
+        fishers_exact_internal_dataset["OR"] = fishers_exact_internal_dataset["Count"][
+            ["ID", "POS", "REF", "ALT"]
+        ]
+        fishers_exact_internal_dataset["P"] = fishers_exact_internal_dataset["Count"][
+            ["ID", "POS", "REF", "ALT"]
+        ]
+        for population in comparison_population:
             for key2, direction in {
                 "L": "less",
                 "G": "greater",
                 "T": "two-sided",
             }.items():
-                oLabel = "{refPop}_{tail}_{pop}".format(
-                    refPop=refPop, tail=key2, pop=pop
-                )
-                pLabel = "{refPop}_{tail}_{pop}".format(
-                    refPop=refPop, tail=key2, pop=pop
-                )
-                dataset["OR"][oLabel] = None
-                dataset["P"][pLabel] = None
-                for index, row in dataset["Count"].iterrows():
+                o_label = f"{reference_population}_{key2}_{population}"
+                p_label = f"{reference_population}_{key2}_{population}"
+                fishers_exact_internal_dataset["OR"][o_label] = None
+                fishers_exact_internal_dataset["P"][p_label] = None
+                print(fishers_exact_internal_dataset["Count"].iterrows())
+                for (
+                    for_loop_var_index,
+                    for_loop_var_row,
+                ) in fishers_exact_internal_dataset["Count"].iterrows():
                     contingency = [
                         [
-                            row["{}_ac".format(refPop)],
-                            row["{}_tc".format(refPop)] - row["{}_ac".format(refPop)],
+                            for_loop_var_row[f"{reference_population}_ac"],
+                            for_loop_var_row[f"{reference_population}_tc"]
+                            - for_loop_var_row[f"{reference_population}_ac"],
                         ],
                         [
-                            row["{}_ac".format(pop)],
-                            row["{}_tc".format(pop)] - row["{}_ac".format(pop)],
+                            for_loop_var_row[f"{population}_ac"],
+                            for_loop_var_row[f"{population}_tc"]
+                            - for_loop_var_row[f"{population}_ac"],
                         ],
                     ]
-                    oVal, pVal = fisher_exact(contingency, alternative=direction)
-                    dataset["P"].loc[index, pLabel] = pVal
-                    dataset["OR"].loc[index, oLabel] = oVal
-                dataset["P"][pLabel] = multipletests(
-                    dataset["P"][pLabel], method="bonferroni"
+                    o_val, p_val = fisher_exact(contingency, alternative=direction)
+                    fishers_exact_internal_dataset["P"].loc[
+                        for_loop_var_index, p_label
+                    ] = p_val
+                    fishers_exact_internal_dataset["OR"].loc[
+                        for_loop_var_index, o_label
+                    ] = o_val
+                fishers_exact_internal_dataset["P"][p_label] = multipletests(
+                    fishers_exact_internal_dataset["P"][p_label], method="bonferroni"
                 )[1]
-        columnsToDrop = list()
+        # columnsToDrop = list()
         # for pop in populations:
         #     columnsToDrop.append("{}_ac".format(pop))
         #     columnsToDrop.append("{}_tc".format(pop))
@@ -312,20 +336,21 @@ def Fishers(input: dict, refPop: str, compPop: list):
 # %%
 #  Import Data:
 data = dict()
-for gene in genes:
-    data[gene] = read_vcf(join("..", "..", "results", "ALL_{}.vcf.gz".format(gene)))
+for gene in LOCATION_NAMES:
+    data[gene] = read_vcf(join("..", "..", "results", "FINAL", f"ALL_{gene}.vcf.gz"))
 
 # %%
 # Sub-Divide data:
 data_generator = dict()
-for dataset in data:
+for dataset in data.keys():
     data_generator[dataset] = chunk(data[dataset], 100)
+
 
 # %%
 # Compile and format request bodies:
 data_to_send = dict()
 # Iterate through each gene:
-for dataset in list(data_generator.keys()):
+for dataset in LOCATION_NAMES:
     data_to_send[dataset] = list()
 
     # Iterate through each n-sized chunk generated:
@@ -335,7 +360,6 @@ for dataset in list(data_generator.keys()):
         # Iterate through each row in the chunk and add the HGVS notation to the list:
         for index, row in chunk.iterrows():
             temp_list.extend(generate_notation(row, dataset))
-        print(temp_list)
         data_to_send[dataset].append(dict(variants=temp_list))
 
 # %%
@@ -344,12 +368,12 @@ data_received = dict()
 for dataset_key, dataset in data_to_send.items():
     data_received[dataset_key] = list()
     for index, chunk in enumerate(dataset):
-        requesting = True
+        REQUESTING = True
         temp_list = list()
-        while requesting:
+        while REQUESTING:
             r = requests.post(
-                endpoint,
-                headers=headers,
+                ENDPOINT,
+                headers=HEADERS,
                 data=json.dumps(chunk),
                 params=generate_params(dataset_key),
             )
@@ -357,7 +381,7 @@ for dataset_key, dataset in data_to_send.items():
                 print(str(r.reason))
                 time.sleep(2)
             else:
-                requesting = False
+                REQUESTING = False
                 decoded = r.json()
                 data_received[dataset_key] = data_received[dataset_key] + decoded
 
@@ -420,7 +444,10 @@ for dataset_key, dataset in data_received.items():
             ] = "| ".join(co_variants)
 
             if "transcript_consequences" in variant:
-                for transcript in next(i['transcripts'] for i in config["locations"] if i['name'] == dataset_key):
+                transcripts_requested = TRANSCRIPTS.query(
+                    f"gene_name == '{dataset_key}'"
+                )["transcript_id"].tolist()
+                for transcript in transcripts_requested:
                     consequence = next(
                         (
                             n
@@ -507,7 +534,7 @@ for dataset_key, dataset in data_received.items():
                             "sift_score" in consequence
                             and "polyphen_score" in consequence
                         ):
-                            s, p = CONDEL(
+                            s, p = condel_weighted_score(
                                 int(consequence["sift_score"]),
                                 consequence["polyphen_score"],
                             )
@@ -613,7 +640,7 @@ for dataset_key, dataset in data_received.items():
                             "sift_score" in consequence
                             and "polyphen_score" in consequence
                         ):
-                            s, p = CONDEL(
+                            s, p = condel_weighted_score(
                                 int(consequence["sift_score"]),
                                 consequence["polyphen_score"],
                             )
@@ -640,11 +667,11 @@ for dataset_key, dataset in data_received.items():
                             ] = None
                         break
 
-
+# %%
 # Save formatted results to CSV
-for cluster in clusters:
-    directoryExists(join("..", "..", "results", "Supplementary Table", cluster))
-    for gene in genes:
+for cluster in CLUSTERS:
+    directory_exists(join("..", "..", "results", "Supplementary Table", cluster))
+    for gene in LOCATION_NAMES:
         supplementary[gene].to_csv(
             join(
                 "..",
@@ -652,7 +679,7 @@ for cluster in clusters:
                 "results",
                 "Supplementary Table",
                 cluster,
-                "{}_VEP.csv".format(gene),
+                f"{gene}_VEP.csv",
             ),
             sep="\t",
             index=False,
@@ -666,9 +693,9 @@ for cluster in clusters:
 # Retrive VEP data:
 supplementary = dict()
 
-for cluster in clusters:
+for cluster in CLUSTERS:
     supplementary[cluster] = dict()
-    for gene in genes:
+    for gene in LOCATION_NAMES:
         supplementary[cluster][gene] = pd.read_csv(
             join(
                 "..",
@@ -676,7 +703,7 @@ for cluster in clusters:
                 "results",
                 "Supplementary Table",
                 cluster,
-                "{}_VEP.csv".format(gene),
+                f"{gene}_VEP.csv",
             ),
             sep="\t",
         )[["ID", "POS", "REF", "ALT"]]
@@ -687,17 +714,17 @@ frequency_data = dict()
 fishers_data = dict()
 
 
-for cluster in clusters:
+for cluster in CLUSTERS:
     frequency_data[cluster] = dict()
     fishers_data[cluster] = dict()
-    for gene in genes:
+    for gene in LOCATION_NAMES:
         fishers_data[cluster][gene] = supplementary[cluster][gene][
             ["ID", "POS", "REF", "ALT"]
         ]
-        for pop in popsFile[cluster].unique():
+        for pop in CLUSTER_DATA[cluster].unique():
             supplementary[cluster][gene][pop] = 0
-            fishers_data[cluster][gene]["{}_ac".format(pop)] = 0
-            fishers_data[cluster][gene]["{}_tc".format(pop)] = 0
+            fishers_data[cluster][gene][f"{pop}_ac"] = 0
+            fishers_data[cluster][gene][f"{pop}_tc"] = 0
             frequency_data[cluster][gene] = pd.read_csv(
                 join(
                     "..",
@@ -705,7 +732,7 @@ for cluster in clusters:
                     "results",
                     "FINAL",
                     cluster,
-                    "ALL_{gene}.{pop}.acount".format(gene=gene, pop=pop),
+                    f"ALL_{gene}.{pop}.acount",
                 ),
                 delimiter="\t",
             ).rename(columns={"#CHROM": "CHROM"})
@@ -715,17 +742,17 @@ for cluster in clusters:
                 ] = freq(row["ALT_CTS"], row["OBS_CT"])
                 fishers_data[cluster][gene].loc[
                     supplementary[cluster][gene]["ID"] == row["ID"],
-                    "{pop}_ac".format(pop=pop),
+                    f"{pop}_ac",
                 ] = row["ALT_CTS"]
                 fishers_data[cluster][gene].loc[
                     supplementary[cluster][gene]["ID"] == row["ID"],
-                    "{pop}_tc".format(pop=pop),
+                    f"{pop}_tc",
                 ] = row["OBS_CT"]
 
 
 # Save the resulting dataframe back to its excel file:
-for cluster in clusters:
-    for gene in genes:
+for cluster in CLUSTERS:
+    for gene in LOCATION_NAMES:
         supplementary[cluster][gene].to_csv(
             join(
                 "..",
@@ -733,7 +760,7 @@ for cluster in clusters:
                 "results",
                 "Supplementary Table",
                 cluster,
-                "{}_Freq.csv".format(gene),
+                f"{gene}_Freq.csv",
             ),
             index=False,
             sep="\t",
@@ -745,7 +772,7 @@ for cluster in clusters:
                 "results",
                 "Supplementary Table",
                 cluster,
-                "{}_Count.csv".format(gene),
+                f"{gene}_Count.csv",
             ),
             index=False,
             sep="\t",
@@ -758,9 +785,9 @@ for cluster in clusters:
 # Load the Supplementary Table
 supplementary = dict()
 
-for cluster in clusters:
+for cluster in CLUSTERS:
     supplementary[cluster] = dict()
-    for gene in genes:
+    for gene in LOCATION_NAMES:
         supplementary[cluster][gene] = dict()
         supplementary[cluster][gene]["Count"] = pd.read_csv(
             join(
@@ -769,7 +796,7 @@ for cluster in clusters:
                 "results",
                 "Supplementary Table",
                 cluster,
-                "{}_Count.csv".format(gene),
+                f"{gene}_Count.csv",
             ),
             sep="\t",
         )
@@ -778,11 +805,11 @@ for cluster in clusters:
 
 
 # Run Fisher's Exact test
-Fishers(supplementary["SUPER"], refPop, compPop)
+fishers_exact_test(supplementary["SUPER"], REFERENCE_POPULATION, COMPARISON_POPULATIONS)
 
 
 # Save Fishers Data to CSV
-for gene in genes:
+for gene in LOCATION_NAMES:
     supplementary["SUPER"][gene]["P"].to_csv(
         join(
             "..",
@@ -790,7 +817,7 @@ for gene in genes:
             "results",
             "Supplementary Table",
             "SUPER",
-            "{}_FishersP.csv".format(gene),
+            f"{gene}_FishersP.csv",
         ),
         sep="\t",
         index=False,
@@ -802,7 +829,7 @@ for gene in genes:
             "results",
             "Supplementary Table",
             "SUPER",
-            "{}_FishersOR.csv".format(gene),
+            f"{gene}_FishersOR.csv",
         ),
         sep="\t",
         index=False,

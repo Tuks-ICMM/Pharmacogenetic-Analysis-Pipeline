@@ -28,10 +28,14 @@ __status__ = "Development"
 
 
 # Declare Constants and Functions:
-with open(join("..", "..", "config", "config.json")) as f:
-    config = json.load(f)
-genes = [i["name"] for i in config["locations"]]
-clusters = config["cluster"]["clusters"]
+LOCATIONS = pd.read_csv(join("..", "..", "input", "locations.csv"))
+LOCATION_NAMES = LOCATIONS["location_name"].unique().tolist()
+
+CLUSTER_DATA = pd.read_csv(join("..", "..", "input", "samples.csv"))
+CLUSTERS = set(CLUSTER_DATA.keys())
+CLUSTERS.remove("sample_name")
+CLUSTERS.remove("dataset")
+
 populations = ["AFR", "AMR", "EUR", "EAS", "SAS"]
 tests = ["VEP", "Freq", "Count", "FishersP", "FishersOR"]
 
@@ -117,8 +121,8 @@ for cluster in data.keys():
 
 # %%
 # Save data to Excel
-for cluster in clusters:
-    for gene in genes:
+for cluster in CLUSTERS:
+    for gene in LOCATION_NAMES:
         with pd.ExcelWriter(
             join(
                 "..",
