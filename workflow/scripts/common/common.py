@@ -5,11 +5,13 @@ A suite of general-purpose functions used in this pipeline.
 from gzip import open as gzip_open
 from io import StringIO
 from os import makedirs
-from os.path import exists
+from os.path import exists, join
 from typing import Generator
 
 from numpy import nan
-from pandas import DataFrame, Series, read_csv
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.table import Table, TableStyleInfo
+from pandas import DataFrame, ExcelWriter, Series, read_csv
 
 # %%
 
@@ -133,8 +135,9 @@ def generate_params(transcription_ids: list, canonical=False) -> dict:
         "refseq": True,
         "LoF": True,
         "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred",
-        "transcript_id": transcription_ids,
     }
+    if transcription_ids:
+        params["transcription_ids"] = transcription_ids
     return params
 
 
@@ -145,3 +148,68 @@ def directory_exists(path: str):
     """
     if not exists(path):
         makedirs(path)
+
+
+# ToDo: Find better way to type hint exists_behaviour
+def save_or_append_to_excel(
+    data_to_save: DataFrame,
+    cluster: str,
+    gene: str,
+    sheet_name: str,
+    exists_behaviour: str,
+):
+    """
+    A small function that writes or appends to an Excel file depending on if it exists or not.
+
+    Args:
+        data_to_save (DataFrame): A Pandas DataFrame to save to Excel format.
+        cluster (str): The cluster level being saved.
+        gene (str): The gene being saved.
+    """
+    path = join(
+        "..",
+        "..",
+        "results",
+        "FINAL",
+        f"{cluster}-{gene}.xlsx",
+    )
+    if exists(path):
+        mode = "a"
+    else:
+        mode = "w"
+    kwargs = {"engine": "openpyxl", "mode": mode}
+    if exists_behaviour and mode == "a":
+        kwargs["if_sheet_exists"] = exists_behaviour
+    with ExcelWriter(  # pylint: disable=abstract-class-instantiated
+        path, **kwargs
+    ) as writer:
+        data_to_save.to_excel(
+            writer,
+            index=False,
+            sheet_name=sheet_name,
+        )
+        worksheet = writer.sheets[sheet_name]
+        (row_count, column_count) = data_to_save.shape
+
+        # Define the table using the OpenPyExel engine:
+        table = Table(
+            ref=f"A1:{get_column_letter(column_count)}{row_count+1}",
+            displayName=sheet_name,
+        )
+
+        # Add a nice style, because I like nice-looking tables!
+        # Add a default style with striped rows and banded columns
+        style = TableStyleInfo(
+            name="TableStyleMedium9",
+            showFirstColumn=False,
+            showLastColumn=False,
+            showRowStripes=True,
+            showColumnStripes=True,
+        )
+        table.tableStyleInfo = style
+
+        # Add an Excel table to the data:
+        worksheet.add_table(table)
+
+
+# %%
