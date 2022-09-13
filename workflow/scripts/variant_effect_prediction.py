@@ -162,7 +162,7 @@ for genomic_location_name, dataset in API_PAYLOADS.items():
 DATA = dict()
 for genomic_location_name, genomic_location_responses in API_RESPONSE.items():
     DATA[genomic_location_name] = RAW_DATA_TEMPLATE[genomic_location_name][
-        ["ID", "POS", "REF", "ALT"]
+        ["CHROM", "ID", "POS", "REF", "ALT"]
     ]
     new_columns = [
         "Co-Located Variant",

@@ -6,11 +6,11 @@ A Python script designed to run Frequency calculations and save the results.
 ############ IMPORT DEPENDANCIES ############
 #############################################
 
-from os.path import exists, join
+from os.path import join
 
 import pandas as pd
 from numpy import nan
-from pandas import read_csv, read_excel
+from pandas import read_csv
 
 from common.common import calculate_frequency, read_vcf, save_or_append_to_excel
 

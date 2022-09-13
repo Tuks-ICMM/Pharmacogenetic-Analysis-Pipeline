@@ -6,13 +6,13 @@ A Python script designed to run Fishers Exact Test with Bonferonni corrections a
 ############ IMPORT DEPENDANCIES ############
 #############################################
 
-from os.path import exists, join
+from os.path import join
 
 import pandas as pd
 from numpy import nan
-from pandas import read_csv, read_excel
+from pandas import read_excel
 
-from common.common import read_vcf, save_or_append_to_excel
+from common.common import save_or_append_to_excel
 from common.fishers_exact_test import fishers_exact_test
 
 __author__ = "Graeme Ford"
@@ -161,7 +161,14 @@ for alternative_test_name in ALTERNATIVE_TESTS:
         # We want to run this per-gene:
         for gene in GENES:
             try:
-                DATA[alternative_test_name][cluster][gene].drop(columns=[f"{population}_{count_type}" for population in ALL_POPULATIONS for count_type in ['tc', 'ac']], inplace=True)
+                DATA[alternative_test_name][cluster][gene].drop(
+                    columns=[
+                        f"{population}_{count_type}"
+                        for population in ALL_POPULATIONS
+                        for count_type in ["tc", "ac"]
+                    ],
+                    inplace=True,
+                )
             except:
                 pass
 # %%

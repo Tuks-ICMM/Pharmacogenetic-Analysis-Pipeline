@@ -60,7 +60,7 @@ for cluster in CLUSTERS:
     for gene in GENES:
         DATA[cluster][gene] = read_vcf(
             join("..", "..", "results", "FINAL", f"ALL_{gene}.vcf.gz")
-        )[["CHROM", "ID", "REF", "ALT"]]
+        )[["CHROM", "POS", "ID", "REF", "ALT"]]
         # Rename the chromosome notation
         DATA[cluster][gene]["CHROM"] = DATA[cluster][gene]["CHROM"].str.extract(
             "chr([1-9]{1,2}|[XY])"
