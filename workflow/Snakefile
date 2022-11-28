@@ -327,6 +327,14 @@ rule FILTER:
     output:
         "results/FINAL/ALL_{location}.vcf.gz",
         "results/FILTER/ALL_{location}_FILTERED.log",
+    params:
+        ref=lambda wildcards: join(
+        *next(
+            i["file_path"]
+            for i in config["reference-genomes"]
+        if i["version"] == "GRCh38"
+            ),
+        ),    
     resources:
         cpus=search("cores", "FILTER"),
         nodes=search("nodes", "FILTER"),
