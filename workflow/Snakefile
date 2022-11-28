@@ -117,7 +117,7 @@ rule VALIDATE:
         ),
         # Normalise variants - split multiallelic records, left align variants, and ensure variant parsimony
         shell(
-            "module load bcftools-1.7; bcftools norm -m - any results/PREP/{wildcards.sample}_FILTERED.vcf.gz -O z -o results/PREP/{wildcards.sample}_NORMALISED.vcf.gz"
+            "module load bcftools-1.7; bcftools norm -m -any results/PREP/{wildcards.sample}_FILTERED.vcf.gz -O z -o results/PREP/{wildcards.sample}_NORMALISED.vcf.gz"
         ),
         # Ensure consistency of chromosome nomenclature for each dataset
         shell(
