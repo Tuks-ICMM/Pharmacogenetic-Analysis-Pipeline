@@ -238,9 +238,8 @@ rule ANNOTATE:
         shell(
             "module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o results/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"
         ),
-        #
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --set-missing-var-ids @_#\$1,\$2 --new-id-max-allele-len 200 --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"
+            "module load plink-2; plink2 --allow-extra-chr --set-missing-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"
         ),
 
 
@@ -255,7 +254,6 @@ rule FILTER:
         "results/ANNOTATE/ALL.vcf.gz",
     output:
         "results/FILTER/ALL_FILTERED.vcf.gz",
-        "results/FILTER/ALL_FILTERED.log",
     params:
         ref=lambda wildcards: join(
         *next(
@@ -284,14 +282,14 @@ rule FILTER:
         ),
         # Filter out first- and second-degree related individuals and duplicate samples
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3.vcf.gz --indep-pairwise 50 5 0.5 --out results/FILTER/ALL_FILTERED3_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3.vcf.gz --extract results/FILTER/ALL_FILTERED3_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3_pruned; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_FILTERED3_unrelated"
+            "module load plink-2; plink2 --allow-extra-chr --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED3.vcf.gz --indep-pairwise 50 5 0.5 --out results/FILTER/ALL_FILTERED3_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3.vcf.gz --extract results/FILTER/ALL_FILTERED3_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3_pruned; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_FILTERED3_unrelated"
         ),
         shell(
-            "module load bcftools-1.7; bcftools query -l results/FILTER/ALL_FILTERED3_unrelated.vcf.gz > unrelated_samples.txt; bcftools view results/FILTER/ALL_FILTERED3.vcf.gz -S unrelated_samples.txt -o results/FILTER/ALL_FILTERED4.vcf.gz -O z"
+            "module load bcftools-1.7; awk '{{print $1}}' results/FILTER/ALL_FILTERED3_unrelated.nosex > results/FILTER/unrelated_samples.txt; bcftools view results/FILTER/ALL_FILTERED3.vcf.gz -S results/FILTER/unrelated_samples.txt -o results/FILTER/ALL_FILTERED4.vcf.gz -O z"
         ),
         # Normalise final, filtered VCF
         shell(
-            "module load bcftools-1.7; bcftools norm -m - -o results/FILTER/ALL_FILTERED.vcf.gz -O z results/FILTER/ALL_FILTERED4.vcf.gz"
+            "module load bcftools-1.7; bcftools norm -m - -o {output} -O z results/FILTER/ALL_FILTERED4.vcf.gz"
         )
 
 
