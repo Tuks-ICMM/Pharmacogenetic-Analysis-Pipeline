@@ -243,6 +243,58 @@ rule ANNOTATE:
         ),
 
 
+
+rule FILTER:
+    """
+    Filter out individuals and variants (Safety Check).
+    """
+    log:
+        "logs/FILTER/FILTER.log",
+    input:
+        "results/ANNOTATE/ALL.vcf.gz",
+    output:
+        "results/FILTER/ALL_FILTERED.vcf.gz",
+        "results/FILTER/ALL_FILTERED.log",
+    params:
+        ref=lambda wildcards: join(
+        *next(
+            i["file_path"]
+            for i in config["reference-genomes"]
+        if i["version"] == "GRCh38"
+            ),
+        ),    
+    resources:
+        cpus=search("cores", "FILTER"),
+        nodes=search("nodes", "FILTER"),
+        queue=search("queue", "FILTER"),
+        walltime=search("walltime", "FILTER"),
+    run:
+        # Filter out variants with >= 20% missingness
+        shell(
+            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --geno 0.2 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1"
+        ),
+        # Filter out variants where the reference in the file does not match that of the reference genome
+        shell(
+            "module load bcftools-1.7; bcftools norm --check-ref x results/FILTER/ALL_FILTERED1.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_FILTERED2.vcf.gz -O z"
+        ),
+        # Filter out samples with >= 20% missingness
+        shell(
+            "module load plink-2; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2.vcf.gz --mind 0.2 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3"
+        ),
+        # Filter out first- and second-degree related individuals and duplicate samples
+        shell(
+            "module load plink-2; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3.vcf.gz --indep-pairwise 50 5 0.5 --out results/FILTER/ALL_FILTERED3_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3.vcf.gz --extract results/FILTER/ALL_FILTERED3_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3_pruned; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_FILTERED3_unrelated"
+        ),
+        shell(
+            "module load bcftools-1.7; bcftools query -l results/FILTER/ALL_FILTERED3_unrelated.vcf.gz > unrelated_samples.txt; bcftools view results/FILTER/ALL_FILTERED3.vcf.gz -S unrelated_samples.txt -o results/FILTER/ALL_FILTERED4.vcf.gz -O z"
+        ),
+        # Normalise final, filtered VCF
+        shell(
+            "module load bcftools-1.7; bcftools norm -m - -o results/FILTER/ALL_FILTERED.vcf.gz -O z results/FILTER/ALL_FILTERED4.vcf.gz"
+        )
+
+
+
 rule ADMIXTURE:
     """
     Perform Admixture analysis on the large psudo-dataset (Requires 100 000 minimum variants to distinguish sub-populations and 10 000 to distinguish super-populations.)
@@ -250,7 +302,7 @@ rule ADMIXTURE:
     log:
         "logs/ADMIXTURE/{cluster}.{estimation}.log",
     input:
-        "results/ANNOTATE/ALL.vcf.gz",
+        "results/FINAL/ALL_FILTERED.vcf.gz",
     output:
         expand(
             "results/ADMIXTURE/{{cluster}}.{{estimation}}.{ext}",
@@ -298,7 +350,7 @@ rule TRIM_AND_NAME:
     log:
         "logs/TRIM/{location}.log",
     input:
-        "results/ANNOTATE/ALL.vcf.gz",
+        "results/FILTER/ALL_FILTERED.vcf.gz",
     output:
         "results/TRIM/ALL_{location}_TRIMMED.vcf.gz",
     params:
@@ -314,56 +366,7 @@ rule TRIM_AND_NAME:
         shell(
             "module load plink-2; plink2 --allow-extra-chr --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}_TRIMMED"
         ),
-
-
-rule FILTER:
-    """
-    Filter out individuals and variants (Safety Check).
-    """
-    log:
-        "logs/FILTER/{location}.log",
-    input:
-        "results/TRIM/ALL_{location}_TRIMMED.vcf.gz",
-    output:
-        "results/FINAL/ALL_{location}.vcf.gz",
-        "results/FILTER/ALL_{location}_FILTERED.log",
-    params:
-        ref=lambda wildcards: join(
-        *next(
-            i["file_path"]
-            for i in config["reference-genomes"]
-        if i["version"] == "GRCh38"
-            ),
-        ),    
-    resources:
-        cpus=search("cores", "FILTER"),
-        nodes=search("nodes", "FILTER"),
-        queue=search("queue", "FILTER"),
-        walltime=search("walltime", "FILTER"),
-    run:
-        # Filter out variants with >= 20% missingness
-        shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --geno 0.2 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_{wildcards.location}_FILTERED"
-        ),
-        # Filter out variants where the reference in the file does not match that of the reference genome
-        shell(
-            "module load bcftools-1.7; bcftools norm --check-ref x results/FILTER/ALL_{wildcards.location}_FILTERED.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_{wildcards.location}_FILTERED2.vcf.gz -O z"
-        ),
-        # Filter out samples with >= 20% missingness
-        shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf results/FILTER/ALL_{wildcards.location}_FILTERED2.vcf.gz --mind 0.2 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_{wildcards.location}_FILTERED3"
-        ),
-        # Filter out first- and second-degree related individuals and duplicate samples
-        shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf results/FILTER/ALL_{wildcards.location}_FILTERED3.vcf.gz --indep-pairwise 50 5 0.5 --out results/FILTER/ALL_{wildcards.location}_FILTERED3_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_{wildcards.location}_FILTERED3.vcf.gz --extract results/FILTER/ALL_{wildcards.location}_FILTERED3_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_{wildcards.location}_FILTERED3_pruned; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_{wildcards.location}_FILTERED3_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_{wildcards.location}_FILTERED3_unrelated"
-        ),
-        shell(
-            "module load bcftools-1.7; bcftools query -l results/FILTER/ALL_{wildcards.location}_FILTERED3_unrelated.vcf.gz > unrelated_samples.txt; bcftools view results/FILTER/ALL_{wildcards.location}_FILTERED3.vcf.gz -S unrelated_samples.txt -o results/FILTER/ALL_{wildcards.location}_FILTERED4.vcf.gz -O z"
-        ),
-        # Normalise final, filtered VCF
-        shell(
-            "module load bcftools-1.7; bcftools norm -m - -o results/FINAL/ALL_{wildcards.location}.vcf.gz -O z results/FILTER/ALL_{wildcards.location}_FILTERED4.vcf.gz"
-        )    
+    
 
 
 rule TRANSPILE_CLUSTERS:
@@ -393,7 +396,7 @@ rule PLINK:
         "logs/PLINK/{location}.log",
     input:
         ["results/REFERENCE/cluster_%s.txt" % (cluster) for cluster in ["SUPER", "SUB"]],
-        vcf="results/FINAL/ALL_{location}.vcf.gz",
+        vcf="results/TRIM/ALL_{location}.vcf.gz",
     output:
         [
             expand(
