@@ -240,7 +240,7 @@ rule ANNOTATE:
         ),
         #
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --set-missing-var-ids @_#\$1,\$2 --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"
+            "module load plink-2; plink2 --allow-extra-chr --set-missing-var-ids @_#\$1,\$2 --new-id-max-allele-len 200 --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"
         ),
 
 
