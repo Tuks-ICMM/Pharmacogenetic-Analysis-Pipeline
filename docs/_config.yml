@@ -36,6 +36,8 @@ mermaid:
 remote_theme: just-the-docs/just-the-docs
 plugins:
   - jekyll-feed
+  - jekyll-avatar
+  - jekyll-sitemap
 
 color_scheme: "dark"
 # Exclude from processing.
