@@ -140,21 +140,21 @@ Many thanks to the following individuals who have been instrumental to the succe
     </td>
     <td style="text-align:center;">
       <div>
-        {% avatar Megs47 size=100 %}
+        {% avatar MeganHolborn size=100 %}
       </div>
       <h4>Tester</h4>
       <hr />
       <h4>
         <strong>
           <a href="https://www.linkedin.com/in/megan-ryder-b312b0159/" target="_blank">
-            Megan Ryder
+            Megan Holborn
           </a>
         </strong>
       </h4>
       <h6>
         <italic>
-          <a href="https://github.com/orgs/Tuks-ICMM/people/Megs47" target="_blank">
-            Megs47
+          <a href="https://github.com/orgs/Tuks-ICMM/people/MeganHolborn" target="_blank">
+            MeganHolborn
           </a>
         </italic>
       </h6>
