@@ -58,8 +58,7 @@ Many thanks to the following individuals who have been instrumental to the succe
     <a href="https://github.com/G-kodes">
       <td style="text-align:center;">
         <div>
-          <img src=https://avatars0.githubusercontent.com/u/25722914?s=100&v=4" width="100"
-            alt="Graeme Ford" />
+          {% avatar G-Kodes %}
         </div>
         <h4>Author</h4>
         <hr />
