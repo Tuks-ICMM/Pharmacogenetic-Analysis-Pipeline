@@ -58,7 +58,7 @@ Many thanks to the following individuals who have been instrumental to the succe
     <a href="https://github.com/G-kodes">
       <td style="text-align:center;">
         <div>
-          {% avatar G-Kodes %}
+          {% avatar G-Kodes size=100 %}
         </div>
         <h4>Author</h4>
         <hr />
@@ -95,8 +95,7 @@ Many thanks to the following individuals who have been instrumental to the succe
     </td>
     <td style="text-align:center;">
       <div>
-        <img src="https://avatars.githubusercontent.com/u/3425899?s=96&v=4" width="100"
-          alt="Prof. Fourie Joubert" />
+          {% avatar fouriejoubert size=100 %}
       </div>
       <h4>Co-Supervisor</h4>
       <hr />
@@ -120,8 +119,7 @@ Many thanks to the following individuals who have been instrumental to the succe
   <tr>
     <td style="text-align:center;">
       <div>
-        <img src="https://avatars.githubusercontent.com/u/87174188?s=96&v=4" width="100"
-          alt="Prof. Fourie Joubert" />
+        {% avatar Fatimabp size=100 %}
       </div>
       <h4>Tester</h4>
       <hr />
@@ -142,8 +140,7 @@ Many thanks to the following individuals who have been instrumental to the succe
     </td>
     <td style="text-align:center;">
       <div>
-        <img src="https://avatars.githubusercontent.com/u/80751008?s=96&v=4" width="100"
-          alt="PMegan Ryder" />
+        {% avatar Megs47 size=100 %}
       </div>
       <h4>Tester</h4>
       <hr />
@@ -164,8 +161,8 @@ Many thanks to the following individuals who have been instrumental to the succe
     </td>
     <td style="text-align:center;">
       <div>
-        <img src="https://avatars.githubusercontent.com/u/80751008?s=96&v=4" width="100"
-          alt="PMegan Ryder" />
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/cd/Portrait_Placeholder_Square.png" width="100"
+          alt="Sarah Turner" />
       </div>
       <h4>Tester</h4>
       <hr />
