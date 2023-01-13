@@ -14,7 +14,6 @@ nav_order: 1
 [cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
 [cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg?style=for-the-badge
 [snakemake-unit-tests]: https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/actions/workflows/snakemake-tests.yml/badge.svg
-[docs-unit-tests]: https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/actions/workflows/jekyll-gh-pages.yml/badge.svg
 
 <!-- END - Links, Badges and Markdown Variables -->
 
@@ -37,10 +36,12 @@ Should you wish to cite this project, please select an apropriate paper/s from t
 <a href="{{ post.url }}"><h3>{{ post.title }}</h3></a>
 
 <hr/>
-<!-- {% for tag in post.tags %}
-{{ tag }} >
+{% for tag in post.categories %}
+{% if tag != "publication" %}
+{{ tag }}
 {: .label }
-{% endfor %} -->
+{% endif %}
+{% endfor %}
 {{ post.date | date_to_string }} > {{ post.excerpt }}
 {% endfor %}
 
