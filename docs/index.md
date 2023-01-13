@@ -23,20 +23,26 @@ nav_order: 1
 
 [![CC BY 4.0][cc-by-shield]][cc-by]
 
-This is the development repository for a pipeline created to perform frequency analysis on African genetic datasets. This work is licensed under a
-[Creative Commons Attribution 4.0 International License][cc-by].
+This is the development repository for a pipeline created to perform frequency analysis on African genetic datasets.
+
+> This work is licensed under a [Creative Commons Attribution 4.0 International License][cc-by].
 
 # Publications and Citations
 
 Should you wish to cite this project, please select an apropriate paper/s from teh list below:
 
-<ul>
 {% for post in site.categories.publication %}
- <li>
- > <span>{{ post.date | date_to_string }}</span> &nbsp; <a href="{{ post.url }}">{{ post.title }}</a>
- </li>
+
+> <h3>{{ post.title }}</h3>
+> <hr/>
+> {% for tag in post.tags %}
+> {{ tag }}
+> {{: .label }}
+> {% endfor %}
+> <div>{{ post.date | date_to_string }}</div>
+> <a href="{{ post.url }}">{{ post.excerpt }}</a>
+
 {% endfor %}
-</ul>
 
 ## Roadmap:
 
@@ -55,29 +61,48 @@ Many thanks to the following individuals who have been instrumental to the succe
 
 <table>
   <tr>
-    <a href="https://github.com/G-kodes">
-      <td style="text-align:center;">
-        <div>
-          {% avatar G-Kodes size=100 %}
-        </div>
-        <h4>Author</h4>
-        <hr />
-        <h4>
-          <strong>
-            <a href="https://www.linkedin.com/in/graeme-ford/" target="_blank">
-              Graeme Ford
-            </a>
-          </strong>
-        </h4>
-        <h6>
-          <italic>
-            <a href="https://github.com/orgs/Tuks-ICMM/people/G-kodes" target="_blank">
-              G-Kodes
-            </a>
-          </italic>
-        </h6>
-      </td>
-    </a>
+    <td style="text-align:center;">
+      <div>
+        {% avatar G-Kodes size=100 %}
+      </div>
+      <h4>Author</h4>
+      <hr />
+      <h4>
+        <strong>
+          <a href="https://www.linkedin.com/in/graeme-ford/" target="_blank">
+            Graeme Ford
+          </a>
+        </strong>
+      </h4>
+      <h6>
+        <italic>
+          <a href="https://github.com/G-kodes" target="_blank">
+            G-Kodes
+          </a>
+        </italic>
+      </h6>
+    </td>
+    <td style="text-align:center;">
+      <div>
+        {% avatar MeganHolborn size=100 %}
+      </div>
+      <h4>Contributor</h4>
+      <hr />
+      <h4>
+        <strong>
+          <a href="https://www.linkedin.com/in/megan-ryder-b312b0159/" target="_blank">
+            Megan Holborn
+          </a>
+        </strong>
+      </h4>
+      <h6>
+        <italic>
+          <a href="https://github.com/orgs/Tuks-ICMM/people/MeganHolborn" target="_blank">
+            MeganHolborn
+          </a>
+        </italic>
+      </h6>
+    </td>
     <td style="text-align:center;">
       <div>
         <img src="https://www.up.ac.za/media/shared/489/ZP_Images/michael-pepper-message.zp39643.jpg"
@@ -140,29 +165,7 @@ Many thanks to the following individuals who have been instrumental to the succe
     </td>
     <td style="text-align:center;">
       <div>
-        {% avatar MeganHolborn size=100 %}
-      </div>
-      <h4>Tester</h4>
-      <hr />
-      <h4>
-        <strong>
-          <a href="https://www.linkedin.com/in/megan-ryder-b312b0159/" target="_blank">
-            Megan Holborn
-          </a>
-        </strong>
-      </h4>
-      <h6>
-        <italic>
-          <a href="https://github.com/orgs/Tuks-ICMM/people/MeganHolborn" target="_blank">
-            MeganHolborn
-          </a>
-        </italic>
-      </h6>
-    </td>
-    <td style="text-align:center;">
-      <div>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/c/cd/Portrait_Placeholder_Square.png" width="100"
-          alt="Sarah Turner" />
+        {% avatar sarahsaraht size=100 %}
       </div>
       <h4>Tester</h4>
       <hr />

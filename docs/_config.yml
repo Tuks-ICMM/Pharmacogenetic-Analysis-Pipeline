@@ -49,6 +49,9 @@ nav_external_links:
 
 excerpt_separator: "<!--end sample-->"
 
+ga_tracking: G-5BE9TP7NV4
+ga_tracking_anonymize_ip: true
+
 # Exclude from processing.
 # The following items will not be processed, by default.
 # Any item listed under the `exclude:` key here will be automatically added to
