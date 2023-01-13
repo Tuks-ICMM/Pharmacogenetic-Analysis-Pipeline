@@ -46,7 +46,7 @@ Should you wish to cite this project or software, please select an apropriate pa
 >  <dt>DOI</dt>
 >  <dd><a href="https://doi.org/10.3390/jpm12122013" target="_blank">10.3390/jpm12122013</a></dd>
 >  <dt>Abstract</dt>
->  <dd><p>{{ post.content | remove_first: "Abstract" | split: site.excerpt_separator | first }} <a class="read-more" href="{{ post.url }}">Read more...</a></p></dd>
+>  <dd><span>{{ post.content | remove_first: "Abstract" | split: site.excerpt_separator | first }} <a class="read-more" href="{{ post.url }}">Read more...</a></span></dd>
 > </dl>
 
 {% endfor %}
