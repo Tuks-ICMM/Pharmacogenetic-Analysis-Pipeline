@@ -34,20 +34,14 @@ This is the development repository for a pipeline created to perform frequency a
 Should you wish to cite this project, please select an apropriate paper/s from the list below:
 
 {% for post in site.categories.publication %}
+<a href="{{ post.url }}"><h3>{{ post.title }}</h3></a>
 
-> <a href="{{ post.url }}"><h3>{{ post.title }}</h3></a>
->
-> <hr/>
->
-> {% for tag in post.tags %}
->
-> {{ tag }} >
-> {: .label }
->
-> {% endfor %}
->
-> {{ post.date | date_to_string }} > {{ post.excerpt }}
-
+<hr/>
+{% for tag in post.tags %}
+{{ tag }} >
+{: .label }
+{% endfor %}
+{{ post.date | date_to_string }} > {{ post.excerpt }}
 {% endfor %}
 
 ## Roadmap:
@@ -124,6 +118,8 @@ Many thanks to the following individuals who have been instrumental to the succe
         </strong>
       </h4>
     </td>
+  </tr>
+  <tr>
     <td style="text-align:center;">
       <div>
           {% avatar fouriejoubert size=100 %}
@@ -146,8 +142,6 @@ Many thanks to the following individuals who have been instrumental to the succe
         </italic>
       </h6>
     </td>
-  </tr>
-  <tr>
     <td style="text-align:center;">
       <div>
         {% avatar Fatimabp size=100 %}
