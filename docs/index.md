@@ -24,13 +24,18 @@ nav_order: 1
 
 <hr/>
 
-This is the development repository for a pipeline created to perform frequency analysis on African genetic datasets.
+Welcome to the <i>{{ site.title }}</i>. This is a development repository and documentation containing instruction and technical discussion on the use of {{ site.title }}. This pipeline was created by <a href="https://github.com/G-kodes" target="_blank">Graemem Ford</a> to perform the following core functions:
+
+- Perform VCF Spec validation
+- Merge multiple VCF datasets into one psudo-dataset*
+- Perform variant frequency analysis
+- Perform variant-effect-prediction
 
 > This work is licensed under a [Creative Commons Attribution 4.0 International License][cc-by].
 
 # Publications and Citations
 
-Should you wish to cite this project, please select an apropriate paper/s from the list below:
+Should you wish to cite this project or software, please select an apropriate paper/s from the list below:
 
 {% for post in site.categories.publication %}
 
@@ -41,9 +46,9 @@ Should you wish to cite this project, please select an apropriate paper/s from t
 >  <dd>{{ post.date | date_to_string }}</dd>
 >  <dt>DOI</dt>
 >  <dd><a href="https://doi.org/10.3390/jpm12122013" target="_blank">10.3390/jpm12122013</a></dd>
+>  <dt>Abstract</dt>
+>  <dd><p>{{ post.content | remove_first: "Abstract" | split: site.excerpt_separator | first }} <a class="read-more" href="{{ post.url }}">Read more...</a></p></dd>
 > </dl>
-> <hr/>
-> <p>{{ post.content | remove_first: "Abstract" | split: site.excerpt_separator | first }}<a class="read-more" href="{{ post.url }}">Read more...</a></p>
 
 {% endfor %}
 
