@@ -32,23 +32,24 @@ This is the development repository for a pipeline created to perform frequency a
 
 Should you wish to cite this project, please select an apropriate paper/s from the list below:
 
-> {% for post in site.categories.publication %}
->
-> <h3><a href="{{ post.permalink }}">{{ post.title }}</a></h3>
->
+{% for post in site.categories.publication %}
+
 > <dl>
+>  <dt>Title</dt>
+>  <dd><h3><a href="{{ post.permalink }}">{{ post.title }}</a></h3></dd>
 >  <dt>Date</dt>
 >  <dd>{{ post.date | date_to_string }}</dd>
 >  <dt>DOI</dt>
->  <dd><a href="https://doi.org/10.3390/jpm12122013" target="_blank">https://doi.org/10.3390/jpm12122013</a></dd>
+>  <dd><a href="https://doi.org/10.3390/jpm12122013" target="_blank">10.3390/jpm12122013</a></dd>
 > </dl>
 > <hr/>
-> {{ post.excerpt | remove_first: "Abstract" }}...
-> {% endfor %}
+> <p>{{ post.excerpt | remove_first: "Abstract" | append: "..." }}</p>
+
+{% endfor %}
 
 # Roadmap:
 
-See our [Projects tab](/projects) and [Issues tracker](/issues) for a list of proposed features (and
+See our [Issues tracker](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/issues) on GitHub for a list of proposed features (and
 known issues).
 
 # Versioning:
@@ -59,7 +60,7 @@ here](https://github.com/SgtPorkChops/SASDGHUB/releases).
 
 # Acknowledgements:
 
-Many thanks to the following individuals who have been instrumental to the success of this project:
+Many thanks to the following individuals who have been instrumental to the success of this project.
 
 <table>
   <tr>
