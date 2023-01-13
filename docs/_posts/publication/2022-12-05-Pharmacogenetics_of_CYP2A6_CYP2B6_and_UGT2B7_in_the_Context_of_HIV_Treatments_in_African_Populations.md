@@ -3,7 +3,7 @@ layout: post
 title: "Pharmacogenetics of CYP2A6, CYP2B6, and UGT2B7 in the Context of HIV Treatments in African Populations"
 date: 2022-12-05
 categories: publication
-permalink: /:date/:title/
+permalink: /:year/:month/:title/
 ---
 
 # Abstract
