@@ -23,24 +23,30 @@ nav_order: 1
 
 [![CC BY 4.0][cc-by-shield]][cc-by]
 
+<hr/>
+
 This is the development repository for a pipeline created to perform frequency analysis on African genetic datasets.
 
 > This work is licensed under a [Creative Commons Attribution 4.0 International License][cc-by].
 
 # Publications and Citations
 
-Should you wish to cite this project, please select an apropriate paper/s from teh list below:
+Should you wish to cite this project, please select an apropriate paper/s from the list below:
 
 {% for post in site.categories.publication %}
 
-> <h3>{{ post.title }}</h3>
+> <a href="{{ post.url }}"><h3>{{ post.title }}</h3></a>
+>
 > <hr/>
+>
 > {% for tag in post.tags %}
-> {{ tag }}
-> {{: .label }}
+>
+> {{ tag }} >
+> {: .label }
+>
 > {% endfor %}
-> <div>{{ post.date | date_to_string }}</div>
-> <a href="{{ post.url }}">{{ post.excerpt }}</a>
+>
+> {{ post.date | date_to_string }} > {{ post.excerpt }}
 
 {% endfor %}
 
