@@ -36,14 +36,14 @@ Should you wish to cite this project, please select an apropriate paper/s from t
 
 > <dl>
 >  <dt>Title</dt>
->  <dd><h3><a href="{{ post.permalink }}">{{ post.title }}</a></h3></dd>
+>  <dd><h3><a href="{{ post.url }}">{{ post.title }}</a></h3></dd>
 >  <dt>Date</dt>
 >  <dd>{{ post.date | date_to_string }}</dd>
 >  <dt>DOI</dt>
 >  <dd><a href="https://doi.org/10.3390/jpm12122013" target="_blank">10.3390/jpm12122013</a></dd>
 > </dl>
 > <hr/>
-> <p>{{ post.excerpt | remove_first: "Abstract" | append: "..." }}</p>
+> <p>{{ post.content | remove_first: "Abstract" | split: site.excerpt_separator | first }}<a class="read-more" href="{{ post.url }}">Read more...</a></p>
 
 {% endfor %}
 
