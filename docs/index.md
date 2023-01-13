@@ -8,23 +8,6 @@ permalink: /
 nav_order: 1
 ---
 
-<!-- START - Links, Badges and Markdown Variables -->
-
-[cc-by]: http://creativecommons.org/licenses/by/4.0/
-[cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
-[cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg?style=for-the-badge
-[snakemake-shield]: https://img.shields.io/badge/Snakemake-049474?label=Powered%20by&style=for-the-badge&logo=python
-[snakemake-link]: https://snakemake.readthedocs.io/
-[snakemake-unit-tests]: https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/actions/workflows/snakemake-tests.yml/badge.svg
-
-<!-- END - Links, Badges and Markdown Variables -->
-
-![Build][snakemake-unit-tests]
-
-[![CC BY 4.0][cc-by-shield]][cc-by]
-[![Snakemake][snakemake-shield]][snakemake-link]
-
-<hr/>
 
 Welcome to the <i>{{ site.title }}</i>. This is a development repository and documentation containing instruction and technical discussion on the use of {{ site.title }}. This pipeline was created by <a href="https://github.com/G-kodes" target="_blank">Graeme Ford</a> to perform the following core functions:
 
@@ -49,7 +32,7 @@ Should you wish to cite this project or software, please select an apropriate pa
 >  <dt>DOI</dt>
 >  <dd><a href="https://doi.org/10.3390/jpm12122013" target="_blank">10.3390/jpm12122013</a></dd>
 >  <dt>Abstract</dt>
->  <dd><span>{{ post.content | remove_first: "Abstract" | split: site.excerpt_separator | first | strip_html }} <a class="read-more" href="{{ post.url }}">Read more...</a></span></dd>
+>  <dd>{{ post.content | remove_first: "Abstract" | split: site.excerpt_separator | first }}...</dd>
 > </dl>
 
 {% endfor %}
