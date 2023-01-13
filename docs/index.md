@@ -24,7 +24,7 @@ nav_order: 1
 <!-- END - Links, Badges and Markdown Variables -->
 <hr />
 
-Welcome to the <i>{{ site.title }}</i>. This is a development repository and documentation containing instruction and technical discussion on the use of {{ site.title }}. This pipeline was created by <a href="https://github.com/G-kodes" target="_blank">{% avatar G-Kodes size=21 %} Graeme Ford</a> to perform the following core functions:
+Welcome to the <i>{{ site.title }}</i>. This is a development repository and documentation containing instruction and technical discussion on the use of {{ site.title }}. This pipeline was created by <a href="https://github.com/G-kodes" target="_blank">{% avatar G-Kodes size=15 %} Graeme Ford</a> to perform the following core functions:
 
 - Perform VCF Spec validation
 - Merge multiple VCF datasets into one psudo-dataset\*
@@ -39,7 +39,7 @@ Should you wish to cite this project or software, please select an apropriate pa
 
 {% for post in site.categories.publication %}
 
-<dl>
+<dl class="def-small">
   <dt>Title</dt>
   <dd><h3><a href="{{ post.url }}">{{ post.title }}</a></h3></dd>
   <dt>Date</dt>
