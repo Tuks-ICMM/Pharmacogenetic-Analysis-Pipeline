@@ -32,11 +32,15 @@ This is the development repository for a pipeline created to perform frequency a
 # Publications and Citations
 
 Should you wish to cite this project, please select an apropriate paper/s from the list below:
-
+{{ site.categories }}
 {% for post in site.categories.publication %}
 <a href="{{ post.url }}"><h3>{{ post.title }}</h3></a>
 
 <hr/>
+<!-- {% for tag in post.tags %}
+{{ tag }} >
+{: .label }
+{% endfor %} -->
 {{ post.date | date_to_string }} > {{ post.excerpt }}
 {% endfor %}
 
