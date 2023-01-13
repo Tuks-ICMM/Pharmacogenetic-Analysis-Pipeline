@@ -31,9 +31,9 @@ This is the development repository for a pipeline created to perform frequency a
 Should you wish to cite this project, please select an apropriate paper/s from teh list below:
 
 <ul>
-{% for post in site.categories.Publication %}
+{% for post in site.categories.publication %}
  <li>
- <span>{{ post.date | date_to_string }}</span> &nbsp; <a href="{{ post.url }}">{{ post.title }}</a>
+ > <span>{{ post.date | date_to_string }}</span> &nbsp; <a href="{{ post.url }}">{{ post.title }}</a>
  </li>
 {% endfor %}
 </ul>
