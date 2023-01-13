@@ -32,27 +32,32 @@ This is the development repository for a pipeline created to perform frequency a
 
 Should you wish to cite this project, please select an apropriate paper/s from the list below:
 
-{% for post in site.categories.publication %}
+> {% for post in site.categories.publication %}
+>
+> <h3><a href="{{ post.permalink }}">{{ post.title }}</a></h3>
+>
+> <dl>
+>  <dt>Date</dt>
+>  <dd>{{ post.date | date_to_string }}</dd>
+>  <dt>DOI</dt>
+>  <dd><a href="https://doi.org/10.3390/jpm12122013" target="_blank">https://doi.org/10.3390/jpm12122013</a></dd>
+> </dl>
+> <hr/>
+> {{ post.excerpt | remove_first: "Abstract" }}...
+> {% endfor %}
 
-<h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
-
-<hr/>
-{{ post.date | date_to_string }}
-{{ post.excerpt }}
-{% endfor %}
-
-## Roadmap:
+# Roadmap:
 
 See our [Projects tab](/projects) and [Issues tracker](/issues) for a list of proposed features (and
 known issues).
 
-## Versioning:
+# Versioning:
 
 We use the [SemVer](http://semver.org/) syntax to manage and maintain version numbers. For the
 versions available, see the [releases on this repository
 here](https://github.com/SgtPorkChops/SASDGHUB/releases).
 
-## Acknowledgements:
+# Acknowledgements:
 
 Many thanks to the following individuals who have been instrumental to the success of this project:
 
