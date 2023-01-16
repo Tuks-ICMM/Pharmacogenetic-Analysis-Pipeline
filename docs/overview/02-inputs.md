@@ -3,6 +3,7 @@ title: Data Requirements
 permalink: overview/data-requirements
 nav_order: 3
 layout: page
+parent: Overview
 ---
 
 # Data Requirements
@@ -11,15 +12,38 @@ This page lists the informational requirements needed to execute the _{{ site.ti
 
 ## Reference Genome
 
-## Datasets
+Due to the nature of reference sequences, they are not included as pipeline inputs and are, as a result, not handled in this section. For addittional information, please consult the Reference Genome section on the pipeline configuration page.
 
-### Data files
+{: .normal-title }
+
+> Preparation
+>
+> The following metadata declaration files use _**case-sensitive column names**_.
+
+## Datasets & Dataset Files
+
+Please provide all input datasets in the form of _variant-call-format_ or `.vcf` files. The latest version of the VCF specification can be found [here](https://samtools.github.io/hts-specs/VCFv4.3.pdf).
+
+### Compression and Indexing
+
+Due to the nature of bioinformatics and genomics, datasets are often quite large in uncompressed form. Users are welcome to compress their data files for addittional performance and administrative ease-of-use.
+
+If you wish to compress your VCF files, please provide the following files as input:
+
+- [x] BGZIP-compressed VCF file (`.vcf.gz` or `vcf.bgz`)
+- [x] Tabix Index (`.vcf.gz.tbi` or `.vcf.bgz.tbi`)
+
+{: .normal }
+
+> This pipeline is designed to accept `.vcf.gz` files produced by **Block Compression (BGZIP)**. This is a non-standard type of compression which is not typically the same as that used by default by Windows or MacOS. It is used to compress `.vcf` files in a series of blocks or chunks and can be done using many popular bioinformatics tools such as [SamTools](http://www.htslib.org/doc/bgzip.html).
+>
+> Normally, block-compression alone would only make your data file smaller. To facilitate more efficient usage of computational resources, you can also create a **Tabix Index**. This is an index file designed for BGZIP-compressed `.vcf` files which contains an index indicating the bounds of each compression block relative to the genomic coordinates and variant IDs in the dataset, making targeted decompression more efficient.
 
 ## Metadata Declarations
 
 To run the _{{ site.title }}_, you will need to provide some additional contextual information. All metadata is provided in the form of appropriately named ` .csv`` files located in the  `input` directory.
 
-{: .note-title }
+{: .normal-title }
 
 > Case sensitivity
 >
@@ -122,17 +146,18 @@ The `locations.csv` file allows you to declare samples and provide the necessary
 
 #### `locations.csv` data example
 
-| `sample_name` | `dataset` | `SUPER`  | `SUB`    |
-| :------------ | :-------- | :------- | :------- |
-| CYP2A6        | 19        | 40842850 | 40851138 |
-| CYP2B6        | 19        | 40988570 | 41021110 |
-| UGT2B7        | 4         | 69045214 | 69112987 |
+| **sample_name** | **dataset** | **SUPER** | **SUB**  |
+| :-------------- | :---------- | :-------- | :------- |
+| CYP2A6          | 19          | 40842850  | 40851138 |
+| CYP2B6          | 19          | 40988570  | 41021110 |
+| UGT2B7          | 4           | 69045214  | 69112987 |
 
 ### Transcripts
 
 The `transcripts.csv` file allows you to declare which transcripts you would like to use when performing variant-effect-prediction.
 
-{: .note-title }
+{: .normal-title }
+
 > Multiple Transcripts
 >
 > If more than one transcript is provided for a given genomic region, we will attempt to match the transcripts available in the order that is provided. The first match will be selected, and if no transcripts provided are available, the first available transcript will be selected.
