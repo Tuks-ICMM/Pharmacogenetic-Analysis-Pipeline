@@ -8,30 +8,70 @@ nav_order: 3
 
 The <i>{{ site.title }}</i> is a pipeline powered by <a href="https://snakemake.readthedocs.io/" target="_blank">Snakemake</a>, a python-based workflow management package. This project has been created with support for PBS-Torque scheduler environments on Linux servers.
 
-Below is a diagram representing the pipeline flow and steps:
+Below is a diagram representing the pipeline flow and steps in the form of a process flow diagram. For reference and syntax, please consult [this guide](https://www.bbc.co.uk/bitesize/guides/znv3rwx/revision/2).
 
 ```mermaid
+---
+title: Pharmacogenetics Analysis
+---
 flowchart TB
+    START([Start])
+    END([End - Results])
 
-    subgraph prep [Data Preparation]
-        ALL --> VALIDATE
-        VALIDATE -.->|Different reference Genomes| LIFTOVER
+    subgraph dataPrep ["Data and Metadata Preparation"]
+        %% Use LR to invert axis set by parent to effectively force relative "TB"
+        direction LR
+
+        subgraph Standard ["Standard Resources"]
+            genomeFasta[/"Reference Genome GRCh38 (FASTA)"/]
+        end
+        subgraph projectSpesific ["Project spesific data"]
+            %% Use LR to invert axis set by parent to effectively force relative "TB"
+            direction LR
+            subgraph data ["Variant input data"]
+                datasetFiles[/"Datasets (VCF)"/]
+            end
+            subgraph metadata ["Analysis metadata"]
+                %% Use LR to invert axis set by parent to effectively force relative "TB"
+                direction LR
+
+                datasetMeta[/"Datasets metadata (CSV)"/]
+                locationMeta[/"Genomic location metadatata (CSV)"/]
+                sampleMeta[/"Sample metadatata (CSV)"/]
+                transcriptMeta[/"Transcript metadatata (CSV)"/]
+            end
+        end
+    end
+    START --> dataPrep
+    dataPrep --> VALIDATE
+
+    subgraph prep [Pipeline Preparation]
+
+
+        %% Choice START
+        VALIDATE{Validate VCF format} --> |No|VCFERR([Error: Invalid VCF])
+        VALIDATE --> |Yes|Qliftover{Reference genome version}
+        %% Choice END
+        Qliftover --> |GRCh37|LIFTOVER[[Liftover]]
+        %% Choice START
         LIFTOVER --> COLLATE
-        VALIDATE -.->|Same Reference Genomes| COLLATE
-        COLLATE --> ANNOTATE
-    end
-    subgraph processing [Data Processing]
-        prep --> TRIM
-        TRIM --> FILTER
-    end
+        Qliftover --> |GRCh38|COLLATE[[Collate results into psudo-single dataset]]
+        %% Choice END
 
-    subgraph admix [Admixture]
+        COLLATE --> ANNOTATE[[Annotate VCF]]
     end
+    ANNOTATE --> processing
+
+    subgraph processing [Data Processing]
+        TRIM[[Trim VCF to coordinates of interest]]
+    end
+    TRIM --> FREQ
 
     subgraph analysis [Data Analysis]
-        processing ---> PLINK
-        processing ---> admix
-    end
+        ANNOTATE --> |Perform admixture analysis|ADMIXTURE[[Admixture analysis]]
 
-    prep --> processing
+        FREQ[[Perform frequency analysis]]
+    end
+    FREQ --> END
+    ADMIXTURE --> END
 ```
