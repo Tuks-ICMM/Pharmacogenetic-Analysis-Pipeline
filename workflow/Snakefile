@@ -96,6 +96,8 @@ rule all:
 rule VALIDATE:
     """
     Perform validation of VCF format as well as REF alleles and strip out INFO tags.
+
+    Question: Is this a valid VCF file?
     """
     log:
         "logs/VALIDATE/{sample}.log",

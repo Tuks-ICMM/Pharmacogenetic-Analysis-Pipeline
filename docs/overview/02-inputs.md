@@ -132,7 +132,10 @@ The `locations.csv` file allows you to declare samples and provide the necessary
 
 The `transcripts.csv` file allows you to declare which transcripts you would like to use when performing variant-effect-prediction.
 
-
+{: .note-title }
+> Multiple Transcripts
+>
+> If more than one transcript is provided for a given genomic region, we will attempt to match the transcripts available in the order that is provided. The first match will be selected, and if no transcripts provided are available, the first available transcript will be selected.
 
 #### Data requirements
 
@@ -150,19 +153,19 @@ The `transcripts.csv` file allows you to declare which transcripts you would lik
 
 #### `transcripts.csv` data example
 
-| `gene_name`   | `transcript_id`   |
-| :------------ | :---------------- |
-| CYP2A6        | NM_000762.6       |
-| CYP2A6        | ENST00000600495.1 |
-| CYP2A6        | ENST00000596719.5 |
-| CYP2A6        | ENST00000599960.1 |
-| CYP2B6        | NM_000767.5       |
-| CYP2B6        | ENST00000593831.1 |
-| CYP2B6        | ENST00000598834.2 |
-| CYP2B6        | ENST00000597612.1 |
-| CYP2B6        | ENST00000594187.1 |
-| UGT2B7        | NM_001074.4       |
-| UGT2B7        | ENST00000508661.5 |
-| UGT2B7        | ENST00000622664.1 |
-| UGT2B7        | ENST00000502942.5 |
-| UGT2B7        | ENST00000509763.1 |
+| `gene_name` | `transcript_id`   |
+| :---------- | :---------------- |
+| CYP2A6      | NM_000762.6       |
+| CYP2A6      | ENST00000600495.1 |
+| CYP2A6      | ENST00000596719.5 |
+| CYP2A6      | ENST00000599960.1 |
+| CYP2B6      | NM_000767.5       |
+| CYP2B6      | ENST00000593831.1 |
+| CYP2B6      | ENST00000598834.2 |
+| CYP2B6      | ENST00000597612.1 |
+| CYP2B6      | ENST00000594187.1 |
+| UGT2B7      | NM_001074.4       |
+| UGT2B7      | ENST00000508661.5 |
+| UGT2B7      | ENST00000622664.1 |
+| UGT2B7      | ENST00000502942.5 |
+| UGT2B7      | ENST00000509763.1 |
