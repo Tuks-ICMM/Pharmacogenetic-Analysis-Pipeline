@@ -31,6 +31,7 @@ Welcome to the <i>{{ site.title }}</i>. This is a development repository and doc
 - Perform variant frequency analysis
 - Perform variant-effect-prediction
 
+{: .normal }
 > This work is licensed under a [Creative Commons Attribution 4.0 International License][cc-by].
 
 # Publications and Citations
@@ -52,10 +53,6 @@ Should you wish to cite this project or software, please select an apropriate pa
 
 {% endfor %}
 
-# Roadmap:
-
-See our [Issues tracker](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/issues) on GitHub for a list of proposed features (and
-known issues).
 
 # Versioning:
 
