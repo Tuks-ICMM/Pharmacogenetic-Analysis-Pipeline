@@ -6,5 +6,5 @@ has_children: true
 ---
 
 # Overview
-{: .no-toc }
+{: .no_toc }
 

@@ -7,7 +7,7 @@ parent: Overview
 ---
 
 # Configuration
-{: .no-toc }
+{: .no_toc }
 
 How to set up infrastructure-related settings and provide standard analysis-agnostic data files.
 {: .fs-6 .fw-300 }
@@ -17,28 +17,31 @@ Reference Genome Configuration
 
 
 
-<details open markdown="block">
+<details markdown="block">
   <summary>
     Table of contents
   </summary>
   {: .text-delta }
-  1. TOC
-  {:toc}</details>
+1. TOC
+{:toc}
+</details>
 
 ---
 
 ## Environment
-The _{{ site.title }}_ currently uses the linux-based PBS-Torque scheduling system. A configuration profile is available under `config/PBS-Torque-Profile` should you wish to expand this profile or otherwise customise it.
+The _{{ site.title }}_ currently uses the linux-based PBS-Torque scheduling system. A configuration profile is available under `config/PBS-Torque-Profile` should you wish to expand this profile or otherwise customize it.
 
 {: .normal }
-> Contributions and collaborations on addittional platforms profiles are more than welcome.
+> Contributions and collaborations on additional platforms profiles are more than welcome.
 
 ## Setting global configuration
 
 The _{{ site.title }}_ uses a global configuration located in `config/config.json` to record information that is not analysis-specific. This file contains a top-level JSON `object` to record the configuration options below:
 ### Reference Genomes
 
-It is possible to set a standard list of available reference genomes under the object-id of `reference_genome` in the form of an `array` of `objects`.<dl class="def-wide">
+It is possible to set a standard list of available reference genomes under the object-id of `reference_genome` in the form of an `array` of `objects`.
+
+<dl class="def-wide">
   <dt>version
     <code>&lt;str&gt;</code>
   </dt>
@@ -65,7 +68,7 @@ It is possible to set a standard list of available reference genomes under the o
 </dl>
 
 {: .normal }
-> We use the built-in python function `os.path` to generate platform-spesific paths. Should youo wish to provide a path from root, you may do so by setting the first element in the array to the drive reference for your OS. \***\*Linux E.g. ["/", ...]\*\***
+> We use the built-in python function `os.path` to generate platform-specific paths. Should you wish to provide a path from root, you may do so by setting the first element in the array to the drive reference for your OS. \***\*Linux E.g. ["/", ...]\*\***
 
 **Example:**
 
@@ -119,7 +122,7 @@ This `object` property is used to denote the current working directory for inter
 ```
 
 #### `queues`
-The PBS-Torque batch scheduling system supports the creation of generic resources available for request by users. The _{{ site.title }}_ has been designed to take advantage of this queue system and split each step in the workflow into a seperate job submission. This allows us to paralelize as much of the analysis as possible, providing performance bonuses. Custom installations, however, may contain custom queue definitions which are managed on a per-installation manner and typically, are managed by sysAdmins.
+The PBS-Torque batch scheduling system supports the creation of generic resources available for request by users. The _{{ site.title }}_ has been designed to take advantage of this queue system and split each step in the workflow into a separate job submission. This allows us to parallelize as much of the analysis as possible, providing performance bonuses. Custom installations, however, may contain custom queue definitions which are managed on a per-installation manner and typically, are managed by sysAdmins.
 
 You may use the `queue` key to provide an array of objects declaring each type of PBS-Torque queue and its resource availabilities. The properties in this `queue` object correspond to PBS-Torque resource restrictions which should be provided by the administrator/s of your cluster.
 
@@ -129,7 +132,7 @@ You may use the `queue` key to provide an array of objects declaring each type o
 > In some cases, users might want to run some jobs on multiple nodes and some on single nodes. To support this, you may declare the same underlying queue multiple times with a different `queue` key in teh config file and create multiple versions of the same underlying hardware queue.
 
 {: .note }
-> It is reccomended that you submit the `all` rule with the longest 
+> It is recommended that you submit the `all` rule with the longest 
 
 <dl>
   <dt>queue <code>&lt;str&gt;</code></dt>
@@ -140,7 +143,7 @@ You may use the `queue` key to provide an array of objects declaring each type o
   <br><strong><i>E.g. "900:00:00" = 37.5 days</i></strong></dd>
 
   <dt>memory <code>&lt;str&gt;</code></dt>
-  <dd>The ammount of RAM available on this queue.
+  <dd>The amount of RAM available on this queue.
   
   <br><strong><i>E.g. 128G</i></strong></dd>
 
