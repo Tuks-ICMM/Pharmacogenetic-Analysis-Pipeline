@@ -7,7 +7,7 @@ parent: Overview
 ---
 
 # Data Requirements
-{: .no-toc}
+{: .no_toc}
 
 What files do I need to provide as inputs for this analysis?
 {: .fs-6 .fw-300 }
@@ -24,7 +24,7 @@ Genomic Location Metadata
 Transcript Selection
 {: .label }
 
-<details open markdown="block">
+<details markdown="block">
   <summary>
     Table of contents
   </summary>
@@ -39,7 +39,7 @@ This page lists the informational requirements needed to execute the _{{ site.ti
 
 ## Reference Genome
 
-Due to the nature of reference sequences, they are not included as pipeline inputs and are, as a result, not handled in this section. For addittional information, please consult the Reference Genome section on the pipeline configuration page.
+Due to the nature of reference sequences, they are not included as pipeline inputs and are, as a result, not handled in this section. For additional information, please consult the Reference Genome section on the pipeline configuration page.
 
 ## Datasets & Dataset Files
 
@@ -47,7 +47,7 @@ Please provide all input datasets in the form of _variant-call-format_ or `.vcf`
 
 ### Compression and Indexing
 
-Due to the nature of bioinformatics and genomics, datasets are often quite large in uncompressed form. Users are welcome to compress their data files for addittional performance and administrative ease-of-use.
+Due to the nature of bioinformatics and genomics, datasets are often quite large in uncompressed form. Users are welcome to compress their data files for additional performance and administrative ease-of-use.
 
 If you wish to compress your VCF files, please provide the following files as input:
 
@@ -181,7 +181,7 @@ The `locations.csv` file allows you to declare samples and provide the necessary
 ---
 ### Transcripts
 
-The `transcripts.csv` file allows you to declare which transcripts you would like to use when performing variant-effect-prediction. Please use trasncripts listed on the [E! Ensembl Database](https://www.ensembl.org/)
+The `transcripts.csv` file allows you to declare which transcripts you would like to use when performing variant-effect-prediction. Please use transcripts listed on the [E! Ensembl Database](https://www.ensembl.org/)
 
 {: .normal-title }
 > Multiple Transcripts
