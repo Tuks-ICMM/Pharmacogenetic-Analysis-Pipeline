@@ -26,7 +26,7 @@ flowchart TB
         subgraph Standard ["Standard Resources"]
             genomeFasta[/"Reference Genome GRCh38 (FASTA)"/]
         end
-        subgraph projectSpesific ["Project spesific data"]
+        subgraph projectSpecific ["Project specific data"]
             %% Use LR to invert axis set by parent to effectively force relative "TB"
             direction LR
             subgraph data ["Variant input data"]
@@ -37,9 +37,9 @@ flowchart TB
                 direction LR
 
                 datasetMeta[/"Datasets metadata (CSV)"/]
-                locationMeta[/"Genomic location metadatata (CSV)"/]
-                sampleMeta[/"Sample metadatata (CSV)"/]
-                transcriptMeta[/"Transcript metadatata (CSV)"/]
+                locationMeta[/"Genomic location metadata (CSV)"/]
+                sampleMeta[/"Sample metadata (CSV)"/]
+                transcriptMeta[/"Transcript metadata (CSV)"/]
             end
         end
     end

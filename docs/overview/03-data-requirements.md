@@ -35,7 +35,35 @@ Transcript Selection
 
 ---
 
-This page lists the informational requirements needed to execute the _{{ site.title }}_.
+This page lists the informational requirements needed to execute the _{{ site.title }}_. Below is a simplified overview diagram indicating the full list of required information. For more information, you may consult the relevant section below which contains more advanced explanations, discussions and technical documentation for each requirement and any formatting involved.
+
+## Overview
+
+```mermaid
+---
+title: Data Requirements
+---
+flowchart TB
+  subgraph Standard ["Standard Resources"]
+            genomeFasta[/"Reference Genome GRCh38 (FASTA)"/]
+        end
+        subgraph projectSpecific ["Project specific data"]
+            %% Use LR to invert axis set by parent to effectively force relative "TB"
+            direction LR
+            subgraph data ["Variant input data"]
+                datasetFiles[/"Datasets (VCF)"/]
+            end
+            subgraph metadata ["Analysis metadata"]
+                %% Use LR to invert axis set by parent to effectively force relative "TB"
+                direction LR
+
+                datasetMeta[/"Datasets metadata (CSV)"/]
+                locationMeta[/"Genomic location metadata (CSV)"/]
+                sampleMeta[/"Sample metadata (CSV)"/]
+                transcriptMeta[/"Transcript metadata (CSV)"/]
+            end
+        end
+```
 
 ## Reference Genome
 
