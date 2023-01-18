@@ -95,9 +95,7 @@ rule all:
 
 rule VALIDATE:
     """
-    Perform validation of VCF format as well as REF alleles and strip out INFO tags.
-
-    Question: Is this a valid VCF file?
+    Perform normalisation of variants, validation of VCF format as well as REF alleles and strip out INFO tags.
     """
     log:
         "logs/VALIDATE/{sample}.log",
@@ -123,7 +121,15 @@ rule VALIDATE:
         ),
         # Regenerate and verify the VCF header:
         shell(
-            "module load picard-2.17.11; java -Xmx{params.memory} -jar $PICARD FixVcfHeader I=results/PREP/{wildcards.sample}_NO_INFO.vcf.gz O={output}"
+            "module load picard-2.17.11; java -Xmx{params.memory} -jar $PICARD FixVcfHeader I=results/PREP/{wildcards.sample}_NO_INFO.vcf.gz O=results/PREP/{wildcards.sample}_NEW_INFO.vcf.gz"
+        ),
+        # Normalise variants - split multiallelic records, left align variants, and ensure variant parsimony
+        shell(
+            "module load bcftools-1.7; bcftools norm -m -any results/PREP/{wildcards.sample}_NEW_INFO.vcf.gz -O z -o results/PREP/{wildcards.sample}_NORMALISED.vcf.gz"
+        ),
+        # Ensure consistency of chromosome nomenclature for each dataset
+        shell(
+            "module load bcftools-1.7; bcftools annotate --rename-chrs input/rename_chr.txt results/PREP/{wildcards.sample}_NORMALISED.vcf.gz -O z -o results/PREP/{wildcards.sample}.vcf.gz"
         )
 
 
@@ -214,7 +220,7 @@ rule ALL_COLLATE:
 
 rule ANNOTATE:
     """
-    Annotate rsID's in psudo-dataset to facilitate down-stream analysis.
+    Annotate rsID's and set missing variant IDs in psudo-dataset to facilitate down-stream analysis.
     """
     log:
         "logs/ANNOTATE/ALL.log",
@@ -233,8 +239,61 @@ rule ANNOTATE:
             "module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o results/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"
         ),
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"
+            "module load plink-2; plink2 --allow-extra-chr --set-missing-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"
         ),
+
+
+
+rule FILTER:
+    """
+    Filter out individuals and variants (Safety Check).
+    """
+    log:
+        "logs/FILTER/FILTER.log",
+    input:
+        "results/ANNOTATE/ALL.vcf.gz",
+    output:
+        "results/FILTER/ALL_FILTERED.vcf.gz",
+    params:
+        ref=lambda wildcards: join(
+        *next(
+            i["file_path"]
+            for i in config["reference-genomes"]
+        if i["version"] == "GRCh38"
+            ),
+        ),    
+    resources:
+        cpus=search("cores", "FILTER"),
+        nodes=search("nodes", "FILTER"),
+        queue=search("queue", "FILTER"),
+        walltime=search("walltime", "FILTER"),
+    run:
+        # Filter out variants with >= 20% missingness
+        shell(
+            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --geno 0.2 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1"
+        ),
+        # Filter out variants where the reference in the file does not match that of the reference genome
+        shell(
+            "module load bcftools-1.7; bcftools norm --check-ref x results/FILTER/ALL_FILTERED1.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_FILTERED2.vcf.gz -O z"
+        ),
+        # Filter out samples with >= 20% missingness
+        shell(
+            "module load plink-2; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2.vcf.gz --mind 0.2 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3"
+        ),
+        # Filter out first- and second-degree related individuals and duplicate samples
+        ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 
+        shell(
+            "module load plink-2; plink2 --chr 1-22 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED3.vcf.gz --indep-pairwise 50 5 0.5 --out results/FILTER/ALL_FILTERED3_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3.vcf.gz --extract results/FILTER/ALL_FILTERED3_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3_pruned; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_FILTERED3_unrelated"
+        ),
+        ## Extract the sample IDs of all unrelated individuals and subset the data by these individuals
+        shell(
+            "module load bcftools-1.7; awk '{{print $1}}' results/FILTER/ALL_FILTERED3_unrelated.nosex > results/FILTER/unrelated_samples.txt; bcftools view results/FILTER/ALL_FILTERED3.vcf.gz -S results/FILTER/unrelated_samples.txt -o results/FILTER/ALL_FILTERED4.vcf.gz -O z"
+        ),
+        # Normalise final, filtered VCF
+        shell(
+            "module load bcftools-1.7; bcftools norm -m - -o {output} -O z results/FILTER/ALL_FILTERED4.vcf.gz"
+        )
+
 
 
 rule ADMIXTURE:
@@ -244,7 +303,7 @@ rule ADMIXTURE:
     log:
         "logs/ADMIXTURE/{cluster}.{estimation}.log",
     input:
-        "results/ANNOTATE/ALL.vcf.gz",
+        "results/FINAL/ALL_FILTERED.vcf.gz",
     output:
         expand(
             "results/ADMIXTURE/{{cluster}}.{{estimation}}.{ext}",
@@ -292,9 +351,9 @@ rule TRIM_AND_NAME:
     log:
         "logs/TRIM/{location}.log",
     input:
-        "results/ANNOTATE/ALL.vcf.gz",
+        "results/FILTER/ALL_FILTERED.vcf.gz",
     output:
-        "results/TRIM/ALL_{location}_TRIMMED.vcf.gz",
+        "results/TRIM/ALL_{location}.vcf.gz",
     params:
         fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "start"].item(),
         toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "stop"].item(),
@@ -306,33 +365,9 @@ rule TRIM_AND_NAME:
         walltime=search("walltime", "TRIM_AND_NAME"),
     run:
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}_TRIMMED"
+            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}"
         ),
-
-
-rule FILTER:
-    """
-    Filter out individuals missing 100% of their variant information (Safety Check).
-    """
-    log:
-        "logs/FILTER/{location}.log",
-    input:
-        "results/TRIM/ALL_{location}_TRIMMED.vcf.gz",
-    output:
-        "results/FINAL/ALL_{location}.vcf.gz",
-        "results/FILTER/ALL_{location}_FILTERED.log",
-    resources:
-        cpus=search("cores", "FILTER"),
-        nodes=search("nodes", "FILTER"),
-        queue=search("queue", "FILTER"),
-        walltime=search("walltime", "FILTER"),
-    run:
-        shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --mind 1 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_{wildcards.location}_FILTERED"
-        ),
-        shell(
-            "module load bcftools-1.7; bcftools norm -m - -o results/FINAL/ALL_{wildcards.location}.vcf.gz -O z results/FILTER/ALL_{wildcards.location}_FILTERED.vcf.gz"
-        )
+    
 
 
 rule TRANSPILE_CLUSTERS:
@@ -362,7 +397,7 @@ rule PLINK:
         "logs/PLINK/{location}.log",
     input:
         ["results/REFERENCE/cluster_%s.txt" % (cluster) for cluster in ["SUPER", "SUB"]],
-        vcf="results/FINAL/ALL_{location}.vcf.gz",
+        vcf="results/TRIM/ALL_{location}.vcf.gz",
     output:
         [
             expand(
