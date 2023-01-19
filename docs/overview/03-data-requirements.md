@@ -209,18 +209,25 @@ The `locations.csv` file allows you to declare samples and provide the necessary
 ---
 ### Transcripts
 
-The `transcripts.csv` file allows you to declare which transcripts you would like to use when performing variant-effect-prediction. Please use transcripts listed on the [E! Ensembl Database](https://www.ensembl.org/)
+The `transcripts.csv` file allows you to declare which transcripts you would like to use when performing variant-effect-prediction.
+
+During the execution of the _{{ site.title }}_, variant-effect-prediction (VEP) is performed using a publicly accessible VEP query API by E! Ensembl. Currently, the API returns multiple VEP predictions based on any transcripts that are present at a given genomic location. Users are able to provide a <code>transcripts.csv</code> input file to declare a list of transcripts per genomic-region they would like to consider for this analysis. 
+
+{: .normal-title }
+> Transcript IDs
+>
+>Please use transcripts listed on the [E! Ensembl Database](https://www.ensembl.org/)
 
 {: .normal-title }
 > Multiple Transcripts
 >
-> If more than one transcript is provided for a given genomic region, we will attempt to match the transcripts available in the order that is provided. The first match will be selected, and if no transcripts provided are available, the first available transcript will be selected.
+> If more than one transcript is provided for a given genomic region, we will attempt to match the transcripts available in the order that is provided from top to bottom. The first successful VEP transcript match between the users selection and that provided by E! Ensembl will be selected, and if no transcripts provided are available, the first available transcript result will be selected.
 
 #### Data requirements
 
 <dl class="def-wide">
   <dt>gene_name <code>&lt;enum [str]&gt;</code></dt>
-  <dd>The name of the gene a transcript describes. This key should match the gene or region name provided in the <code></code>. 
+  <dd>The name of the gene a transcript describes. This key should match the gene or region name provided in the <code>locations.csv</code> file. 
   
   <br><strong><i>E.g. <code>HG002</code></i></strong></dd>
   
