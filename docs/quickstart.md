@@ -33,7 +33,7 @@ Configuration
     git clone https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/releases/tag/{{TAG_VERSION_HERE}} .
     ```
 
-    {: .note }
+    {: .normal }
     > Tags are available on our GitHub repository under the [releases](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/releases) page.
 
 ## Prepare data and Metadata
@@ -45,13 +45,24 @@ Configuration
     - `input/transcripts.csv` ([Transcript selection](https://tuks-icmm.github.io/Pharmacogenetic-Analysis-Pipeline/overview/data-requirements#samples))
 2. Following configuration, you will need to provide the input data files themselves.
     - `.vcf.gz` files can be compressed but must be accompanied by a tabix index file ([Discussion here](https://tuks-icmm.github.io/Pharmacogenetic-Analysis-Pipeline/overview/data-requirements#compression-and-indexing))
-    - `.fasta.gz` files for reference sequences must be accompanied by a sequence dictionary file (`.dict`), a fasta index file (`.fa.gz.fai` or `fasta.gz.fai`) and a BGZIP-index (`.fa.gz.gzi`) ((Discussion here)[]).
+    - `.fasta.gz` files for reference sequences must be accompanied by a sequence dictionary file (`.dict`), a fasta index file (`.fa.gz.fai` or `fasta.gz.fai`) and a BGZIP-index (`.fa.gz.gzi`) ([Discussion here](https://tuks-icmm.github.io/Pharmacogenetic-Analysis-Pipeline/overview/configuration#reference-genomes)).
 
 ## Execute analysis
-1. To execute the analysis, we need to compile our metadata and auto-generate a suitable queue-able script for the batch scheduler. To do this, you can use the `run.py` script which generates and queues a hidden generated script `.run.sh` written for your environment.
+1. To execute the analysis, we need to compile our metadata and auto-generate a suitable queue-able script for the batch scheduler. To do this, you can use the `run.py` script which generates and queues a hidden generated script `.run.sh` written for your environment. For example:
+    ```bash
+    module load python-3.8.2
+    run.py
+    watch -t -d qstat
+    ```
 
 {: .normal }
-> There is currently a known bug with `run.py` on some systems where the python instance does not have the requisite permissions and configuration to execute `BASH` commands. As a result, when executing the script, it will compile `.run.sh` successfully and hang without executing this script. IN such cases, the user can terminate the script (`CTRL + C`) and manually queue the generated script (E.g. `qsub .run.sh`)
+> There is currently a known bug with `run.py` on some systems where the python instance does not have the requisite permissions and configuration to execute `BASH` commands. As a result, when executing the script, it will compile `.run.sh` successfully and hang without executing this script. IN such cases, the user can terminate the script (`CTRL + C`) and manually queue the generated script. In such cases, you can queue the script as follows:
+>```bash
+>   module load python-3.8.2
+>   run.py   # CTRL + C after confirming .run.sh has been created
+>   qsub .run.sh
+>   watch -t -d qstat
+>```
 
 
 {: .normal-title }
