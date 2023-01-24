@@ -11,7 +11,7 @@ __credits__ = [
     "Antionette Colic",
     "Fatima Barmania",
     "Sarah Turner",
-    "Megan Ryder",
+    "Megan Holborn",
 ]
 __version__ = "1.0.0"
 __maintainer__ = "Graeme Ford"
@@ -49,6 +49,13 @@ tExtensions = ["map", "ped"]
 
 include: "rules/common.py"
 
+module VcfValidation:
+    snakefile:
+        # Vcf-Validation sub-workflow is imported here from GitHub:
+        github("Tuks-ICMM/Vcf-Validation", path="workflow/Snakefile", tag="v1.0.0-ALPHA")
+    config: config
+
+use rule * from VcfValidation as VcfValidation_*
 
 # BEGIN DEFINING RULES:
 rule all:
@@ -91,88 +98,6 @@ rule all:
         # "results/FINAL/Admixture/EIGENSOFT.plot",
         # "results/FINAL/Admixture/EIGENSOFT.eval",
         # "results/FINAL/Admixture/EIGENSOFT.log",
-
-
-rule VALIDATE:
-    """
-    Perform normalisation of variants, validation of VCF format as well as REF alleles and strip out INFO tags.
-    """
-    log:
-        "logs/VALIDATE/{sample}.log",
-    input:
-        lambda wildcards: datasets.loc[datasets["dataset_name"] == wildcards.sample, "file"].item()
-    output:
-        "results/PREP/{sample}.vcf.gz",
-    params:
-        memory=search("memory", "VALIDATE"),
-    resources:
-        cpus=search("cores", "VALIDATE"),
-        nodes=search("nodes", "VALIDATE"),
-        queue=search("queue", "VALIDATE"),
-        walltime=search("walltime", "VALIDATE"),
-    run:
-        # Remove variant types we cant yet analyse:
-        shell(
-            "module load gatk-4.2.2.0; gatk SelectVariants  -V {input} --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O results/PREP/{wildcards.sample}_FILTERED.vcf.gz"
-        ),
-        # Strip out INFO tags:
-        shell(
-            "module load bcftools-1.7; bcftools annotate -x INFO -O z -o results/PREP/{wildcards.sample}_NO_INFO.vcf.gz results/PREP/{wildcards.sample}_FILTERED.vcf.gz"
-        ),
-        # Regenerate and verify the VCF header:
-        shell(
-            "module load picard-2.17.11; java -Xmx{params.memory} -jar $PICARD FixVcfHeader I=results/PREP/{wildcards.sample}_NO_INFO.vcf.gz O=results/PREP/{wildcards.sample}_NEW_INFO.vcf.gz"
-        ),
-        # Normalise variants - split multiallelic records, left align variants, and ensure variant parsimony
-        shell(
-            "module load bcftools-1.7; bcftools norm -m -any results/PREP/{wildcards.sample}_NEW_INFO.vcf.gz -O z -o results/PREP/{wildcards.sample}_NORMALISED.vcf.gz"
-        ),
-        # Ensure consistency of chromosome nomenclature for each dataset
-        shell(
-            "module load bcftools-1.7; bcftools annotate --rename-chrs input/rename_chr.txt results/PREP/{wildcards.sample}_NORMALISED.vcf.gz -O z -o results/PREP/{wildcards.sample}.vcf.gz"
-        )
-
-
-rule LIFTOVER:
-    """
-    Lift Variants onto same Reference build. Otherwise we cant merge them or analyse them in context of each other.
-    """
-    log:
-        "logs/LIFTOVER/{sample}.log",
-    input:
-        "results/PREP/{sample}.vcf.gz",
-    output:
-        "results/LIFTOVER/{sample}.vcf.gz",
-    params:
-        prefix=lambda wildcards: "results/LIFTOVER/{sample}_LIFTED".format(
-            sample=wildcards.sample
-        ),
-        exclusionList=(
-            lambda wildcards: "results/LIFTOVER/{sample}_EXCLUDE.dat".format(
-                sample=wildcards.sample
-            )
-        ),
-        chainFile=join("resources", "hg19ToHg38.over.chain"),
-        LiftOver=join("resources", "liftOverPlink.py"),
-        rmBadLifts=join("resources", "rmBadLifts.py"),
-        ref=join(
-            *next(
-                i["file_path"]
-                for i in config["reference-genomes"]
-            if i["version"] == "GRCh38"
-                ),
-        ),
-        mem=f'-Xmx{search("memory", "LIFTOVER")} ',
-    resources:
-        cpus=search("cores", "LIFTOVER"),
-        nodes=search("nodes", "LIFTOVER"),
-        queue=search("queue", "LIFTOVER"),
-        walltime=search("walltime", "LIFTOVER"),
-    conda:
-        join("envs", "snakemake.yml")
-    script:
-        join("scripts", "00 - LIFTOVER.py")
-
 
 rule ALL_COLLATE:
     """

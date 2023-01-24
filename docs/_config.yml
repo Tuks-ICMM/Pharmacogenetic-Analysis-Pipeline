@@ -19,9 +19,10 @@
 # in the templates via {{ site.myvariable }}.
 
 title: Pharmacogenetics Analysis Pipeline
+tagline: A snakemake pipeline for variant analysis
 email: graeme.ford@tuks.co.za
 description: >- # this means to ignore newlines until "domain:"
-  A computational pipeline to analyse variant-call data.
+  A computational pipeline to analyse human variant-call data and perform variant-effect-prediction
 domain: "tuks-icmm.github.io"
 baseurl: "/Pharmacogenetic-Analysis-Pipeline" # the subpath of your site, e.g. /blog
 url: "https://tuks-icmm.github.io" # the base hostname & protocol for your site, e.g. http://example.com
@@ -38,6 +39,7 @@ plugins:
   - jekyll-feed
   - jekyll-avatar
   - jekyll-sitemap
+  - jekyll-seo-tag
 
 color_scheme: "dark"
 
@@ -68,6 +70,16 @@ gh_edit_repository: "https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipel
 gh_edit_branch: "main" # the branch that your docs is served from
 gh_edit_source: docs # the source that your files originate from
 gh_edit_view_mode: "tree" # "tree" or "edit" if you want the user to jump into the editor immediately
+
+# SEO
+twitter:
+   card: summary_large_image
+
+social:
+  name: Graeme Ford
+  links:
+    - https://github.com/G-kodes
+    - https://www.linkedin.com/in/graeme-ford/
 
 # Exclude from processing.
 # The following items will not be processed, by default.

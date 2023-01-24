@@ -1,4 +1,4 @@
 dataset_name,reference_genome,file
-HG002,GRCh38,/nlustre/users/graeme/PUBLIC/GenomeInABottle/HG002.vcf.gz
-HG003,GRCh38,/nlustre/users/graeme/PUBLIC/GenomeInABottle/HG003.vcf.gz
-HG004,GRCh38,/nlustre/users/graeme/PUBLIC/GenomeInABottle/HG004.vcf.gz
+HG002,GRCh38,input/HG002.vcf.gz
+HG003,GRCh38,input/HG003.vcf.gz
+HG004,GRCh38,input/HG004.vcf.gz
