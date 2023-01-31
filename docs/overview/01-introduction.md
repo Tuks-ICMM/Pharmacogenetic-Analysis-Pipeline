@@ -13,7 +13,7 @@ Below is a diagram representing the pipeline flow and steps in the form of a pro
 
 ```mermaid
 ---
-title: Pharmacogenetics Analysis
+title: Pharmacogenetics Analysis Pipeline
 ---
 flowchart TB
     START([Start])
