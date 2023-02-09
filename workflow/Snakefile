@@ -127,7 +127,7 @@ rule VALIDATE:
         ),
         # Subset samples according to user defined list and remove variants that do not pass QC:
         shell(
-            "module load bcftools-1.7; bcftools view -S input/samples_subset.txt -f 'PASS' -O z -o results/PREP/{wildcards.sample}_FILTERED2.vcf.gz results/PREP/{wildcards.sample}_FILTERED.vcf.gz"
+            "module load bcftools-1.7; bcftools view -S input/{wildcards.sample}_samples_subset.txt -f 'PASS' -O z -o results/PREP/{wildcards.sample}_FILTERED2.vcf.gz results/PREP/{wildcards.sample}_FILTERED.vcf.gz"
         )
         # Normalise variants - split multiallelic records, left align variants, and ensure variant parsimony
         shell(
