@@ -277,17 +277,17 @@ rule FILTER:
         queue=search("queue", "FILTER"),
         walltime=search("walltime", "FILTER"),
     run:
-        # Filter out variants with >= 20% missingness
+        # Filter out variants with >= 100% missingness
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --geno 0.2 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1"
+            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1"
         ),
         # Filter out variants where the reference in the file does not match that of the reference genome
         shell(
             "module load bcftools-1.7; bcftools norm --check-ref x results/FILTER/ALL_FILTERED1.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_FILTERED2.vcf.gz -O z"
         ),
-        # Filter out samples with >= 20% missingness
+        # Filter out samples with >= 100% missingness
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2.vcf.gz --mind 0.2 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3"
+            "module load plink-2; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3"
         ),
         # Filter out first- and second-degree related individuals and duplicate samples
         ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 
