@@ -294,7 +294,7 @@ rule FILTER:
         ),
         ## Extract the sample IDs of all unrelated individuals and subset the data by these individuals
         shell(
-            "module load bcftools-1.7; awk '{{print $1}}' results/FILTER/ALL_FILTERED2_unrelated.nosex > results/FILTER/unrelated_samples.txt; bcftools view results/FILTER/ALL_FILTERED2.vcf.gz -S results/FILTER/unrelated_samples.txt -o results/FILTER/ALL_FILTERED3.vcf.gz -O z"
+            "module load bcftools-1.7; bcftools query -l results/FILTER/ALL_FILTERED2_unrelated.vcf.gz > results/FILTER/unrelated_samples.txt; bcftools view results/FILTER/ALL_FILTERED2.vcf.gz -S results/FILTER/unrelated_samples.txt -o results/FILTER/ALL_FILTERED3.vcf.gz -O z"
         ),
         # Normalise final, filtered VCF
         shell(
