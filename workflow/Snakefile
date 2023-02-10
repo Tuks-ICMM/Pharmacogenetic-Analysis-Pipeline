@@ -372,7 +372,7 @@ rule TRIM_AND_NAME:
         walltime=search("walltime", "TRIM_AND_NAME"),
     run:
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}"
+            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --output-chr chr26 --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}"
         ),
     
 
