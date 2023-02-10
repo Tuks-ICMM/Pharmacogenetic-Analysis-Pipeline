@@ -279,28 +279,30 @@ rule FILTER:
     run:
         # Filter out variants with >= 100% missingness
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1"
+            "module load plink-2; plink2 --chr 1-22 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1"
         ),
+
         # Filter out variants where the reference in the file does not match that of the reference genome
-        shell(
-            "module load bcftools-1.7; bcftools norm --check-ref x results/FILTER/ALL_FILTERED1.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_FILTERED2.vcf.gz -O z"
-        ),
+        # shell(
+        #     "module load bcftools-1.7; bcftools norm --targets ^chr23,chr24,chr25,chr26 --check-ref x results/FILTER/ALL_FILTERED1.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_FILTERED2.vcf.gz -O z"
+        # ),
+
         # Filter out samples with >= 100% missingness
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3"
+            "module load plink-2; plink2 --chr 1-22 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED1.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2"
         ),
         # Filter out first- and second-degree related individuals and duplicate samples
         ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 
         shell(
-            "module load plink-2; plink2 --chr 1-22 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED3.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --out results/FILTER/ALL_FILTERED3_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3.vcf.gz --extract results/FILTER/ALL_FILTERED3_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3_pruned; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_FILTERED3_unrelated"
+            "module load plink-2; plink2 --chr 1-22 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED2.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --out results/FILTER/ALL_FILTERED2_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2.vcf.gz --extract results/FILTER/ALL_FILTERED2_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2_pruned; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_FILTERED2_unrelated"
         ),
         ## Extract the sample IDs of all unrelated individuals and subset the data by these individuals
         shell(
-            "module load bcftools-1.7; awk '{{print $1}}' results/FILTER/ALL_FILTERED3_unrelated.nosex > results/FILTER/unrelated_samples.txt; bcftools view results/FILTER/ALL_FILTERED3.vcf.gz -S results/FILTER/unrelated_samples.txt -o results/FILTER/ALL_FILTERED4.vcf.gz -O z"
+            "module load bcftools-1.7; awk '{{print $1}}' results/FILTER/ALL_FILTERED2_unrelated.nosex > results/FILTER/unrelated_samples.txt; bcftools view results/FILTER/ALL_FILTERED2.vcf.gz -S results/FILTER/unrelated_samples.txt -o results/FILTER/ALL_FILTERED3.vcf.gz -O z"
         ),
         # Normalise final, filtered VCF
         shell(
-            "module load bcftools-1.7; bcftools norm -m - -o {output} -O z results/FILTER/ALL_FILTERED4.vcf.gz"
+            "module load bcftools-1.7; bcftools norm -m - -o {output} -O z results/FILTER/ALL_FILTERED3.vcf.gz"
         )
 
 
