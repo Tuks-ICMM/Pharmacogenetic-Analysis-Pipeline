@@ -85,11 +85,9 @@ if listed_refs != "GRCh38":
     )
 else:
     shell(
-        "cp results/PREP/{wildcards.sample}.vcf.gz results/LIFTOVER/{wildcards.sample}.vcf.gz"
+        "module load plink-2; plink2 --vcf results/PREP/{wildcards.sample}.vcf.gz --set-all-var-ids @:#\$r-\$a --allow-extra-chr --new-id-max-allele-len 40 truncate --chr 1-22 --out results/LIFTOVER/{wildcards.sample} --export vcf-4.2 bgz --output-chr chr26"
     ),
-    shell(
-        "cp results/PREP/{wildcards.sample}.vcf.gz.tbi results/LIFTOVER/{wildcards.sample}.vcf.gz.tbi"
-    ),
+    shell("sleep 60; tabix -p vcf results/LIFTOVER/{wildcards.sample}.vcf.gz"),
     shell(
         "echo 'results/LIFTOVER/{wildcards.sample}.vcf.gz' >> results/LIFTOVER/merge.list"
     )
