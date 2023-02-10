@@ -248,7 +248,7 @@ rule ANNOTATE:
             "module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o results/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"
         ),
         shell(
-            "module load plink-2; plink2 --allow-extra-chr --set-missing-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"
+            "module load plink-2; plink2 --allow-extra-chr --set-missing-var-ids @:#\$r-\$a --new-id-max-allele-len 500 --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"
         ),
 
 
@@ -294,7 +294,7 @@ rule FILTER:
         # Filter out first- and second-degree related individuals and duplicate samples
         ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 
         shell(
-            "module load plink-2; plink2 --chr 1-22 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED2.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --out results/FILTER/ALL_FILTERED2_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2.vcf.gz --extract results/FILTER/ALL_FILTERED2_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2_pruned; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_FILTERED2_unrelated"
+            "module load plink-2; plink2 --chr 1-22 --set-all-var-ids @:#\$r-\$a --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED2.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --out results/FILTER/ALL_FILTERED2_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2.vcf.gz --extract results/FILTER/ALL_FILTERED2_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2_pruned; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_FILTERED2_unrelated"
         ),
         ## Extract the sample IDs of all unrelated individuals and subset the data by these individuals
         shell(
