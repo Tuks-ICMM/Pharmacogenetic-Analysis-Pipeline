@@ -245,12 +245,8 @@ rule ANNOTATE:
     # ToDo: Add refGenome and dbSNP links
     run:
         shell(
-            "module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o results/ANNOTATE/ALL_ANNOTATED.vcf.gz {input}"
+            "module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o results/ANNOTATE/ALL.vcf.gz {input}"
         ),
-        shell(
-            "module load plink-2; plink2 --allow-extra-chr --set-missing-var-ids @:#\$r-\$a --new-id-max-allele-len 400 --vcf results/ANNOTATE/ALL_ANNOTATED.vcf.gz --export vcf-4.2 bgz --out results/ANNOTATE/ALL"
-        ),
-
 
 
 rule FILTER:
