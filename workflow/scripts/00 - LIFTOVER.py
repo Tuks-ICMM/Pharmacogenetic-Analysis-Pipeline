@@ -62,7 +62,10 @@ if listed_refs != "GRCh38":
         ),
         shell("sleep 60; tabix -p vcf results/LIFTOVER/{wildcards.sample}_PREP.vcf.gz"),
         shell(
-            "module load picard-2.17.11; java {params.mem} -jar $PICARD LiftoverVcf I=results/LIFTOVER/{wildcards.sample}_PREP.vcf.gz O=results/LIFTOVER/{wildcards.sample}.vcf.gz C={params.chainFile} REJECT=results/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"
+            "module load picard-2.17.11; java {params.mem} -jar $PICARD LiftoverVcf I=results/LIFTOVER/{wildcards.sample}_PREP.vcf.gz O=results/LIFTOVER/{wildcards.sample}_LIFTOVER.vcf.gz C={params.chainFile} REJECT=results/LIFTOVER/{wildcards.sample}_REJECTED.vcf.gz R={params.ref}"
+        ),
+        shell(
+            "module load module load bcftools-1.7; bcftools sort -m 1G -T results/LIFTOVER -O z -o results/LIFTOVER/{wildcards.sample}.vcf.gz results/LIFTOVER/{wildcards.sample}_LIFTOVER.vcf.gz"
         ),
     # TODO: Add conditionals for other human reference genome builds
     else:
