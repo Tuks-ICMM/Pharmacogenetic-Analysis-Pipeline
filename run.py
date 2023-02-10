@@ -1,5 +1,5 @@
-from os.path import join, abspath, dirname
 from json import load
+from os.path import abspath, dirname, join
 from subprocess import run
 
 with open(join("config", "config.json"), "r") as file_content:
@@ -11,12 +11,13 @@ PBS_Headers = [
     "#PBS -l walltime=900:00:00",
     "#PBS -l nodes=1:ppn=1",
     "#PBS -N Snakemake",
+    " ",
 ]
 
 PBS_Body = [
-    "module load python-3.8.2",
+    "module load python-3.11.2",
     "cd {};".format(dirname(abspath(__file__))),
-    "snakemake --cluster-config config/cluster.json --profile config/PBS-Torque-Profile",
+    "snakemake --cluster-config config/cluster.json --profile config/PBS-Torque-Profile --force all",
 ]
 
 if "environment" in config:
