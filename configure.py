@@ -31,7 +31,7 @@ if "environment" in config:
             PBS_Headers.append("#PBS -M " + config["environment"]["email"]["address"])
 
 
-with open(".run.sh", "w") as file:
+with open("run.sh", "w") as file:
     file.writelines("\n".join(PBS_Headers + PBS_Body))
 
 # run(["qsub", ".run.sh"], shell=True)
