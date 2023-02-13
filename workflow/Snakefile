@@ -49,6 +49,7 @@ tExtensions = ["map", "ped"]
 
 include: "rules/common.py"
 
+container: "docker://joseespinosa/docker-r-ggplot2"
 
 # BEGIN DEFINING RULES:
 rule all:
@@ -95,7 +96,8 @@ rule all:
 module VcfValidation:
     snakefile:
         # Vcf-Validation sub-workflow is imported here from GitHub:
-        github("Tuks-ICMM/Vcf-Validation", path="workflow/Snakefile", tag="v1.1.1-ALPHA")
+        # github("Tuks-ICMM/Vcf-Validation", path="workflow/Snakefile", tag="v1.1.1-ALPHA")
+        "https://raw.githubusercontent.com/Tuks-ICMM/Vcf-Validation/user/GraemeFord/workflow/Snakefile"
     config: config
 
 use rule * from VcfValidation as VcfValidation_*
@@ -312,7 +314,7 @@ rule TRANSPILE_CLUSTERS:
     conda:
         join("envs", "snakemake.yml")
     script:
-        join("scripts", "01 - TRANSPILE_CLUSTERS.py")
+        join("scripts", "01-TRANSPILE_CLUSTERS.py")
 
 
 rule PLINK:
