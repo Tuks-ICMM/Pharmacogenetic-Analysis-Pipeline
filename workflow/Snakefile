@@ -49,7 +49,6 @@ tExtensions = ["map", "ped"]
 
 include: "rules/common.py"
 
-container: "docker://joseespinosa/docker-r-ggplot2"
 
 # BEGIN DEFINING RULES:
 rule all:
