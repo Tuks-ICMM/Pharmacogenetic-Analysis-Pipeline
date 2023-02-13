@@ -1,6 +1,7 @@
 from json import load
 from os.path import abspath, dirname, join
-from subprocess import run
+
+# from subprocess import run
 
 with open(join("config", "config.json"), "r") as file_content:
     config = load(file_content)
@@ -33,4 +34,4 @@ if "environment" in config:
 with open(".run.sh", "w") as file:
     file.writelines("\n".join(PBS_Headers + PBS_Body))
 
-run(["qsub", ".run.sh"], shell=True)
+# run(["qsub", ".run.sh"], shell=True)
