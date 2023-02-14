@@ -15,7 +15,7 @@ PBS_Headers = [
 ]
 
 PBS_Body = [
-    "module load python-3.11.2",
+    "module load python-3.8.2",
     "cd {};".format(dirname(abspath(__file__))),
     "snakemake --cluster-config config/cluster.json --profile config/PBS-Torque-Profile",
 ]
