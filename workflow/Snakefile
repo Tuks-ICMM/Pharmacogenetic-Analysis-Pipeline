@@ -223,7 +223,7 @@ rule FILTER:
         # Filter out first- and second-degree related individuals and duplicate samples
         ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 
         echo -e "\n--- LOG SECTION START | Plink-2 'Filter -first and second-degree related individuals' ---" 1>&2
-        plink2 --chr 1-22 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED2.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --out results/FILTER/ALL_FILTERED_LD
+        plink2 --chr 1-22 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED2.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --export vcf-4.2 bgz  --out results/FILTER/ALL_FILTERED_LD
         plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED_LD.vcf.gz --extract results/FILTER/ALL_FILTERED_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED_LD_pruned
         plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED_LD_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_FILTERED_LD_unrelated
         echo -e "--- LOG SECTION END | Plink-2 'Filter -first and second-degree related individuals' ---\n" 1>&2
