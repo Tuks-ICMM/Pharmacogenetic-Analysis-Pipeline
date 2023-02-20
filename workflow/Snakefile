@@ -116,7 +116,7 @@ rule ALL_COLLATE:
         """
         # FIRST
         # we cehck to see if we have more than one dataset to even collate, otherwise this is largely unnecicary
-        if [ "{params.dataset_count}" -gt "1" ]
+        if [ '{params.dataset_count}'' -gt '1' ]
         then
             echo -e "\n--- LOG SECTION START | BcfTools 'merge' ---" 1>&2
             bcftools merge -l results/LIFTOVER/merge.list -O z -o results/COLLATE/ALL_PRE.vcf.gz
