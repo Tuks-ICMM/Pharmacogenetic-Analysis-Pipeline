@@ -114,15 +114,30 @@ rule ALL_COLLATE:
         "docker://graemeford/pipeline-os"
     shell:
         """
+        # FIRST
+        # we cehck to see if we have more than one dataset to even collate, otherwise this is largely unnecicary
         if [{params.dataset_count} -gt 1]
         then
+            echo -e "\n--- LOG SECTION START | BcfTools 'merge' ---" 1>&2
             bcftools merge -l results/LIFTOVER/merge.list -O z -o results/COLLATE/ALL_PRE.vcf.gz
+            echo -e "--- LOG SECTION END | BcfTools 'merge' ---\n" 1>&2
+            
+            echo -e "\n--- LOG SECTION START | SamTools 'tabix' ---" 1>&2
             tabix -p vcf results/COLLATE/ALL_PRE.vcf.gz
+            echo -e "--- LOG SECTION END | SamTools 'tabix' ---\n" 1>&2
+
+            echo -e "\n--- LOG SECTION START | Plink-2 'Ref from FASTA' ---" 1>&2
             plink2 --vcf results/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out results/COLLATE/ALL_REF
+            echo -e "--- LOG SECTION END | Plink-2 'Ref from FASTA' ---\n" 1>&2
+
+            echo -e "\n--- LOG SECTION START | Plink-2 'chr filter' ---" 1>&2
             plink2 --vcf results/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/ALL
+            echo -e "--- LOG SECTION END | Plink-2 'chr filter' ---\n" 1>&2
         else
+            echo -e "\n--- LOG SECTION START | Copy 'No Liftover Needed' ---" 1>&2
             cp results/LIFTOVER/{params.dataset_names[0]}.vcf.gz results/COLLATE/ALL.vcf.gz
             cp results/LIFTOVER/{params.dataset_names[0]}.vcf.gz.tbi results/COLLATE/ALL.vcf.gz.tbi
+            echo -e "--- LOG SECTION END | Copy 'No Liftover Needed' ---\n" 1>&2
         fi
         """
 
@@ -149,7 +164,9 @@ rule ANNOTATE:
         "docker://graemeford/pipeline-os"
     shell:
         """
+        echo -e "\n--- LOG SECTION START | BcfTools 'annotate' ---" 1>&2
         bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o results/ANNOTATE/ALL.vcf.gz {input}
+        echo -e "--- LOG SECTION END | BcfTools 'annotate' ---\n" 1>&2
         """
 
 
@@ -185,10 +202,14 @@ rule FILTER:
     shell:
         """
         # Filter out variants with >= 100% missingness
+        echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness variants' ---" 1>&2
         plink2 --chr 1-22 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1
+        echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness variants' ---\n" 1>&2
 
         # Filter out samples with >= 100% missingness
+        echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness samples' ---" 1>&2
         plink2 --chr 1-22 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED1.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2
+        echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness samples' ---\n" 1>&2
                 
         # TODO
         # Remove variants with reference alleles not matching that of reference genome
@@ -196,13 +217,21 @@ rule FILTER:
         
         # Filter out first- and second-degree related individuals and duplicate samples
         ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 
+        echo -e "\n--- LOG SECTION START | Plink-2 'Filter -first and second-degree related individuals' ---" 1>&2
         plink2 --chr 1-22 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED3.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --out results/FILTER/ALL_FILTERED3_LD
         plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3.vcf.gz --extract results/FILTER/ALL_FILTERED3_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED3_pruned
         plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED3_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --out results/FILTER/ALL_FILTERED3_unrelated
+        echo -e "--- LOG SECTION END | Plink-2 'Filter -first and second-degree related individuals' ---\n" 1>&2
         
-        ## Extract the sample IDs of all unrelated individuals and subset the data by these individuals
+        ## Extract the sample IDs of all unrelated individuals
+        echo -e "\n--- LOG SECTION START | BcfTools 'query' ---" 1>&2
         bcftools query -l results/FILTER/ALL_FILTERED2_unrelated.vcf.gz > results/FILTER/unrelated_samples.txt
+        echo -e "--- LOG SECTION END | BcfTools 'query' ---\n" 1>&2
+        
+        # Subset the data by these unrelated individuals
+        echo -e "\n--- LOG SECTION START | BcfTools 'view' ---" 1>&2
         bcftools view results/FILTER/ALL_FILTERED2.vcf.gz -S results/FILTER/unrelated_samples.txt -o {output} -O z
+        echo -e "--- LOG SECTION END | BcfTools 'view' ---\n" 1>&2
         """
 
 
@@ -237,11 +266,18 @@ rule ADMIXTURE:
         "docker://graemeford/pipeline-os"
     shell:
         """
+        echo -e "\n--- LOG SECTION START | BcfTools 'view' ---" 1>&2
         bcftools view -O z -o results/ADMIXTURE/FILTERED.vcf.gz -m2 -M2 -v snps {input}
+        echo -e "--- LOG SECTION END | BcfTools 'view' ---\n" 1>&2
 
+        echo -e "\n--- LOG SECTION START | Plink-2 'thin to 200 000 variants' ---" 1>&2
         plink2 --allow-extra-chr --vcf results/ADMIXTURE/FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}
+        echo -e "--- LOG SECTION END | Plink-2 'thin to 200 000 variants' ---\n" 1>&2
         
+        echo -e "\n--- LOG SECTION START | Admixture-1.3.0 ---" 1>&2
         admixture results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}.bed {wildcards.estimation}
+        echo -e "--- LOG SECTION END | Admixture-1.3.0 ---\n" 1>&2
+
         mv {wildcards.cluster}.{wildcards.estimation}.{wildcards.estimation}.P results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.P
         mv {wildcards.cluster}.{wildcards.estimation}.{wildcards.estimation}.Q results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.Q
         """
@@ -272,7 +308,9 @@ rule TRIM_AND_NAME:
         "docker://graemeford/pipeline-os"
     shell:
         """
+        echo -e "\n--- LOG SECTION START | Plink-2 'trim' ---" 1>&2
         plink2 --allow-extra-chr --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --output-chr chr26 --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}
+        echo -e "--- LOG SECTION END | Plink-2 'trim' ---\n" 1>&2
         """
     
 
@@ -337,7 +375,12 @@ rule PLINK:
         """
         for CLUSTER in {params.subsets_list}
         do
+            echo -e "\n--- LOG SECTION START | Plink-2 'All freq' ---" 1>&2
             plink2 --allow-extra-chr --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/$CLUSTER/{params.prefix}
+            echo -e "--- LOG SECTION END | Plink-2 'All freq' ---\n" 1>&2
+            
+            echo -e "\n--- LOG SECTION START | Plink-2 'Subset freq' ---" 1>&2
             plink2 --allow-extra-chr --vcf {input.vcf} --pheno iid-only results/REFERENCE/cluster_$CLUSTER.txt --loop-cats $CLUSTER --freq counts --missing --hardy midp --out results/FINAL/$CLUSTER/{params.prefix}
+            echo -e "--- LOG SECTION END | Plink-2 'Subset freq' ---\n" 1>&2
         done
         """
