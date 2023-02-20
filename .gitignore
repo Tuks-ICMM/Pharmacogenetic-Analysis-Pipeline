@@ -137,6 +137,8 @@ input/*
 !input/HG002*
 !input/HG003*
 !input/HG004*
+!input/rename_chr.txt
+!input/*_samples_subset.txt
 final/
 logs/*
 figures/
