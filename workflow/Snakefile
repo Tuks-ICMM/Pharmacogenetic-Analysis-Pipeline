@@ -11,7 +11,7 @@ __credits__ = [
     "Antionette Colic",
     "Fatima Barmania",
     "Sarah Turner",
-    "Megan Ryder",
+    "Megan Holborn",
 ]
 __version__ = "1.0.0"
 __maintainer__ = "Graeme Ford"
@@ -92,6 +92,13 @@ rule all:
         # "results/FINAL/Admixture/EIGENSOFT.eval",
         # "results/FINAL/Admixture/EIGENSOFT.log",
 
+module VcfValidation:
+    snakefile:
+        # Vcf-Validation sub-workflow is imported here from GitHub:
+        github("Tuks-ICMM/Vcf-Validation", path="workflow/Snakefile", tag="v1.1.1-ALPHA")
+    config: config
+
+use rule * from VcfValidation as VcfValidation_*
 
 rule ALL_COLLATE:
     """
@@ -190,6 +197,9 @@ rule FILTER:
         # Filter out samples with >= 100% missingness
         shell(
             "module load plink-2; plink2 --chr 1-22 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED1.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2"
+            # TODO
+            # Remove variants with reference alleles not matching that of reference genome
+            # "module load bcftools-1.7; bcftools norm --check-ref x results/FILTER/ALL_FILTERED1.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_FILTERED2.vcf.gz -O z"
         ),
         # Filter out first- and second-degree related individuals and duplicate samples
         ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 

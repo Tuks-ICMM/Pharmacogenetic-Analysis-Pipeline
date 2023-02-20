@@ -46,7 +46,6 @@ It is possible to set a standard list of available reference genomes under the o
     <code>&lt;str&gt;</code>
   </dt>
   <dd>The version string to be used to access this reference genome in the pipeline input files.
-
     <br><strong>
       <i>E.g.
         <code>GRCh38</code>
@@ -58,7 +57,6 @@ It is possible to set a standard list of available reference genomes under the o
     <code>&lt;array [str]&gt;</code>
   </dt>
   <dd>An array containing the decomposed location of the dataset to be used in the analysis. See the note below for additional information.
-
     <br><strong>
       <i>E.g.
         <code>["/", "reference", "human", "GRCh38.fa.gz"]</code>
@@ -69,6 +67,13 @@ It is possible to set a standard list of available reference genomes under the o
 
 {: .normal }
 > We use the built-in python function `os.path` to generate platform-specific paths. Should you wish to provide a path from root, you may do so by setting the first element in the array to the drive reference for your OS. \***\*Linux E.g. ["/", ...]\*\***
+
+Users may also opt to use compression and indexing for performance gain when using reference genomes. In such cases, only the declaration for the compressed `FASTA` file is required in `config.json`. Block compression (BGZIP) such as that provided by [SamTools](http://www.htslib.org/doc/bgzip.html) can be used to compress these `FASTA` files. In such cases, additional accompanying index and dictionary files will be required to facilitate performant and targeted decompression. These accompanying files will need to be stored alongside this file. 
+
+These files include:
+-  a `.fa.gz.gzi` file (Can be generated during compression) ([Samtools](http://www.htslib.org/doc/bgzip.html))
+-  a `.dict` file ([Samtools](http://www.htslib.org/doc/samtools-dict.html))
+-  a `.fa.gz.fai` file ([Samtools](http://www.htslib.org/doc/samtools-faidx.html))
 
 **Example:**
 

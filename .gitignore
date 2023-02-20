@@ -146,7 +146,8 @@ figures/
 
 # IDE-related folders:
 .idea/
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 
 # Antimatch pattern:
 !README.md

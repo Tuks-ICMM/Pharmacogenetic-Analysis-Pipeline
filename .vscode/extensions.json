@@ -1,0 +1,13 @@
+{
+    "recommendations": [
+        "ms-toolsai.jupyter",
+        "ms-toolsai.vscode-jupyter-cell-tags",
+        "ms-toolsai.jupyter-keymap",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "tfehlmann.snakefmt",
+        "vscode-icons-team.vscode-icons",
+        "snakemake.snakemake-lang",
+        "kopub.pydocstring",
+    ]
+}
