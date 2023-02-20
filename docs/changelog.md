@@ -24,6 +24,24 @@ Changelog
 </details>
 
 ---
+## [v1.0.2-ALPHA](https://github.com/Tuks-ICMM/Vcf-Validation/compare/v1.0.1-ALPHA...v1.0.2-ALPHA) (2023-02-20)
+
+### Features
+Changes to `ALL_COLLATE` rule:
+
+- Remove unnecessary variant renaming step. Variant renaming is now done during the `LIFTOVER` rule of the `Vcf-Validation` sub-pipeline only.
+
+Changes to `FILTER` rule:
+
+- Change filter stringency for samples and variants.
+
+- Allow autosomal chromosomes only.
+
+- Remove steps to filter out variants where the reference allele in the `.vcf` file does not match that of the reference genome. This step was unnecessary since variant reference alleles are altered to match that of the reference genome during the `LIFTOVER` rule of the `Vcf-Validation` sub-pipeline.
+
+- Change variant nomenclature specifications for linkage-disequilibrium pruning step.
+
+- Ensure that chromosome output is kept consistent by adding the `--output-chr chr26` flag to all plink commands.
 
 
 ## [v1.0.1-ALPHA](https://github.com/Tuks-ICMM/Vcf-Validation/compare/5a07b1c...v1.0.1-ALPHA) (2023-02-07)
