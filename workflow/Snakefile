@@ -323,7 +323,7 @@ rule PLINK:
         ],
     params:
         prefix="ALL_{location}",
-        clusters_list=lambda wildcards: ' '.join(clusters)
+        subsets_list=lambda wildcards: ' '.join(clusters)
     resources:
         cpus=search("cores", "PLINK"),
         nodes=search("nodes", "PLINK"),
@@ -335,7 +335,7 @@ rule PLINK:
         "docker://graemeford/pipeline-os"
     shell:
         """
-        for CLUSTER in {clusters_list}
+        for CLUSTER in {params.subsets_list}
         do
             plink2 --allow-extra-chr --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/$CLUSTER}/{params.prefix}
             plink2 --allow-extra-chr --vcf {input.vcf} --pheno iid-only results/REFERENCE/cluster_$CLUSTER.txt --loop-cats $CLUSTER --freq counts --missing --hardy midp --out results/FINAL/$CLUSTER/{params.prefix}
