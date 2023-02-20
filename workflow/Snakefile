@@ -133,6 +133,10 @@ rule ALL_COLLATE:
             echo -e "\n--- LOG SECTION START | Plink-2 'chr filter' ---" 1>&2
             plink2 --vcf results/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/ALL
             echo -e "--- LOG SECTION END | Plink-2 'chr filter' ---\n" 1>&2
+
+            echo -e "\n--- LOG SECTION START | SamTools 'tabix' ---" 1>&2
+            tabix -p vcf results/COLLATE/ALL.vcf.gz
+            echo -e "--- LOG SECTION END | SamTools 'tabix' ---\n" 1>&2
         else
             echo -e "\n--- LOG SECTION START | Copy 'No Liftover Needed' ---" 1>&2
             cp results/LIFTOVER/{params.dataset_names[0]}.vcf.gz results/COLLATE/ALL.vcf.gz
