@@ -24,7 +24,7 @@ Changelog
 </details>
 
 ---
-## [v1.0.2-ALPHA](https://github.com/Tuks-ICMM/Vcf-Validation/compare/v1.0.1-ALPHA...v1.0.2-ALPHA) (2023-02-20)
+## [v1.0.2-ALPHA](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/compare/v1.0.1-ALPHA...v1.0.2-ALPHA) (2023-02-20)
 
 ### Features
 Changes to `ALL_COLLATE` rule:
