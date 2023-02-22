@@ -248,7 +248,7 @@ rule ADMIXTURE:
     log:
         "logs/ADMIXTURE/{cluster}.{estimation}.log",
     input:
-        "results/FINAL/ALL_FILTERED.vcf.gz",
+        "results/FILTER/ALL_FILTERED.vcf.gz",
     output:
         expand(
             "results/ADMIXTURE/{{cluster}}.{{estimation}}.{ext}",
@@ -271,20 +271,20 @@ rule ADMIXTURE:
         "docker://graemeford/pipeline-os"
     shell:
         """
+        # Filter to only biallelic SNPs
         echo -e "\n--- LOG SECTION START | BcfTools 'view' ---" 1>&2
-        bcftools view -O z -o results/ADMIXTURE/FILTERED.vcf.gz -m2 -M2 -v snps {input}
+        bcftools view -O z -o results/ADMIXTURE/BIALLELIC.vcf.gz -m2 -M2 -v snps {input}
         echo -e "--- LOG SECTION END | BcfTools 'view' ---\n" 1>&2
 
         echo -e "\n--- LOG SECTION START | Plink-2 'thin to 200 000 variants' ---" 1>&2
-        plink2 --allow-extra-chr --vcf results/ADMIXTURE/FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}
+        plink2 --allow-extra-chr --vcf results/ADMIXTURE/BIALLELIC.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}
         echo -e "--- LOG SECTION END | Plink-2 'thin to 200 000 variants' ---\n" 1>&2
         
         echo -e "\n--- LOG SECTION START | Admixture-1.3.0 ---" 1>&2
         admixture results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}.bed {wildcards.estimation}
-        echo -e "--- LOG SECTION END | Admixture-1.3.0 ---\n" 1>&2
-
         mv {wildcards.cluster}.{wildcards.estimation}.{wildcards.estimation}.P results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.P
         mv {wildcards.cluster}.{wildcards.estimation}.{wildcards.estimation}.Q results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.Q
+        echo -e "--- LOG SECTION END | Admixture-1.3.0 ---\n" 1>&2
         """
 
 
