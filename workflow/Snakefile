@@ -240,6 +240,27 @@ rule FILTER:
         """
 
 
+rule DAPC:
+    """
+    Discriminate anallysis of principle components (DAPC) technique for genetic cluster identification from PCA.
+    """
+    input:
+        "results/FILTER/ALL_FILTERED.vcf.gz"
+    output:
+        "scripts/DAPC_{cluster}.pdf"
+    resources:
+        cpus=search("cores", "ADMIXTURE"),
+        nodes=search("nodes", "ADMIXTURE"),
+        queue=search("queue", "ADMIXTURE"),
+        walltime=search("walltime", "ADMIXTURE"),
+    params:
+        populations = lambda wildcards: read_csv(join("input", "samples.csv"))[wildcards.cluster].tolist()
+    envmodules:
+        "R"
+    script:
+        "scripts/DAPC.Rmd"
+    
+
 
 rule ADMIXTURE:
     """
