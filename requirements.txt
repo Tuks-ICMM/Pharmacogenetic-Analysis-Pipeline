@@ -136,10 +136,6 @@ click==8.1.3 \
     # via
     #   black
     #   snakefmt
-colorama==0.4.6 \
-    --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
-    --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
-    # via click
 configargparse==1.5.3 \
     --hash=sha256:18f6535a2db9f6e02bd5626cc7455eac3e96b9ab3d969d366f9aafd5c5c00fe7 \
     --hash=sha256:1b0b3cbf664ab59dada57123c81eff3d9737e0d11d8cf79e3d6eb10823f1739f
@@ -697,10 +693,6 @@ pyparsing==3.0.9 \
     --hash=sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb \
     --hash=sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc
     # via matplotlib
-pyreadline3==3.4.1 \
-    --hash=sha256:6f3d1f7b8a31ba32b73917cefc1f28cc660562f39aea8646d30bd6eff21f7bae \
-    --hash=sha256:b0efb6516fd4fb07b45949053826a62fa4cb353db5be2bbb4a7aa1fdd1e345fb
-    # via humanfriendly
 pyrsistent==0.19.3 \
     --hash=sha256:016ad1afadf318eb7911baa24b049909f7f3bb2c5b1ed7b6a8f21db21ea3faa8 \
     --hash=sha256:1a2994773706bbb4995c31a97bc94f1418314923bd1048c6d964837040376440 \
@@ -740,22 +732,6 @@ pytz==2022.7.1 \
     --hash=sha256:01a0681c4b9684a28304615eba55d1ab31ae00bf68ec157ec3708a8182dbbcd0 \
     --hash=sha256:78f4f37d8198e0627c5f1143240bb0206b8691d8d7ac6d78fee88b78733f8c4a
     # via pandas
-pywin32==305 \
-    --hash=sha256:109f98980bfb27e78f4df8a51a8198e10b0f347257d1e265bb1a32993d0c973d \
-    --hash=sha256:13362cc5aa93c2beaf489c9c9017c793722aeb56d3e5166dadd5ef82da021fe1 \
-    --hash=sha256:19ca459cd2e66c0e2cc9a09d589f71d827f26d47fe4a9d09175f6aa0256b51c2 \
-    --hash=sha256:326f42ab4cfff56e77e3e595aeaf6c216712bbdd91e464d167c6434b28d65990 \
-    --hash=sha256:421f6cd86e84bbb696d54563c48014b12a23ef95a14e0bdba526be756d89f116 \
-    --hash=sha256:48d8b1659284f3c17b68587af047d110d8c44837736b8932c034091683e05863 \
-    --hash=sha256:4ecd404b2c6eceaca52f8b2e3e91b2187850a1ad3f8b746d0796a98b4cea04db \
-    --hash=sha256:50768c6b7c3f0b38b7fb14dd4104da93ebced5f1a50dc0e834594bff6fbe1271 \
-    --hash=sha256:56d7a9c6e1a6835f521788f53b5af7912090674bb84ef5611663ee1595860fc7 \
-    --hash=sha256:73e819c6bed89f44ff1d690498c0a811948f73777e5f97c494c152b850fad478 \
-    --hash=sha256:742eb905ce2187133a29365b428e6c3b9001d79accdc30aa8969afba1d8470f4 \
-    --hash=sha256:9d968c677ac4d5cbdaa62fd3014ab241718e619d8e36ef8e11fb930515a1e918 \
-    --hash=sha256:9dd98384da775afa009bc04863426cb30596fd78c6f8e4e2e5bbf4edf8029504 \
-    --hash=sha256:a55db448124d1c1484df22fa8bbcbc45c64da5e6eae74ab095b9ea62e6d00496
-    # via jupyter-core
 pyyaml==6.0 \
     --hash=sha256:01b45c0191e6d66c470b6cf1b9531a771a83c1c4208272ead47a3ae4f2f603bf \
     --hash=sha256:0283c35a6a9fbf047493e3a0ce8d79ef5030852c51e9d911a27badfde0605293 \
@@ -860,9 +836,9 @@ snakefmt==0.8.0 \
     --hash=sha256:22bbc1552164d9a1556bedf01db463515ead3b37fb2c7ae29975ab7f13f5995d \
     --hash=sha256:414c30caa7a23f762a73e64e4b5db900157a088fe67e074837dcefe11caedf21
     # via -r requirements.in
-snakemake==7.20.0 \
-    --hash=sha256:e9247ce4fd6ff364deb777bbc702a63be6cb09d489d2eb9771dcf0444bc7b7a2 \
-    --hash=sha256:f5b45191f1d419ebf28606880cb9bfac3bfa7c5949d1d2b64f551586d4212a2a
+snakemake==7.24.0 \
+    --hash=sha256:4a8a27e104ca0fd9ec178797c278691e76d46b015ee3075f6768ff426225e12d \
+    --hash=sha256:9ecaa2941ea40ae75da907b4e3536bd065c50b3172b32314d323eea27de90414
     # via -r requirements.in
 statannot==0.2.3 \
     --hash=sha256:17745a40542e157e3f147147425c5da441f62bb698b3644154cedf088d4d0b08 \
@@ -910,13 +886,9 @@ toml==0.10.2 \
     --hash=sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b \
     --hash=sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f
     # via snakefmt
-tomli==2.0.1 \
-    --hash=sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc \
-    --hash=sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f
-    # via black
-toposort==1.9 \
-    --hash=sha256:9f434c815e1bd2f9ad05152b6b0071b1f56e288c107869708f2463ec932e2637 \
-    --hash=sha256:f41a34490d44934b533a7bdaff979ee8a47203fd2d8a746db83f2d5ab12458b9
+toposort==1.10 \
+    --hash=sha256:bfbb479c53d0a696ea7402601f4e693c97b0367837c8898bc6471adfca37a6bd \
+    --hash=sha256:cbdbc0d0bee4d2695ab2ceec97fe0679e9c10eab4b2a87a9372b929e70563a87
     # via snakemake
 traitlets==5.9.0 \
     --hash=sha256:9e6ec080259b9a5940c797d58b613b5e31441c2257b87c2e795c5228ae80d2d8 \
