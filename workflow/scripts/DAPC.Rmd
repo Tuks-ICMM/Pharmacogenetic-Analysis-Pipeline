@@ -20,18 +20,20 @@ Our imports today are:
 ```{r}
 library("adegenet")
 library("vcfR")
+library("readr")
 data(dapcIllus)
 ```
 
 Next, we need to import and convert our data set into the `genlight` object style provided by `adagenet`.
 ```{r}
-vcf <- read.vcfR(snakemake@input[[1]])
+vcf <- read.vcfR("ALL_IL1B.vcf")
+samples <- read.csv("samples.csv")
 x <- vcfR2genind(vcf)
 ```
 
 If we want this DAPC to make sense, we will also have to tell the `adegenet` package how population structure is thought to look:
 ```{r}
-pop(x) <- as.factor(snakemake@params[["populations"]])
+pop(x) <- as.factor(samples$SUPER)
 ```
 
 Unfortunately we don't know how many genetic clusters are present. Normally, we would run a few values of `k` so lets try that. the package exposes a function, `find.clusters` which does exactly this.
