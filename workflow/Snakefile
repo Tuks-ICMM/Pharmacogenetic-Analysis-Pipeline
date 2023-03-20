@@ -118,7 +118,7 @@ rule ALL_COLLATE:
         if [ '{params.dataset_count}' -gt '1' ]
         then
             echo -e "\n--- LOG SECTION START | BcfTools 'merge' ---" 1>&2
-            bcftools merge -l results/LIFTOVER/merge.list -O z -o results/COLLATE/ALL_PRE.vcf.gz
+            bcftools merge -O z -o results/COLLATE/ALL_PRE.vcf.gz {input}
             echo -e "--- LOG SECTION END | BcfTools 'merge' ---\n" 1>&2
             
             echo -e "\n--- LOG SECTION START | SamTools 'tabix' ---" 1>&2
