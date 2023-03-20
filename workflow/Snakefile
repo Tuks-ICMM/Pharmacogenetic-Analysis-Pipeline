@@ -166,7 +166,7 @@ rule ANNOTATE:
     shell:
         """
         echo -e "\n--- LOG SECTION START | BcfTools 'annotate' ---" 1>&2
-        bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o {output} {input}
+        bcftools annotate -c ID  -a resources/dbSNP.vcf.gz -O z -o {output} {input}
         echo -e "--- LOG SECTION END | BcfTools 'annotate' ---\n" 1>&2
         """
 
