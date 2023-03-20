@@ -49,12 +49,16 @@ tExtensions = ["map", "ped"]
 
 include: "rules/common.py"
 
+# DEFINE CONTAINERIZED ENVIRONMENT:
+container: "docker://graemeford/pipeline-os"
+
 
 # BEGIN DEFINING RULES:
 rule all:
     """
     Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
     """
+    default_target: True
     log:
         "logs/ALL/ALL.log",
     input:
@@ -72,10 +76,7 @@ rule all:
         ]
 
 module VcfValidation:
-    snakefile:
-        # Vcf-Validation sub-workflow is imported here from GitHub:
-        # github("Tuks-ICMM/Vcf-Validation", path="workflow/Snakefile", tag="v1.1.1-ALPHA")
-        "https://raw.githubusercontent.com/Tuks-ICMM/Vcf-Validation/user/GraemeFord/workflow/Snakefile"
+    snakefile: github("Tuks-ICMM/Vcf-Validation", path="workflow/Snakefile", branch="user/GraemeFord")
     config: config
 
 use rule * from VcfValidation as VcfValidation_*
@@ -110,8 +111,6 @@ rule ALL_COLLATE:
         "bcftools-1.7",
         "samtools-1.7",
         "plink-2",
-    container:
-        "docker://graemeford/pipeline-os"
     shell:
         """
         # FIRST
@@ -164,12 +163,10 @@ rule ANNOTATE:
     # ToDo: Add refGenome and dbSNP links
     envmodules:
         "bcftools-1.7"
-    container:
-        "docker://graemeford/pipeline-os"
     shell:
         """
         echo -e "\n--- LOG SECTION START | BcfTools 'annotate' ---" 1>&2
-        bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o results/ANNOTATE/ALL.vcf.gz {input}
+        bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o {output   } {input}
         echo -e "--- LOG SECTION END | BcfTools 'annotate' ---\n" 1>&2
         """
 
@@ -201,8 +198,6 @@ rule FILTER:
         "plink-2",
         "bcftools-1.7",
         "plink-1.9",
-    container:
-        "docker://graemeford/pipeline-os"
     shell:
         """
         # TODO: Reorganise this whole section into sub-workflow
@@ -254,7 +249,7 @@ rule DAPC:
         queue=search("queue", "ADMIXTURE"),
         walltime=search("walltime", "ADMIXTURE"),
     params:
-        populations = lambda wildcards: read_csv(join("input", "samples.csv"))[wildcards.cluster].tolist()
+        cluster_assignments = lambda wildcards: read_csv(join("input", "samples.csv"))[wildcards.cluster].tolist()
     envmodules:
         "R"
     script:
@@ -285,11 +280,9 @@ rule ADMIXTURE:
         queue=search("queue", "ADMIXTURE"),
         walltime=search("walltime", "ADMIXTURE"),
     envmodules:
-        "bcftools-1.7",
-        "plink-2",
-        "admixture-1.3.0",
-    container:
-        "docker://graemeford/pipeline-os"
+        config["envmodules"]["BcfTools"],
+        config["envmodules"]["Plink-2"],
+        config["envmodules"]["Admixture-1.3"],
     shell:
         """
         # Filter to only biallelic SNPs
@@ -329,9 +322,7 @@ rule TRIM_AND_NAME:
         queue=search("queue", "TRIM_AND_NAME"),
         walltime=search("walltime", "TRIM_AND_NAME"),
     envmodules:
-        "plink-2",
-    container:
-        "docker://graemeford/pipeline-os"
+        config["envmodules"]["Plink-2"],
     shell:
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'trim' ---" 1>&2
@@ -357,9 +348,7 @@ rule TRANSPILE_CLUSTERS:
     conda:
         join("envs", "snakemake.yml")
     envmodules:
-        "python-3.8.2"
-    container:
-        "docker://graemeford/pipeline-os"
+        config["envmodules"]["Python3"]
     script:
         join("scripts", "01-TRANSPILE_CLUSTERS.py")
 
@@ -394,9 +383,7 @@ rule PLINK:
         queue=search("queue", "PLINK"),
         walltime=search("walltime", "PLINK"),
     envmodules:
-        "plink-2"
-    container:
-        "docker://graemeford/pipeline-os"
+        config["envmodules"]["Plink-2"],
     shell:
         """
         for CLUSTER in {params.subsets_list}
