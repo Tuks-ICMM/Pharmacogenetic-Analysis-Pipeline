@@ -114,7 +114,7 @@ rule ALL_COLLATE:
     shell:
         """
         # FIRST
-        # we cehck to see if we have more than one dataset to even collate, otherwise this is largely unnecicary
+        # we check to see if we have more than one dataset to even collate, otherwise this is largely unnecicary
         if [ '{params.dataset_count}' -gt '1' ]
         then
             echo -e "\n--- LOG SECTION START | BcfTools 'merge' ---" 1>&2
@@ -166,7 +166,7 @@ rule ANNOTATE:
     shell:
         """
         echo -e "\n--- LOG SECTION START | BcfTools 'annotate' ---" 1>&2
-        bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o {output   } {input}
+        bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o {output} {input}
         echo -e "--- LOG SECTION END | BcfTools 'annotate' ---\n" 1>&2
         """
 
