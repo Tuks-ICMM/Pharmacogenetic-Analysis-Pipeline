@@ -93,9 +93,9 @@ def VcfValidationAdapter(_):
     """
     for dataset in datasets["reference_genome"]:
         if dataset != "GRCh38":
-            return expand("results/PREP/{dataset}/liftover.vcf.gz", dataset=datasets["dataset_name"].tolist())
+            return expand("results/PREP/{dataset}/liftover.{ext}", zip, dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"])
         else:
-            return expand("results/PREP/{dataset}/annotate.vcf.gz", dataset=datasets["dataset_name"].tolist())
+            return expand("results/PREP/{dataset}/annotate.{ext}", zip, dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"])
 
 rule ALL_COLLATE:
     """
