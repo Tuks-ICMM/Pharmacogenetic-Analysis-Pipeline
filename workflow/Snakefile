@@ -108,9 +108,9 @@ rule ALL_COLLATE:
         queue=search("queue", "COLLATE"),
         walltime=search("walltime", "COLLATE"),
     envmodules:
-        config["environment]"]["envmodules"]["bcftools"],
-        config["environment]"]["envmodules"]["samtools"],
-        config["environment]"]["envmodules"]["plink-2"],
+        config["environment"]["envmodules"]["bcftools"],
+        config["environment"]["envmodules"]["samtools"],
+        config["environment"]["envmodules"]["plink-2"],
     shell:
         """
         # FIRST
@@ -162,7 +162,7 @@ rule ANNOTATE:
         walltime=search("walltime", "ANNOTATE"),
     # ToDo: Add refGenome and dbSNP links
     envmodules:
-        config["environment]"]["envmodules"]["bcftools"]
+        config["environment"]["envmodules"]["bcftools"]
     shell:
         """
         echo -e "\n--- LOG SECTION START | BcfTools 'annotate' ---" 1>&2
@@ -195,9 +195,9 @@ rule FILTER:
         queue=search("queue", "FILTER"),
         walltime=search("walltime", "FILTER"),
     envmodules:
-        config["environment]"]["envmodules"]["plink-2"],
-        config["environment]"]["envmodules"]["bcftools"],
-        config["environment]"]["envmodules"]["plink-1.9"],
+        config["environment"]["envmodules"]["plink-2"],
+        config["environment"]["envmodules"]["bcftools"],
+        config["environment"]["envmodules"]["plink-1.9"],
     shell:
         """
         # TODO: Reorganise this whole section into sub-workflow
@@ -251,7 +251,7 @@ rule DAPC:
     params:
         cluster_assignments = lambda wildcards: read_csv(join("input", "samples.csv"))[wildcards.cluster].tolist()
     envmodules:
-        config["environment]"]["envmodules"]["R"]
+        config["environment"]["envmodules"]["R"]
     script:
         "scripts/DAPC.Rmd"
     
