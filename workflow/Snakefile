@@ -220,7 +220,7 @@ rule refFromFasta:
         )
     shell:
         """
-        plink2 --vcf {input} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/refFromFasta
+        plink2 --vcf {input[0]} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/refFromFasta
         """
 
 rule chrFilter:
@@ -245,7 +245,7 @@ rule chrFilter:
         config["environment"]["envmodules"]["plink-2"]
     shell:
         """
-        plink2 --vcf {input} --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/chrFilter
+        plink2 --vcf {input[0]} --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/chrFilter
         """
 
 # group: VALIDATE
