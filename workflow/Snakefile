@@ -249,12 +249,12 @@ rule sampleSubset:
     """
     group: "VALIDATE"
     input:
-        vcf="results/PREP/chrFilter.vcf.gz",
+        vcf="results/COLLATE/chrFilter.vcf.gz",
         samples="input/samples.csv"
     output:
-        "results/PREP/sampleSubset.vcf.gz"
+        "results/VALIDATE/sampleSubset.vcf.gz"
     log:
-        "_logs/PREP/sampleSubset.log"
+        "_logs/VALIDATE/sampleSubset.log"
     benchmark:
         "_benchmarks/VALIDATE/sampleSubset.benchmark"
     resources:
