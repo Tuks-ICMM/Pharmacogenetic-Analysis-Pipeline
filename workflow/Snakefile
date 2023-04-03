@@ -93,9 +93,15 @@ def VcfValidationAdapter(_):
     """
     for dataset in datasets["reference_genome"]:
         if dataset != "GRCh38":
-            return expand("results/PREP/{dataset}/liftover.{ext}", dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"])
+            return {
+                'vcf': expand("results/PREP/{dataset}/liftover.vcf.gz", dataset=datasets["dataset_name"].tolist()),
+                "tabix": expand("results/PREP/{dataset}/liftover.vcf.gz.tbi", dataset=datasets["dataset_name"].tolist())
+                }
         else:
-            return expand("results/PREP/{dataset}/annotate.{ext}", dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"])
+            return {
+                'vcf': expand("results/PREP/{dataset}/annotate.vcf.gz", dataset=datasets["dataset_name"].tolist()),
+                "tabix": expand("results/PREP/{dataset}/annotate.vcf.gz.tbi", dataset=datasets["dataset_name"].tolist())
+                }
 
 rule ALL_COLLATE:
     """
@@ -104,7 +110,7 @@ rule ALL_COLLATE:
     log:
         "logs/COLLATE/ALL.log",
     input:
-        VcfValidationAdapter
+        unpack(VcfValidationAdapter)
     output:
         "results/COLLATE/ALL.vcf.gz",
         "results/COLLATE/ALL.vcf.gz.tbi",
@@ -181,7 +187,7 @@ rule merge:
         config["environment"]["envmodules"]["bcftools"]
     shell:
         """
-        bcftools merge -O z -o {output} {input}
+        bcftools merge -O z -o {output} {input.vcf}
         """
 
 rule refFromFasta:
