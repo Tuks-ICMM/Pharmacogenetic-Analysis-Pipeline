@@ -1,6 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
 .text-emerald-500 {
-    color: #c38a3b !important;
+    background-color: #c38a3b !important;
+    color: #e2e8f0;
+}
+#app > div > nav > h1 {
+    background-color: rgba(195, 138, 59, 0.5) !important;
 }
 .hover\:text-emerald-500:hover {
     color: #c38a3b !important;
@@ -10,8 +14,11 @@
     font-size: 13px;
 }
 .prose h1 {
-    color: #d71c33;
+    color: #d71c33 !important;
+    font-weight: 400;
     font-size: 36px;
+    margin-top:20px;
+    margin-bottom:20px;
 }
 tt.docutils.literal {
     --tw-text-opacity: 1;
@@ -27,9 +34,6 @@ tt.docutils.literal {
     --tw-border-opacity: 1;
     border-color: rgb(51 65 85 / var(--tw-border-opacity));
     border-radius: 0.25rem;
-}
-.prose :where(h1):not(:where([class~="not-prose"] *)) {
-    color: #005aa9 !important;
 }
 #brand {
     background-size: contain;
