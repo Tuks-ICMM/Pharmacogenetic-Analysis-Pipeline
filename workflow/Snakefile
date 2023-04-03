@@ -111,9 +111,9 @@ def VcfValidationAdapter(_) -> list:
     merge_list = list()
     for key, dataset in datasets["reference_genome"].items():
         if dataset != "GRCh38":
-            merge_list.append(f"results/PREP/{dataset.iloc[key, 'dataset_name']}/liftover.vcf.gz")
+            merge_list.append(f"results/PREP/{datasets.iloc[key, 'dataset_name']}/liftover.vcf.gz")
         else:
-            merge_list.append(f"results/PREP/{dataset.iloc[key, 'dataset_name']}/annotate.vcf.gz")
+            merge_list.append(f"results/PREP/{datasets.iloc[key, 'dataset_name']}/annotate.vcf.gz")
     
     return merge_list
 
@@ -124,9 +124,9 @@ def VcfIndexValidationAdapter(_) -> list:
     merge_list = list()
     for key, dataset in datasets["reference_genome"].items():
         if dataset != "GRCh38":
-            merge_list.append(f"results/PREP/{dataset.iloc[key, 'dataset_name']}/liftover.vcf.gz.tbi")
+            merge_list.append(f"results/PREP/{datasets.iloc[key, 'dataset_name']}/liftover.vcf.gz.tbi")
         else:
-            merge_list.append(f"results/PREP/{dataset.iloc[key, 'dataset_name']}/annotate.vcf.gz.tbi")
+            merge_list.append(f"results/PREP/{datasets.iloc[key, 'dataset_name']}/annotate.vcf.gz.tbi")
     
     return merge_list
 
