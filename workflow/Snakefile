@@ -164,13 +164,13 @@ rule merge:
     """
     group: "COLLATE"
     input:
-        ""
+        VcfValidationAdapter
     output:
-        "results/COLLATE/{dataset}/merge.vcf.gz"
+        "results/COLLATE/merge.vcf.gz"
     log:
-        "_logs/COLLATE/{dataset}/merge.log"
+        "_logs/COLLATE/merge.log"
     benchmark:
-        "_benchmarks/merge/{dataset}/merge.benchmark"
+        "_benchmarks/merge/merge.benchmark"
     resources:
         cpus=search("cores", "COLLATE"),
         nodes=search("nodes", "COLLATE"),
@@ -188,14 +188,14 @@ rule refFromFasta:
     """
     group: "COLLATE"
     input: 
-        "results/COLLATE/{dataset}/merge.vcf.gz",
-        "results/COLLATE/{dataset}/merge.vcf.gz.tbi"
+        "results/COLLATE/merge.vcf.gz",
+        "results/COLLATE/merge.vcf.gz.tbi"
     output: 
-        "results/COLLATE/{dataset}/refFromFasta.vcf.gz"
+        "results/COLLATE/refFromFasta.vcf.gz"
     log:
-        "_logs/COLLATE/{dataset}/refFromFasta.log"
+        "_logs/COLLATE/refFromFasta.log"
     benchmark:
-        "_benchmarks/COLLATE/{dataset}/refFromFasta.benchmark"
+        "_benchmarks/COLLATE/refFromFasta.benchmark"
     resources:
         cpus=search("cores", "COLLATE"),
         nodes=search("nodes", "COLLATE"),
@@ -213,7 +213,7 @@ rule refFromFasta:
         )
     shell:
         """
-        plink2 --vcf {input} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/{wildcards.dataset}/refFromFasta
+        plink2 --vcf {input} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/refFromFasta
         """
 
 rule chrFilter:
@@ -221,14 +221,14 @@ rule chrFilter:
     """
     group: "COLLATE"
     input:
-        "results/COLLATE/{dataset}/refFromFasta.vcf.gz",
-        "results/COLLATE/{dataset}/refFromFasta.vcf.gz.tbi"
+        "results/COLLATE/refFromFasta.vcf.gz",
+        "results/COLLATE/refFromFasta.vcf.gz.tbi"
     output:
-        "results/COLLATE/{dataset}/chrFilter.vcf.gz"
+        "results/COLLATE/chrFilter.vcf.gz"
     log:
-        "_logs/COLLATE/{dataset}/chrFilter.log"
+        "_logs/COLLATE/chrFilter.log"
     benchmark:
-        "_benchmarks/COLLATE/{dataset}/chrFilter.benchmark"
+        "_benchmarks/COLLATE/chrFilter.benchmark"
     resources:
         cpus=search("cores", "COLLATE"),
         nodes=search("nodes", "COLLATE"),
@@ -238,7 +238,7 @@ rule chrFilter:
         config["environment"]["envmodules"]["plink-2"]
     shell:
         """
-        plink2 --vcf {input} --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/{wildcards.dataset}/chrFilter
+        plink2 --vcf {input} --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/chrFilter
         """
 
 # group: VALIDATE
@@ -249,14 +249,14 @@ rule sampleSubset:
     """
     group: "VALIDATE"
     input:
-        vcf="results/PREP/{dataset}/chrFilter.vcf.gz",
+        vcf="results/PREP/chrFilter.vcf.gz",
         samples="input/samples.csv"
     output:
-        "results/PREP/{dataset}/sampleSubset.vcf.gz"
+        "results/PREP/sampleSubset.vcf.gz"
     log:
-        "_logs/PREP/{dataset}/sampleSubset.log"
+        "_logs/PREP/sampleSubset.log"
     benchmark:
-        "_benchmarks/VALIDATE/sampleSubset/{dataset}.benchmark"
+        "_benchmarks/VALIDATE/sampleSubset.benchmark"
     resources:
         cpus=search("cores", "VALIDATE"),
         nodes=search("nodes", "VALIDATE"),
@@ -279,7 +279,7 @@ rule FILTER:
     log:
         "logs/FILTER/FILTER.log",
     input:
-        "results/ANNOTATE/ALL.vcf.gz",
+        "results/PREP/sampleSubset.vcf.gz"
     output:
         "results/FILTER/ALL_FILTERED.vcf.gz",
     params:
