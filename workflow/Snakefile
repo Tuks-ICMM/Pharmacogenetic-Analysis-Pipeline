@@ -111,9 +111,9 @@ def VcfValidationAdapter(_) -> list:
     merge_list = list()
     for dataset in datasets["reference_genome"]:
         if dataset != "GRCh38":
-            merge_list.append(expand("results/PREP/{dataset}/liftover.{ext}", dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"]))
+            merge_list.extend(expand("results/PREP/{dataset}/liftover.{ext}", dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"]))
         else:
-            merge_list.append(expand("results/PREP/{dataset}/annotate.{ext}", dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"]))
+            merge_list.extend(expand("results/PREP/{dataset}/annotate.{ext}", dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"]))
     return merge_list
 
 rule merge:
