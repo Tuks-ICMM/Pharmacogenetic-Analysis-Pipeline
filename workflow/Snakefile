@@ -79,11 +79,12 @@ rule all:
             for cluster in clusters
         ]
 
-module VcfValidation:
+module VCFValidation:
     snakefile: github("Tuks-ICMM/Vcf-Validation", path="workflow/Snakefile", branch="user/GraemeFord")
     config: config
 
-use rule * from VcfValidation as VcfValidation_*
+use rule * from VCFValidation as VCF_Validation_*
+ruleorder: VCF_Validation_tabix < tabix
 
 
 def VcfValidationAdapter(_):
