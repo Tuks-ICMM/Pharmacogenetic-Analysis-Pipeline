@@ -109,11 +109,11 @@ def VcfValidationAdapter(_) -> list:
     An adapter to generate the correct input list from `VCF Validation Pipeline`. This is required as liftover is optional, making the output files variable.
     """
     merge_list = list()
-    for dataset in datasets["dataset_name"]:
+    for key, dataset in datasets["reference_genome"].iteritems():
         if dataset != "GRCh38":
-            merge_list.append(f"results/PREP/{dataset}/liftover.vcf.gz")
+            merge_list.append(f"results/PREP/{dataset.loc[key, 'dataset_name']}/liftover.vcf.gz")
         else:
-            merge_list.append(f"results/PREP/{dataset}/annotate.vcf.gz")
+            merge_list.append(f"results/PREP/{dataset.loc[key, 'dataset_name']}/annotate.vcf.gz")
     
     return merge_list
 
@@ -122,11 +122,11 @@ def VcfIndexValidationAdapter(_) -> list:
     An adapter to generate the correct input list from `VCF Validation Pipeline`. This is required as liftover is optional, making the output files variable.
     """
     merge_list = list()
-    for dataset in datasets["dataset_name"]:
+    for key, dataset in datasets["reference_genome"].iteritems():
         if dataset != "GRCh38":
-            merge_list.append(f"results/PREP/{dataset}/liftover.vcf.gz.tbi")
+            merge_list.append(f"results/PREP/{dataset.loc[key, 'dataset_name']}/liftover.vcf.gz.tbi")
         else:
-            merge_list.append(f"results/PREP/{dataset}/annotate.vcf.gz.tbi")
+            merge_list.append(f"results/PREP/{dataset.loc[key, 'dataset_name']}/annotate.vcf.gz.tbi")
     
     return merge_list
 
