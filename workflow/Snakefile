@@ -84,7 +84,7 @@ module VCFValidation:
     config: config
 
 use rule * from VCFValidation as VCF_Validation_*
-ruleorder: VCF_Validation_tabix < tabix
+ruleorder: VCF_Validation_tabix > tabix
 
 
 def VcfValidationAdapter(_):
