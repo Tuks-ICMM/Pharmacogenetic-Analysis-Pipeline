@@ -279,7 +279,7 @@ rule FILTER:
     log:
         "logs/FILTER/FILTER.log",
     input:
-        "results/PREP/sampleSubset.vcf.gz"
+        "results/VALIDATE/sampleSubset.vcf.gz"
     output:
         "results/FILTER/ALL_FILTERED.vcf.gz",
     params:
