@@ -477,3 +477,28 @@ rule PLINK:
             echo -e "--- LOG SECTION END | Plink-2 'Subset freq' ---\n" 1>&2
         done
         """
+    
+# group: VALIDATE
+rule tabix:
+    """
+    Generate tabix-index.
+    """
+    input:
+        "results/{operation}/{output}.vcf.gz"
+    output:
+        "results/{operation}/{output}.vcf.gz.tbi"
+    log:
+        "_logs/{operation}/{output}.log"
+    benchmark:
+        "_benchmarks/{operation}/{output}.benchmark"
+    resources:
+        cpus=search("cores", "VALIDATE"),
+        nodes=search("nodes", "VALIDATE"),
+        queue=search("queue", "VALIDATE"),
+        walltime=search("walltime", "VALIDATE")
+    envmodules:
+        config["environment"]["envmodules"]["bcftools"],
+    shell:
+        """
+        tabix -p vcf {input}
+        """
