@@ -1,3 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+.text-emerald-500 {
+    color: #c38a3b !important;
+}
+.hover\:text-emerald-500:hover {
+    color: #c38a3b !important;
+}
+.prose {
+    font-family: 'Open Sans', sans-serif !important;
+    font-size: 13px;
+}
+.prose h1 {
+    color: #d71c33;
+    font-size: 36px;
+}
+tt.docutils.literal {
+    --tw-text-opacity: 1;
+    color: rgb(148 163 184 / var(--tw-text-opacity));
+    font-size: 0.75rem;
+    line-height: 1rem;
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    --tw-bg-opacity: 1;
+    background-color: rgb(15 23 42 / var(--tw-bg-opacity));
+    --tw-border-opacity: 1;
+    border-color: rgb(51 65 85 / var(--tw-border-opacity));
+    border-radius: 0.25rem;
+}
+.prose :where(h1):not(:where([class~="not-prose"] *)) {
+    color: #005aa9 !important;
+}
 #brand {
     background-size: contain;
     height: 200px;
