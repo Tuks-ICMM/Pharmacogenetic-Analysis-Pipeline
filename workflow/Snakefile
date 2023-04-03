@@ -80,12 +80,17 @@ rule all:
         ]
 
 module VCFValidation:
-    snakefile: github("Tuks-ICMM/Vcf-Validation", path="workflow/Snakefile", branch="user/GraemeFord")
+    snakefile: github("Tuks-ICMM/Vcf-Validation-Workflow", path="workflow/Snakefile", branch="user/GraemeFord")
     config: config
 
 use rule * from VCFValidation as VCF_Validation_*
 ruleorder: VCF_Validation_tabix > tabix
 
+module PopulationStructure:
+    snakefile: github("Tuks-ICMM/Population-Structure-Workflow", path="workflow/Snakefile", branch="user/GraemeFord")
+    config: config
+
+use rule * from PopulationStructure as PopulationStructure_*
 
 def VcfValidationAdapter(_):
     """
@@ -102,69 +107,6 @@ def VcfValidationAdapter(_):
                 'vcf': expand("results/PREP/{dataset}/annotate.vcf.gz", dataset=datasets["dataset_name"].tolist()),
                 "tabix": expand("results/PREP/{dataset}/annotate.vcf.gz.tbi", dataset=datasets["dataset_name"].tolist())
                 }
-
-rule ALL_COLLATE:
-    """
-    Collate Datasets together into 1 psudo-dataset for downstream analysis.
-    """
-    log:
-        "logs/COLLATE/ALL.log",
-    input:
-        unpack(VcfValidationAdapter)
-    output:
-        "results/COLLATE/ALL.vcf.gz",
-        "results/COLLATE/ALL.vcf.gz.tbi",
-    params:
-        ref=lambda wildcards: join(
-        *next(
-            i["file_path"]
-            for i in config["reference-genomes"]
-        if i["version"] == "GRCh38"
-            ),
-        ),
-        dataset_count = lambda wildcards: datasets["dataset_name"].size,
-        dataset_names = lambda wildcards: datasets["dataset_name"]
-    resources:
-        cpus=search("cores", "COLLATE"),
-        nodes=search("nodes", "COLLATE"),
-        queue=search("queue", "COLLATE"),
-        walltime=search("walltime", "COLLATE"),
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"],
-        config["environment"]["envmodules"]["samtools"],
-        config["environment"]["envmodules"]["plink-2"],
-    shell:
-        """
-        # FIRST
-        # we check to see if we have more than one dataset to even collate, otherwise this is largely unnecicary
-        if [ '{params.dataset_count}' -gt '1' ]
-        then
-            echo -e "\n--- LOG SECTION START | BcfTools 'merge' ---" 1>&2
-            # bcftools merge -O z -o results/COLLATE/ALL_PRE.vcf.gz {input}
-            echo -e "--- LOG SECTION END | BcfTools 'merge' ---\n" 1>&2
-            
-            echo -e "\n--- LOG SECTION START | SamTools 'tabix' ---" 1>&2
-            # tabix -p vcf results/COLLATE/ALL_PRE.vcf.gz
-            echo -e "--- LOG SECTION END | SamTools 'tabix' ---\n" 1>&2
-
-            echo -e "\n--- LOG SECTION START | Plink-2 'Ref from FASTA' ---" 1>&2
-            # plink2 --vcf results/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out results/COLLATE/ALL_REF
-            echo -e "--- LOG SECTION END | Plink-2 'Ref from FASTA' ---\n" 1>&2
-
-            echo -e "\n--- LOG SECTION START | Plink-2 'chr filter' ---" 1>&2
-            # plink2 --vcf results/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/ALL
-            echo -e "--- LOG SECTION END | Plink-2 'chr filter' ---\n" 1>&2
-
-            echo -e "\n--- LOG SECTION START | SamTools 'tabix' ---" 1>&2
-            tabix -p vcf results/COLLATE/ALL.vcf.gz
-            echo -e "--- LOG SECTION END | SamTools 'tabix' ---\n" 1>&2
-        else
-            echo -e "\n--- LOG SECTION START | Copy 'No Liftover Needed' ---" 1>&2
-            cp results/LIFTOVER/{params.dataset_names[0]}.vcf.gz results/COLLATE/ALL.vcf.gz
-            cp results/LIFTOVER/{params.dataset_names[0]}.vcf.gz.tbi results/COLLATE/ALL.vcf.gz.tbi
-            echo -e "--- LOG SECTION END | Copy 'No Liftover Needed' ---\n" 1>&2
-        fi
-        """
 
 rule merge:
     """
