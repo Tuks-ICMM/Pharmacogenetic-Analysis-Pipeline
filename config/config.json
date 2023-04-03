@@ -51,14 +51,15 @@
           "PLINK"
         ]
       }
-    ]
-  },
-  "envmodules": {
-    "Plink-2": "plink-2",
-    "Plink-1.9": "plink-1.9",
-    "BcfTools": "bcftools-1.7",
-    "STRUCTURE": "structure",
-    "Admixture-1.3": "admixture-1.3",
-    "Python3": "python-3.8.2"
+    ],
+    "envmodules": {
+      "plink-2": "plink-2",
+      "plink-1.9": "plink-1.9",
+      "bcftools": "bcftools-1.7",
+      "structure": "structure",
+      "admixture-1.3": "admixture-1.3",
+      "python-3": "python-3.8.2",
+      "r": "r"
+    }
   }
 }

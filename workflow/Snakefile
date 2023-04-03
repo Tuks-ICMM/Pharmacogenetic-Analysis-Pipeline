@@ -108,9 +108,9 @@ rule ALL_COLLATE:
         queue=search("queue", "COLLATE"),
         walltime=search("walltime", "COLLATE"),
     envmodules:
-        "bcftools-1.7",
-        "samtools-1.7",
-        "plink-2",
+        config["environment]"]["envmodules"]["bcftools"],
+        config["environment]"]["envmodules"]["samtools"],
+        config["environment]"]["envmodules"]["plink-2"],
     shell:
         """
         # FIRST
@@ -162,7 +162,7 @@ rule ANNOTATE:
         walltime=search("walltime", "ANNOTATE"),
     # ToDo: Add refGenome and dbSNP links
     envmodules:
-        "bcftools-1.7"
+        config["environment]"]["envmodules"]["bcftools"]
     shell:
         """
         echo -e "\n--- LOG SECTION START | BcfTools 'annotate' ---" 1>&2
@@ -195,9 +195,9 @@ rule FILTER:
         queue=search("queue", "FILTER"),
         walltime=search("walltime", "FILTER"),
     envmodules:
-        "plink-2",
-        "bcftools-1.7",
-        "plink-1.9",
+        config["environment]"]["envmodules"]["plink-2"],
+        config["environment]"]["envmodules"]["bcftools"],
+        config["environment]"]["envmodules"]["plink-1.9"],
     shell:
         """
         # TODO: Reorganise this whole section into sub-workflow
@@ -251,7 +251,7 @@ rule DAPC:
     params:
         cluster_assignments = lambda wildcards: read_csv(join("input", "samples.csv"))[wildcards.cluster].tolist()
     envmodules:
-        "R"
+        config["environment]"]["envmodules"]["R"]
     script:
         "scripts/DAPC.Rmd"
     
@@ -280,9 +280,9 @@ rule ADMIXTURE:
         queue=search("queue", "ADMIXTURE"),
         walltime=search("walltime", "ADMIXTURE"),
     envmodules:
-        config["envmodules"]["BcfTools"],
-        config["envmodules"]["Plink-2"],
-        config["envmodules"]["Admixture-1.3"],
+        config["environment"]["envmodules"]["bcftools"],
+        config["environment"]["envmodules"]["plink-2"],
+        config["environment"]["envmodules"]["admixture-1.3"],
     shell:
         """
         # Filter to only biallelic SNPs
@@ -322,7 +322,7 @@ rule TRIM_AND_NAME:
         queue=search("queue", "TRIM_AND_NAME"),
         walltime=search("walltime", "TRIM_AND_NAME"),
     envmodules:
-        config["envmodules"]["Plink-2"],
+        config["environment"]["envmodules"]["plink-2"],
     shell:
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'trim' ---" 1>&2
@@ -348,7 +348,7 @@ rule TRANSPILE_CLUSTERS:
     conda:
         join("envs", "snakemake.yml")
     envmodules:
-        config["envmodules"]["Python3"]
+        config["environment"]["envmodules"]["python-3"]
     script:
         join("scripts", "01-TRANSPILE_CLUSTERS.py")
 
@@ -383,7 +383,7 @@ rule PLINK:
         queue=search("queue", "PLINK"),
         walltime=search("walltime", "PLINK"),
     envmodules:
-        config["envmodules"]["Plink-2"],
+        config["environment"]["envmodules"]["plink-2"],
     shell:
         """
         for CLUSTER in {params.subsets_list}
