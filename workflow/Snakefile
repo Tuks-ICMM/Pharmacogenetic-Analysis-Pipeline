@@ -133,19 +133,19 @@ rule ALL_COLLATE:
         if [ '{params.dataset_count}' -gt '1' ]
         then
             echo -e "\n--- LOG SECTION START | BcfTools 'merge' ---" 1>&2
-            bcftools merge -O z -o results/COLLATE/ALL_PRE.vcf.gz {input}
+            # bcftools merge -O z -o results/COLLATE/ALL_PRE.vcf.gz {input}
             echo -e "--- LOG SECTION END | BcfTools 'merge' ---\n" 1>&2
             
             echo -e "\n--- LOG SECTION START | SamTools 'tabix' ---" 1>&2
-            tabix -p vcf results/COLLATE/ALL_PRE.vcf.gz
+            # tabix -p vcf results/COLLATE/ALL_PRE.vcf.gz
             echo -e "--- LOG SECTION END | SamTools 'tabix' ---\n" 1>&2
 
             echo -e "\n--- LOG SECTION START | Plink-2 'Ref from FASTA' ---" 1>&2
-            plink2 --vcf results/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out results/COLLATE/ALL_REF
+            # plink2 --vcf results/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out results/COLLATE/ALL_REF
             echo -e "--- LOG SECTION END | Plink-2 'Ref from FASTA' ---\n" 1>&2
 
             echo -e "\n--- LOG SECTION START | Plink-2 'chr filter' ---" 1>&2
-            plink2 --vcf results/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/ALL
+            # plink2 --vcf results/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/ALL
             echo -e "--- LOG SECTION END | Plink-2 'chr filter' ---\n" 1>&2
 
             echo -e "\n--- LOG SECTION START | SamTools 'tabix' ---" 1>&2
@@ -159,30 +159,116 @@ rule ALL_COLLATE:
         fi
         """
 
-
-rule ANNOTATE:
+rule merge:
     """
-    Annotate rsID's and set missing variant IDs in psudo-dataset to facilitate down-stream analysis.
     """
-    log:
-        "logs/ANNOTATE/ALL.log",
+    group: "COLLATE"
     input:
-        "results/COLLATE/ALL.vcf.gz",
+        ""
     output:
-        "results/ANNOTATE/ALL.vcf.gz",
+        "results/COLLATE/{dataset}/merge.vcf.gz"
+    log:
+        "_logs/COLLATE/{dataset}/merge.log"
+    benchmark:
+        "_benchmarks/merge/{dataset}/merge.benchmark"
     resources:
-        cpus=search("cores", "ANNOTATE"),
-        nodes=search("nodes", "ANNOTATE"),
-        queue=search("queue", "ANNOTATE"),
-        walltime=search("walltime", "ANNOTATE"),
-    # ToDo: Add refGenome and dbSNP links
+        cpus=search("cores", "COLLATE"),
+        nodes=search("nodes", "COLLATE"),
+        queue=search("queue", "COLLATE"),
+        walltime=search("walltime", "COLLATE"),
     envmodules:
         config["environment"]["envmodules"]["bcftools"]
     shell:
         """
-        echo -e "\n--- LOG SECTION START | BcfTools 'annotate' ---" 1>&2
-        bcftools annotate -c ID  -a resources/dbSNP.vcf.gz -O z -o {output} {input}
-        echo -e "--- LOG SECTION END | BcfTools 'annotate' ---\n" 1>&2
+        bcftools merge -O z -o {output} {input}
+        """
+
+rule refFromFasta:
+    """
+    """
+    group: "COLLATE"
+    input: 
+        "results/COLLATE/{dataset}/merge.vcf.gz",
+        "results/COLLATE/{dataset}/merge.vcf.gz.tbi"
+    output: 
+        "results/COLLATE/{dataset}/refFromFasta.vcf.gz"
+    log:
+        "_logs/COLLATE/{dataset}/refFromFasta.log"
+    benchmark:
+        "_benchmarks/COLLATE/{dataset}/refFromFasta.benchmark"
+    resources:
+        cpus=search("cores", "COLLATE"),
+        nodes=search("nodes", "COLLATE"),
+        queue=search("queue", "COLLATE"),
+        walltime=search("walltime", "COLLATE"),
+    envmodules:
+        config["environment"]["envmodules"]["plink-2"]
+    params:
+        ref=lambda wildcards: join(
+        *next(
+            i["file_path"]
+            for i in config["reference-genomes"]
+        if i["version"] == "GRCh38"
+            ),
+        )
+    shell:
+        """
+        plink2 --vcf {input} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/{wildcards.dataset}/refFromFasta
+        """
+
+rule chrFilter:
+    """
+    """
+    group: "COLLATE"
+    input:
+        "results/COLLATE/{dataset}/refFromFasta.vcf.gz",
+        "results/COLLATE/{dataset}/refFromFasta.vcf.gz.tbi"
+    output:
+        "results/COLLATE/{dataset}/chrFilter.vcf.gz"
+    log:
+        "_logs/COLLATE/{dataset}/chrFilter.log"
+    benchmark:
+        "_benchmarks/COLLATE/{dataset}/chrFilter.benchmark"
+    resources:
+        cpus=search("cores", "COLLATE"),
+        nodes=search("nodes", "COLLATE"),
+        queue=search("queue", "COLLATE"),
+        walltime=search("walltime", "COLLATE"),
+    envmodules:
+        config["environment"]["envmodules"]["plink-2"]
+    shell:
+        """
+        plink2 --vcf {input} --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/{wildcards.dataset}/chrFilter
+        """
+
+# group: VALIDATE
+# conditional: true
+rule sampleSubset:
+    """
+    Subset samples according to user defined list and remove variants that do not pass QC.
+    """
+    group: "VALIDATE"
+    input:
+        vcf="results/PREP/{dataset}/chrFilter.vcf.gz",
+        samples="input/samples.csv"
+    output:
+        "results/PREP/{dataset}/sampleSubset.vcf.gz"
+    log:
+        "_logs/PREP/{dataset}/sampleSubset.log"
+    benchmark:
+        "_benchmarks/VALIDATE/sampleSubset/{dataset}.benchmark"
+    resources:
+        cpus=search("cores", "VALIDATE"),
+        nodes=search("nodes", "VALIDATE"),
+        queue=search("queue", "VALIDATE"),
+        walltime=search("walltime", "VALIDATE")
+    envmodules:
+        config["environment"]["envmodules"]["bcftools"],
+    params:
+        samples=lambda wildcards, input: ",".join(read_csv(join("input", "samples.csv"), header=0)["sample_name"].tolist())
+    shell:
+        """
+        bcftools view -s {params.samples} -O z -o {output} {input.vcf}  2>{log}
         """
 
 
@@ -248,27 +334,6 @@ rule FILTER:
         bcftools view results/FILTER/ALL_FILTERED2.vcf.gz -S results/FILTER/unrelated_samples.txt -o {output} -O z
         echo -e "--- LOG SECTION END | BcfTools 'view' ---\n" 1>&2
         """
-
-
-rule DAPC:
-    """
-    Discriminate anallysis of principle components (DAPC) technique for genetic cluster identification from PCA.
-    """
-    input:
-        "results/FILTER/ALL_FILTERED.vcf.gz"
-    output:
-        "scripts/DAPC_{cluster}.pdf"
-    resources:
-        cpus=search("cores", "ADMIXTURE"),
-        nodes=search("nodes", "ADMIXTURE"),
-        queue=search("queue", "ADMIXTURE"),
-        walltime=search("walltime", "ADMIXTURE"),
-    params:
-        cluster_assignments = lambda wildcards: read_csv(join("input", "samples.csv"))[wildcards.cluster].tolist()
-    envmodules:
-        config["environment"]["envmodules"]["r"]
-    script:
-        "scripts/DAPC.Rmd"
     
 
 
