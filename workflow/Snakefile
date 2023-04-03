@@ -26,6 +26,10 @@ min_version("7.24.2")
 configfile: join("config", "config.json")
 
 
+# SET REPORT TEMPLATE
+report: "report/template.rst"
+
+
 # validate(config, join("..", "config", ".schema", "config.schema.json"))
 
 
