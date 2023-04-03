@@ -171,7 +171,7 @@ rule merge:
     """
     group: "COLLATE"
     input:
-        VcfValidationAdapter
+        unpack(VcfValidationAdapter)
     output:
         "results/COLLATE/merge.vcf.gz"
     log:
