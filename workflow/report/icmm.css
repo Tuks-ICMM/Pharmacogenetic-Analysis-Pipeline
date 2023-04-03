@@ -1,13 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
-.text-emerald-500 {
-    color: #e2e8f0;
+
+a svg.text-emerald-500 {
+    color: #c38a3b;
 }
 #app > div > nav > h1 {
     background-color: rgba(195, 138, 59, 0.5) !important;
     color: #e2e8f0;
 }
 .hover\:text-emerald-500:hover {
-    color: #c38a3b !important;
+    color: #d71c33 !important;
 }
 .prose {
     font-family: 'Open Sans', sans-serif !important;
