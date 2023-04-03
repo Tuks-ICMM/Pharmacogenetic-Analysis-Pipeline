@@ -104,28 +104,24 @@ rule all:
         ]
 
 
-def VcfValidationAdapter(_):
+def VcfValidationAdapter(_) -> list:
     """
     An adapter to generate the correct input list from `VCF Validation Pipeline`. This is required as liftover is optional, making the output files variable.
     """
+    merge_list = list()
     for dataset in datasets["reference_genome"]:
         if dataset != "GRCh38":
-            return {
-                'vcf': expand("results/PREP/{dataset}/liftover.vcf.gz", dataset=datasets["dataset_name"].tolist()),
-                "tabix": expand("results/PREP/{dataset}/liftover.vcf.gz.tbi", dataset=datasets["dataset_name"].tolist())
-                }
+            merge_list.append(expand("results/PREP/{dataset}/liftover.{ext}", dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"]))
         else:
-            return {
-                'vcf': expand("results/PREP/{dataset}/annotate.vcf.gz", dataset=datasets["dataset_name"].tolist()),
-                "tabix": expand("results/PREP/{dataset}/annotate.vcf.gz.tbi", dataset=datasets["dataset_name"].tolist())
-                }
+            merge_list.append(expand("results/PREP/{dataset}/annotate.{ext}", dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"]))
+    return merge_list
 
 rule merge:
     """
     """
     group: "COLLATE"
     input:
-        unpack(VcfValidationAdapter)
+        VcfValidationAdapter
     output:
         "results/COLLATE/merge.vcf.gz"
     log:
@@ -149,7 +145,7 @@ rule refFromFasta:
     """
     group: "COLLATE"
     input: 
-        lambda wildcards: unpack(VcfValidationAdapter) if datasets.shape[0] <=1 else expand("results/COLLATE/merge.{ext}", ext=["vcf.gz", "vcf.gz.tbi"])
+        lambda wildcards: expand("results/COLLATE/merge.{ext}", ext=["vcf.gz", "vcf.gz.tbi"]) if datasets.shape[0] >1 else VcfValidationAdapter
     output: 
         "results/COLLATE/refFromFasta.vcf.gz"
     log:
