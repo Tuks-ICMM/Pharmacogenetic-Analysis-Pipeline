@@ -69,6 +69,16 @@ module PopulationStructure:
 
 use rule * from PopulationStructure as PopulationStructure_*
 
+use rule Admixture_v1p3 from PopulationStructure as PopulationStructure_Admixture_v1p3 with:
+    input:
+        "results/FILTER/ALL_FILTERED.vcf.gz"
+use rule Plink_PCA from PopulationStructure as PopulationStructure_Plink_PCA with:
+    input:
+        "results/FILTER/ALL_FILTERED.vcf.gz"
+use rule DAPC from PopulationStructure as PopulationStructure_DAPC with:
+    input:
+        "results/FILTER/ALL_FILTERED.vcf.gz"
+
 # BEGIN DEFINING RULES:
 rule all:
     """
