@@ -4,7 +4,7 @@
 }
 #app > div > nav > h1 {
     background-color: rgba(195, 138, 59, 0.5) !important;
-    color: e2e8f0;
+    color: #e2e8f0;
 }
 .hover\:text-emerald-500:hover {
     color: #c38a3b !important;
