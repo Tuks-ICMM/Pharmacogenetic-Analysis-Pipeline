@@ -125,7 +125,7 @@ rule merge:
     """
     group: "COLLATE"
     input:
-        unpack(VcfValidationAdapter)
+        c
     output:
         "results/COLLATE/merge.vcf.gz"
     log:
@@ -149,8 +149,7 @@ rule refFromFasta:
     """
     group: "COLLATE"
     input: 
-        "results/COLLATE/merge.vcf.gz",
-        "results/COLLATE/merge.vcf.gz.tbi"
+        lambda wildcards: expand("results/COLLATE/merge.{ext}", ext=["vcf.gz", "vcf.gz.tbi"]) if datasets.shape[1]>1 else unpack(VcfValidationAdapter)
     output: 
         "results/COLLATE/refFromFasta.vcf.gz"
     log:
