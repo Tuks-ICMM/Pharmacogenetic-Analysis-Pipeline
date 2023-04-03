@@ -251,7 +251,7 @@ rule DAPC:
     params:
         cluster_assignments = lambda wildcards: read_csv(join("input", "samples.csv"))[wildcards.cluster].tolist()
     envmodules:
-        config["environment"]["envmodules"]["R"]
+        config["environment"]["envmodules"]["r"]
     script:
         "scripts/DAPC.Rmd"
     
