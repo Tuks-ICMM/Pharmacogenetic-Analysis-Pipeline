@@ -108,7 +108,7 @@ def VcfValidationAdapter(_) -> list:
     """
     An adapter to generate the correct input list from `VCF Validation Pipeline`. This is required as liftover is optional, making the output files variable.
     """
-    merge_list = list<str>()
+    merge_list = list()
     for dataset in datasets["reference_genome"]:
         if dataset != "GRCh38":
             merge_list.extend(expand("results/PREP/{dataset}/liftover.{ext}", dataset=datasets["dataset_name"].tolist(), ext=["vcf.gz", "vcf.gz.tbi"]))
@@ -146,7 +146,7 @@ rule refFromFasta:
     """
     group: "COLLATE"
     input: 
-        lambda wildcards: expand("results/COLLATE/merge.{ext}", ext=["vcf.gz", "vcf.gz.tbi"]) if datasets.shape[0] >1 else VcfValidationAdapter
+        lambda wildcards: expand("results/COLLATE/merge.{ext}", ext=["vcf.gz", "vcf.gz.tbi"]) if datasets.shape[0] > 1 else VcfValidationAdapter
     output: 
         "results/COLLATE/refFromFasta.vcf.gz"
     log:
