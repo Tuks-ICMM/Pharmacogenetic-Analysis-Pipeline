@@ -109,7 +109,7 @@ def VcfValidationAdapter(_) -> list:
     An adapter to generate the correct input list from `VCF Validation Pipeline`. This is required as liftover is optional, making the output files variable.
     """
     merge_list = list()
-    for key, dataset in datasets["reference_genome"].iteritems():
+    for key, dataset in datasets["reference_genome"].items():
         if dataset != "GRCh38":
             merge_list.append(f"results/PREP/{dataset.iloc[key, 'dataset_name']}/liftover.vcf.gz")
         else:
@@ -122,7 +122,7 @@ def VcfIndexValidationAdapter(_) -> list:
     An adapter to generate the correct input list from `VCF Validation Pipeline`. This is required as liftover is optional, making the output files variable.
     """
     merge_list = list()
-    for key, dataset in datasets["reference_genome"].iteritems():
+    for key, dataset in datasets["reference_genome"].items():
         if dataset != "GRCh38":
             merge_list.append(f"results/PREP/{dataset.iloc[key, 'dataset_name']}/liftover.vcf.gz.tbi")
         else:
