@@ -87,7 +87,7 @@ use rule * from VCFValidation as VCF_Validation_*
 ruleorder: VCF_Validation_tabix > tabix
 
 module PopulationStructure:
-    snakefile: github("Tuks-ICMM/Population-Structure-Workflow", path="workflow/Snakefile", branch="user/GraemeFord")
+    snakefile: github("Tuks-ICMM/Population-Structure-Workflow", path="workflow/Snakefile", branch="main")
     config: config
 
 use rule * from PopulationStructure as PopulationStructure_*
