@@ -78,8 +78,8 @@ rule all:
     log:
         "logs/ALL/ALL.log",
     input:
-        VCFValidation.rules.all,
-        PopulationStructure.rules.all,
+        VCFValidation.rules.all.input,
+        PopulationStructure.rules.all.input,
         [
             expand(
                 [
