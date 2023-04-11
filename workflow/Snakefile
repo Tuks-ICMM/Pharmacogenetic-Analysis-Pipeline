@@ -62,6 +62,13 @@ module VCFValidation:
 
 use rule * from VCFValidation as VCF_Validation_*
 
+# TODO: Document this behaviour for technical users
+use rule stats from VCFValidation as VCF_Validation_stats with:
+    input:
+        final = "results/PREP/{dataset_name}/{operation}.vcf.gz",
+        initial = lambda wildcards: getattr(rules, f"VCF_VALIDATION_{wildcards.operation}")).input.vcf
+
+# TODO: Document this behaviour for technical users
 ruleorder: VCF_Validation_tabix > tabix
 
 module PopulationStructure:
@@ -70,12 +77,15 @@ module PopulationStructure:
 
 use rule * from PopulationStructure as PopulationStructure_*
 
+# TODO: Document this behaviour for technical users
 use rule Admixture_v1p3 from PopulationStructure as PopulationStructure_Admixture_v1p3 with:
     input:
         "results/FILTER/ALL_FILTERED.vcf.gz"
+# TODO: Document this behaviour for technical users
 use rule Plink_PCA from PopulationStructure as PopulationStructure_Plink_PCA with:
     input:
         "results/FILTER/ALL_FILTERED.vcf.gz"
+# TODO: Document this behaviour for technical users
 use rule DAPC from PopulationStructure as PopulationStructure_DAPC with:
     input:
         "results/FILTER/ALL_FILTERED.vcf.gz"
