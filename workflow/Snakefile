@@ -154,7 +154,8 @@ rule refFromFasta:
     """
     group: "COLLATE"
     input: 
-        lambda wildcards: expand("results/COLLATE/merge.{ext}", ext=["vcf.gz", "vcf.gz.tbi"]) if datasets.shape[0] >1 else VcfValidationAdapter(wildcards)
+        vcf=lambda wildcards: expand("results/COLLATE/merge.vcf.gz") if datasets.shape[0] >1 else VcfValidationAdapter(".vcf.gz"),
+        vcfIndex=lambda wildcards: expand("results/COLLATE/merge.vcf.gz.tbi") if datasets.shape[0] >1 else VcfValidationAdapter(".vcf.gz.tbi")
     output: 
         "results/COLLATE/refFromFasta.vcf.gz"
     log:
@@ -178,7 +179,7 @@ rule refFromFasta:
         )
     shell:
         """
-        plink2 --vcf {input[0]} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/refFromFasta
+        plink2 --vcf {input.vcf} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/refFromFasta
         """
 
 rule chrFilter:
