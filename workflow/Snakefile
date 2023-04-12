@@ -67,8 +67,8 @@ use rule stats from VCFValidation as VCF_Validation_stats with:
     input:
         final = "results/PREP/{dataset_name}/VCF_Validation_{operation}.vcf.gz",
         final_tbi = "results/PREP/{dataset_name}/VCF_Validation_{operation}.vcf.gz.tbi",
-        initial = lambda wildcards: getattr(rules, f"VCF_Validation_{wildcards.operation}").input.vcf,
-        initial_tbi = lambda wildcards: getattr(rules, f"VCF_Validation_{wildcards.operation}").input.tbi
+        initial = lambda wildcards: getattr(rules, str(wildcards.operation)).input.vcf,
+        initial_tbi = lambda wildcards: getattr(rules, str(wildcards.operation)).input.tbi
 
 # TODO: Document this behaviour for technical users
 ruleorder: VCF_Validation_tabix > tabix
