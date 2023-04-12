@@ -65,8 +65,8 @@ use rule * from VCFValidation as VCF_Validation_*
 # TODO: Document this behaviour for technical users
 use rule stats from VCFValidation as VCF_Validation_stats with:
     input:
-        final = "results/PREP/{dataset_name}/{operation}.vcf.gz",
-        final_tbi = "results/PREP/{dataset_name}/{operation}.vcf.gz.tbi",
+        final = "results/PREP/{dataset_name}/VCF_Validation_{operation}.vcf.gz",
+        final_tbi = "results/PREP/{dataset_name}/VCF_Validation_{operation}.vcf.gz.tbi",
         initial = lambda wildcards: getattr(rules, f"VCF_Validation_{wildcards.operation}").input.vcf,
         initial_tbi = lambda wildcards: getattr(rules, f"VCF_Validation_{wildcards.operation}").input.tbi
 
@@ -93,29 +93,6 @@ use rule DAPC from PopulationStructure as PopulationStructure_DAPC with:
         "results/FILTER/ALL_FILTERED.vcf.gz"
 
 # BEGIN DEFINING RULES:
-rule all:
-    """
-    Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
-    """
-    default_target: True
-    log:
-        "logs/ALL/ALL.log",
-    input:
-        VCFValidation.rules.all.input,
-        PopulationStructure.rules.all.input,
-        [
-            expand(
-                [
-                    "results/FINAL/%s/ALL_{location}.%s.{extension}"
-                    % (cluster, population)
-                    for population in list(samples[cluster].unique())
-                ],
-                extension=finalExtensions,
-                location=locations["location_name"],
-            )
-            for cluster in clusters
-        ]
-
 def VcfValidationAdapter(extension: str) -> list:
     """
     An adapter to generate the correct input list from `VCF Validation Pipeline`. This is required as liftover is optional, making the output files variable.
@@ -476,3 +453,26 @@ rule tabix:
         """
         tabix -p vcf {input}
         """
+
+rule all:
+    """
+    Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
+    """
+    default_target: True
+    log:
+        "logs/ALL/ALL.log",
+    input:
+        VCFValidation.rules.all.input,
+        PopulationStructure.rules.all.input,
+        [
+            expand(
+                [
+                    "results/FINAL/%s/ALL_{location}.%s.{extension}"
+                    % (cluster, population)
+                    for population in list(samples[cluster].unique())
+                ],
+                extension=finalExtensions,
+                location=locations["location_name"],
+            )
+            for cluster in clusters
+        ]
