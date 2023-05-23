@@ -1,30 +1,19 @@
 ---
 title: Configuration
-permalink: overview/configuration
 layout: page
+permalink: /
 nav_order: 2
-parent: Overview
+has_children: true
 ---
 
 # Configuration
 {: .no_toc }
 
-How to set up infrastructure-related settings and provide standard analysis-agnostic data files.
+How to set up infrastructure-related settings and provide standard analysis-agnostic data files like reference genomes, etc.
 {: .fs-6 .fw-300 }
 
 Reference Genome Configuration
 {: .label }
-
-
-
-<details markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
 
 ---
 

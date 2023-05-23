@@ -1,9 +1,20 @@
 ---
-title: Introduction
-permalink: overview/introduction
-nav_order: 1
+title: Workflow
+permalink: workflow
 layout: page
-parent: Overview
+nav_order: 2
+has_children: true
+---
+
+# Workflow
+{: .no_toc }
+
+A summary of the workflow itself and its analyses, broken down by topic.
+{: .fs-6 .fw-300 }
+
+Reference Genome Configuration
+{: .label }
+
 ---
 
 # Introduction

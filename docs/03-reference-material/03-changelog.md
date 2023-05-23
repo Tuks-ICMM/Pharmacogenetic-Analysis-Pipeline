@@ -1,14 +1,15 @@
 ---
-layout: page
 title: Changelog
-permalink: /changelog
-nav_order: 5
+layout: page
+permalink: reference-material/changelog
+nav_order: 3
+parent: Reference material
 ---
 
 # Changelog
 {: .no_toc }
 
-Recent changes to the _{{ site.title }}_.
+A quickreference summary detailing recent changes to the project.
 {: .fs-6 .fw-300 }
 
 Changelog
@@ -24,7 +25,6 @@ Changelog
 </details>
 
 ---
-
 
 ## [v1.0.1-ALPHA](https://github.com/Tuks-ICMM/Vcf-Validation/compare/5a07b1c...v1.0.1-ALPHA) (2023-02-07)
 

@@ -2,8 +2,8 @@
 title: Data Requirements
 permalink: overview/data-requirements
 layout: page
-nav_order: 3
-parent: Overview
+nav_order: 1
+parent: Workflow
 ---
 
 # Data Requirements
