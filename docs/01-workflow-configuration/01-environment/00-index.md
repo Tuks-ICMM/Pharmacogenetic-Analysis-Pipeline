@@ -2,6 +2,7 @@
 title: Environment
 permalink: configuration/environment
 layout: page
+parent: Workflow configuration
 nav_order: 1
 has_children: true
 ---
