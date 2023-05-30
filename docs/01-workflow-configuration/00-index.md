@@ -1,7 +1,7 @@
 ---
 title: Workflow configuration
 layout: page
-permalink: /
+permalink: workflow-configuration
 nav_order: 2
 has_children: true
 ---

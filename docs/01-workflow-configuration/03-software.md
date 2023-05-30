@@ -1,6 +1,6 @@
 ---
 title: Software
-permalink: configuration/software
+permalink: workflow-configuration/software
 layout: page
 nav_order: 2
 parent: Configuration
