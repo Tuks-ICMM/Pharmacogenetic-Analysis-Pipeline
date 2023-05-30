@@ -1,7 +1,7 @@
 ---
 title: Reference material
 layout: home
-permalink: /
+permalink: reference-material
 nav_order: 4
 has_children: true
 ---

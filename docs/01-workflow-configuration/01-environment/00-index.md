@@ -1,6 +1,6 @@
 ---
 title: Environment
-permalink: configuration/environment
+permalink: workflow-configuration/environment
 layout: page
 parent: Workflow configuration
 nav_order: 1
