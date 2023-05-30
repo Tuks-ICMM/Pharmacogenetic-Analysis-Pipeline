@@ -231,9 +231,9 @@ datrie==0.8.2 \
     --hash=sha256:f826e843138698501cbf1a21233f724b851b1e475fad532b638ac5904e115f10 \
     --hash=sha256:fa9f39ac88dc6286672b9dd286fe459646da48133c877a927af24803eaea441e
     # via snakemake
-docutils==0.19 \
-    --hash=sha256:33995a6753c30b7f577febfc2c50411fec6aac7f7ffeb7c4cfe5991072dcf9e6 \
-    --hash=sha256:5e1de4d849fee02c63b040a4a3fd567f4ab104defd8a5511fbbc24a8a017efbc
+docutils==0.20.1 \
+    --hash=sha256:96f387a2c5562db4476f09f13bbab2192e764cac08ebbf3a34a95d9b1e4a59d6 \
+    --hash=sha256:f08a4e276c3a1583a86dce3e34aba3fe04d02bba2dd51ed16106244e8a923e3b
     # via snakemake
 dpath==2.1.5 \
     --hash=sha256:559edcbfc806ca2f9ad9e63566f22e5d41c000e4215bbce9dbf1ca4c859f5e0b \
