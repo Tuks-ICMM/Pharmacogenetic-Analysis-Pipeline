@@ -19,11 +19,18 @@ __email__ = "graeme.ford@tuks.co.za"
 __status__ = "Development"
 
 # Enforce version check
-min_version("6.0")
+min_version("7.24.2")
 
 
 # DEFINE CONFIG FILE FOR SNAKEMAKE:
 configfile: join("config", "config.json")
+
+# LD_LIBRARY_PATH is required to inform Python where OpenSSL library files are located. This is included otherwise none of the rules queued on the system will have this variable set.
+envvars:
+    "LD_LIBRARY_PATH"
+
+# SET REPORT TEMPLATE
+report: "report/template.rst"
 
 
 # validate(config, join("..", "config", ".schema", "config.schema.json"))
@@ -49,68 +56,107 @@ tExtensions = ["map", "ped"]
 
 include: "rules/common.py"
 
+# DEFINE CONTAINERIZED ENVIRONMENT:
+container: "docker://graemeford/pipeline-os"
 
-# BEGIN DEFINING RULES:
-rule all:
-    """
-    Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
-    """
-    log:
-        "logs/ALL/ALL.log",
-    input:
-        [
-            expand(
-                [
-                    "results/FINAL/%s/ALL_{location}.%s.{extension}"
-                    % (cluster, population)
-                    for population in list(samples[cluster].unique())
-                ],
-                extension=finalExtensions,
-                location=locations["location_name"],
-            )
-            for cluster in clusters
-        ],
-        # expand(
-        #     [
-        #         "results/ADMIXTURE/%s.%s.{ext}"
-        #         % (cluster, len(samples[cluster].unique()))
-        #         for cluster in clusters
-        #     ],
-        #     cluster=clusters,
-        #     ext=["bed", "bim", "fam"],
-        # ),
-        # expand(
-        #     [
-        #         "results/FINAL/Admixture/%s.%s.{mode}"
-        #         % (cluster, len(samples[cluster].unique()))
-        #         for cluster in clusters
-        #     ],
-        #     mode=["P", "Q"],
-        # ),
-        # "results/FINAL/Admixture/EIGENSOFT.pca",
-        # "results/FINAL/Admixture/EIGENSOFT.plot",
-        # "results/FINAL/Admixture/EIGENSOFT.eval",
-        # "results/FINAL/Admixture/EIGENSOFT.log",
-
-module VcfValidation:
-    snakefile:
-        # Vcf-Validation sub-workflow is imported here from GitHub:
-        github("Tuks-ICMM/Vcf-Validation", path="workflow/Snakefile", tag="v1.1.1-ALPHA")
+module VCFValidation:
+    snakefile: github("Tuks-ICMM/Vcf-Validation-Workflow", path="workflow/Snakefile", branch="user/GraemeFord")
     config: config
 
-use rule * from VcfValidation as VcfValidation_*
+use rule * from VCFValidation as VCF_Validation_*
 
-rule ALL_COLLATE:
-    """
-    Collate Datasets together into 1 psudo-dataset for downstream analysis.
-    """
-    log:
-        "logs/COLLATE/ALL.log",
+# TODO: Document this behaviour for technical users
+use rule stats from VCFValidation as VCF_Validation_stats with:
     input:
-        expand("results/LIFTOVER/{sample}.vcf.gz", sample=datasets["dataset_name"]),
+        final = "results/PREP/{dataset_name}/{operation}.vcf.gz",
+        final_tbi = "results/PREP/{dataset_name}/{operation}.vcf.gz.tbi",
+        initial = lambda wildcards: getattr(rules, str(wildcards.operation)).input.vcf,
+        initial_tbi = lambda wildcards: getattr(rules, str(wildcards.operation)).input.tbi
+
+# TODO: Document this behaviour for technical users
+ruleorder: VCF_Validation_tabix > tabix
+
+module PopulationStructure:
+    snakefile: github("Tuks-ICMM/Population-Structure-Workflow", path="workflow/Snakefile", branch="main")
+    config: config
+
+use rule * from PopulationStructure as PopulationStructure_*
+
+# TODO: Document this behaviour for technical users
+use rule Admixture_v1p3 from PopulationStructure as PopulationStructure_Admixture_v1p3 with:
+    input:
+        "results/FILTER/ALL_FILTERED.vcf.gz"
+# TODO: Document this behaviour for technical users
+use rule Plink_PCA from PopulationStructure as PopulationStructure_Plink_PCA with:
+    input:
+        "results/FILTER/ALL_FILTERED.vcf.gz"
+# TODO: Document this behaviour for technical users
+use rule DAPC from PopulationStructure as PopulationStructure_DAPC with:
+    input:
+        "results/FILTER/ALL_FILTERED.vcf.gz"
+
+# BEGIN DEFINING RULES:
+def VcfValidationAdapter(extension: str) -> list:
+    """
+    An adapter to generate the correct input list from `VCF Validation Pipeline`. This is required as liftover is optional, making the output files variable.
+    """
+    merge_list = list()
+    for reference_genome, groupby_subset in datasets.set_index(["reference_genome", "dataset_name"]).groupby(level=0): # [FOR] all unqiue (dataset_name and reference_genome) column combinations present
+        if reference_genome != "GRCh38" and groupby_subset is not None: # [IF] reference genome version
+            for dataset_name in groupby_subset.index.get_level_values("dataset_name"): # [FOR] the column in our MultiIndex that contains the dataset_name's in this subset
+                # [EACH] add liftover request for the DAG
+                merge_list.append(f"results/PREP/{dataset_name}/liftover{extension}",)
+    else:
+        for dataset_name in groupby_subset.index.get_level_values("dataset_name"): # [FOR] the column in our MultiIndex that contains the dataset_name's in this subset
+                # [EACH] add liftover request for the DAG
+                merge_list.append(f"results/PREP/{dataset_name}/annotate{extension}",)
+    return merge_list
+
+rule merge:
+    """
+    """
+    group: "COLLATE"
+    input:
+        vcf=lambda _: VcfValidationAdapter(".vcf.gz"),
+        vcfIndex=lambda _: VcfValidationAdapter(".vcf.gz.tbi"),
     output:
-        "results/COLLATE/ALL.vcf.gz",
-        "results/COLLATE/ALL.vcf.gz.tbi",
+        "results/COLLATE/merge.vcf.gz"
+    log:
+        "_logs/COLLATE/merge.log"
+    benchmark:
+        "_benchmarks/merge/merge.benchmark"
+    resources:
+        cpus=search("cores", "COLLATE"),
+        nodes=search("nodes", "COLLATE"),
+        queue=search("queue", "COLLATE"),
+        walltime=search("walltime", "COLLATE"),
+    envmodules:
+        config["environment"]["envmodules"]["bcftools"]
+    shell:
+        """
+        bcftools merge -O z -o {output} {input.vcf}
+        """
+
+rule refFromFasta:
+    """
+    """
+    group: "COLLATE"
+    input: 
+        vcf=lambda wildcards: expand("results/COLLATE/merge.vcf.gz") if datasets.shape[0] >1 else VcfValidationAdapter(".vcf.gz"),
+        vcfIndex=lambda wildcards: expand("results/COLLATE/merge.vcf.gz.tbi") if datasets.shape[0] >1 else VcfValidationAdapter(".vcf.gz.tbi")
+    output: 
+        "results/COLLATE/refFromFasta.vcf.gz"
+    log:
+        "_logs/COLLATE/refFromFasta.log"
+    benchmark:
+        "_benchmarks/COLLATE/refFromFasta.benchmark"
+    resources:
+        cpus=search("cores", "COLLATE"),
+        nodes=search("nodes", "COLLATE"),
+        queue=search("queue", "COLLATE"),
+        walltime=search("walltime", "COLLATE"),
+    envmodules:
+        config["environment"]["envmodules"]["plink-2"]
     params:
         ref=lambda wildcards: join(
         *next(
@@ -118,52 +164,66 @@ rule ALL_COLLATE:
             for i in config["reference-genomes"]
         if i["version"] == "GRCh38"
             ),
-        ),
+        )
+    shell:
+        """
+        plink2 --vcf {input.vcf} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/refFromFasta
+        """
+
+rule chrFilter:
+    """
+    """
+    group: "COLLATE"
+    input:
+        "results/COLLATE/refFromFasta.vcf.gz",
+        "results/COLLATE/refFromFasta.vcf.gz.tbi"
+    output:
+        "results/COLLATE/chrFilter.vcf.gz"
+    log:
+        "_logs/COLLATE/chrFilter.log"
+    benchmark:
+        "_benchmarks/COLLATE/chrFilter.benchmark"
     resources:
         cpus=search("cores", "COLLATE"),
         nodes=search("nodes", "COLLATE"),
         queue=search("queue", "COLLATE"),
         walltime=search("walltime", "COLLATE"),
-    run:
-        if datasets["dataset_name"].size > 1:
-            shell(
-                "module load bcftools-1.7; bcftools merge -l results/LIFTOVER/merge.list -O z -o results/COLLATE/ALL_PRE.vcf.gz"
-            ),
-            shell("module load samtools-1.7; tabix -p vcf results/COLLATE/ALL_PRE.vcf.gz"),
-            shell(
-                "module load plink-2; plink2 --vcf results/COLLATE/ALL_PRE.vcf.gz --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf bgz --out results/COLLATE/ALL_REF"
-            ),
-            shell(
-                "module load plink-2; plink2 --vcf results/COLLATE/ALL_REF.vcf.gz --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/ALL"
-            ),
-            shell("module load samtools-1.7; tabix -p vcf results/COLLATE/ALL.vcf.gz"),
-        elif datasets["dataset_name"].size < 1:
-            pass
-        else:
-            shell(f"cp results/LIFTOVER/{datasets['dataset_name'][0]}.vcf.gz results/COLLATE/ALL.vcf.gz"),
-            shell(f"cp results/LIFTOVER/{datasets['dataset_name'][0]}.vcf.gz.tbi results/COLLATE/ALL.vcf.gz.tbi"),
+    envmodules:
+        config["environment"]["envmodules"]["plink-2"]
+    shell:
+        """
+        plink2 --vcf {input[0]} --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/chrFilter
+        """
 
-
-rule ANNOTATE:
+# group: VALIDATE
+# conditional: true
+rule sampleSubset:
     """
-    Annotate rsID's and set missing variant IDs in psudo-dataset to facilitate down-stream analysis.
+    Subset samples according to user defined list and remove variants that do not pass QC.
     """
-    log:
-        "logs/ANNOTATE/ALL.log",
+    group: "VALIDATE"
     input:
-        "results/COLLATE/ALL.vcf.gz",
+        vcf="results/COLLATE/chrFilter.vcf.gz",
+        samples="input/samples.csv"
     output:
-        "results/ANNOTATE/ALL.vcf.gz",
+        "results/VALIDATE/sampleSubset.vcf.gz"
+    log:
+        "_logs/VALIDATE/sampleSubset.log"
+    benchmark:
+        "_benchmarks/VALIDATE/sampleSubset.benchmark"
     resources:
-        cpus=search("cores", "ANNOTATE"),
-        nodes=search("nodes", "ANNOTATE"),
-        queue=search("queue", "ANNOTATE"),
-        walltime=search("walltime", "ANNOTATE"),
-    # ToDo: Add refGenome and dbSNP links
-    run:
-        shell(
-            "module load bcftools-1.7; bcftools annotate -c ID  -a /nlustre/data/gatk_resource_bundle/hg38/dbsnp_146.hg38.vcf.gz -O z -o results/ANNOTATE/ALL.vcf.gz {input}"
-        ),
+        cpus=search("cores", "VALIDATE"),
+        nodes=search("nodes", "VALIDATE"),
+        queue=search("queue", "VALIDATE"),
+        walltime=search("walltime", "VALIDATE")
+    envmodules:
+        config["environment"]["envmodules"]["bcftools"],
+    params:
+        samples=lambda wildcards, input: ",".join(read_csv(join("input", "samples.csv"), header=0)["sample_name"].tolist())
+    shell:
+        """
+        bcftools view -s {params.samples} -O z -o {output} {input.vcf}  2>{log}
+        """
 
 
 rule FILTER:
@@ -173,7 +233,7 @@ rule FILTER:
     log:
         "logs/FILTER/FILTER.log",
     input:
-        "results/ANNOTATE/ALL.vcf.gz",
+        "results/VALIDATE/sampleSubset.vcf.gz"
     output:
         "results/FILTER/ALL_FILTERED.vcf.gz",
     params:
@@ -189,28 +249,46 @@ rule FILTER:
         nodes=search("nodes", "FILTER"),
         queue=search("queue", "FILTER"),
         walltime=search("walltime", "FILTER"),
-    run:
+    envmodules:
+        config["environment"]["envmodules"]["plink-2"],
+        config["environment"]["envmodules"]["bcftools"],
+        config["environment"]["envmodules"]["plink-1.9"],
+    shell:
+        """
+        # TODO: Reorganise this whole section into sub-workflow
         # Filter out variants with >= 100% missingness
-        shell(
-            "module load plink-2; plink2 --chr 1-22 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1"
-        ),
+        echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness variants' ---" 1>&2
+        plink2 --chr 1-22 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1
+        echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness variants' ---\n" 1>&2
+
         # Filter out samples with >= 100% missingness
-        shell(
-            "module load plink-2; plink2 --chr 1-22 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED1.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2"
-            # TODO
-            # Remove variants with reference alleles not matching that of reference genome
-            # "module load bcftools-1.7; bcftools norm --check-ref x results/FILTER/ALL_FILTERED1.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_FILTERED2.vcf.gz -O z"
-        ),
+        echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness samples' ---" 1>&2
+        plink2 --chr 1-22 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED1.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2
+        echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness samples' ---\n" 1>&2
+                
+        # TODO
+        # Remove variants with reference alleles not matching that of reference genome
+        # "module load bcftools-1.7; bcftools norm --check-ref x results/FILTER/ALL_FILTERED1.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_FILTERED2.vcf.gz -O z"
+        
         # Filter out first- and second-degree related individuals and duplicate samples
         ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 
-        shell(
-            "module load plink-2; plink2 --chr 1-22 --set-all-var-ids @:#\$r-\$a --new-id-max-allele-len 400 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED2.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --output-chr chr26 --out results/FILTER/ALL_FILTERED2_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2.vcf.gz --extract results/FILTER/ALL_FILTERED2_LD.prune.in --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2_pruned; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED2_pruned.vcf.gz --genome --min 0.2 --recode vcf bgz --output-chr chr26 --out results/FILTER/ALL_FILTERED2_unrelated"
-        ),
-        ## Extract the sample IDs of all unrelated individuals and subset the data by these individuals
-        shell(
-            "module load bcftools-1.7; bcftools query -l results/FILTER/ALL_FILTERED2_unrelated.vcf.gz > results/FILTER/unrelated_samples.txt; bcftools view results/FILTER/ALL_FILTERED2.vcf.gz -S results/FILTER/unrelated_samples.txt -o {output} -O z"
-        ),
-
+        echo -e "\n--- LOG SECTION START | Plink-2 'Filter -first and second-degree related individuals' ---" 1>&2
+        plink2 --chr 1-22 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED2.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --export vcf-4.2 bgz  --out results/FILTER/ALL_FILTERED_LD
+        plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED_LD.vcf.gz --extract results/FILTER/ALL_FILTERED_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED_LD_pruned
+        plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED_LD_pruned.vcf.gz --genome --min 0.2 --recode vcf-iid bgz --out results/FILTER/ALL_FILTERED_LD_unrelated
+        echo -e "--- LOG SECTION END | Plink-2 'Filter -first and second-degree related individuals' ---\n" 1>&2
+        
+        ## Extract the sample IDs of all unrelated individuals
+        echo -e "\n--- LOG SECTION START | BcfTools 'query' ---" 1>&2
+        bcftools query -l results/FILTER/ALL_FILTERED_LD_unrelated.vcf.gz > results/FILTER/unrelated_samples.txt
+        echo -e "--- LOG SECTION END | BcfTools 'query' ---\n" 1>&2
+        
+        # Subset the data by these unrelated individuals
+        echo -e "\n--- LOG SECTION START | BcfTools 'view' ---" 1>&2
+        bcftools view results/FILTER/ALL_FILTERED2.vcf.gz -S results/FILTER/unrelated_samples.txt -o {output} -O z
+        echo -e "--- LOG SECTION END | BcfTools 'view' ---\n" 1>&2
+        """
+    
 
 
 rule ADMIXTURE:
@@ -220,16 +298,12 @@ rule ADMIXTURE:
     log:
         "logs/ADMIXTURE/{cluster}.{estimation}.log",
     input:
-        "results/FINAL/ALL_FILTERED.vcf.gz",
+        "results/FILTER/ALL_FILTERED.vcf.gz",
     output:
         expand(
             "results/ADMIXTURE/{{cluster}}.{{estimation}}.{ext}",
             ext=["bed", "bim", "fam"],
         ),
-        # "results/FINAL/Admixture/EIGENSOFT.pca",
-        # "results/FINAL/Admixture/EIGENSOFT.plot",
-        # "results/FINAL/Admixture/EIGENSOFT.eval",
-        # "results/FINAL/Admixture/EIGENSOFT.log",
         expand(
             "results/FINAL/Admixture/{{cluster}}.{{estimation}}.{mode}",
             mode=["P", "Q"],
@@ -239,26 +313,27 @@ rule ADMIXTURE:
         nodes=search("nodes", "ADMIXTURE"),
         queue=search("queue", "ADMIXTURE"),
         walltime=search("walltime", "ADMIXTURE"),
-    run:
-        shell(
-            "module load bcftools-1.7; bcftools view -O z -o results/ADMIXTURE/FILTERED.vcf.gz -m2 -M2 -v snps {input}"
-        ),
-        shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf results/ADMIXTURE/FILTERED.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}"
-        ),
-        shell(
-            "module load admixture-1.3.0; admixture results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}.bed {wildcards.estimation}"
-        ),
-        shell(
-            "mv {wildcards.cluster}.{wildcards.estimation}.{wildcards.estimation}.P results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.P"
-        ),
-        shell(
-            "mv {wildcards.cluster}.{wildcards.estimation}.{wildcards.estimation}.Q results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.Q"
-        ),
-        # shell("mv {params.path}THINNED.bim {params.path}.pedsnp"),
-        # shell("mv {params.path}THINNED.fam {params.path}.pedind"),
-        # shell("module load eigensoft; smartpca -i {params.path}THINNED.bed -a {params.path}THINNED.pedsnp -b {params.path}THINNED.pedind -o {params.finalPath}/EIGENSOFT.pca -p {params.finalPath}/EIGENSOFT.plot -e {params.finalPath}/EIGENSOFT.eval -l {params.finalPath}/EIGENSOFT.log")
+    envmodules:
+        config["environment"]["envmodules"]["bcftools"],
+        config["environment"]["envmodules"]["plink-2"],
+        config["environment"]["envmodules"]["admixture-1.3"],
+    shell:
+        """
+        # Filter to only biallelic SNPs
+        echo -e "\n--- LOG SECTION START | BcfTools 'view' ---" 1>&2
+        bcftools view -O z -o results/ADMIXTURE/BIALLELIC.vcf.gz -m2 -M2 -v snps {input}
+        echo -e "--- LOG SECTION END | BcfTools 'view' ---\n" 1>&2
 
+        echo -e "\n--- LOG SECTION START | Plink-2 'thin to 200 000 variants' ---" 1>&2
+        plink2 --allow-extra-chr --vcf results/ADMIXTURE/BIALLELIC.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}
+        echo -e "--- LOG SECTION END | Plink-2 'thin to 200 000 variants' ---\n" 1>&2
+        
+        echo -e "\n--- LOG SECTION START | Admixture-1.3.0 ---" 1>&2
+        admixture results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}.bed {wildcards.estimation}
+        mv {wildcards.cluster}.{wildcards.estimation}.{wildcards.estimation}.P results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.P
+        mv {wildcards.cluster}.{wildcards.estimation}.{wildcards.estimation}.Q results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.Q
+        echo -e "--- LOG SECTION END | Admixture-1.3.0 ---\n" 1>&2
+        """
 
 
 rule TRIM_AND_NAME:
@@ -280,10 +355,14 @@ rule TRIM_AND_NAME:
         nodes=search("nodes", "TRIM_AND_NAME"),
         queue=search("queue", "TRIM_AND_NAME"),
         walltime=search("walltime", "TRIM_AND_NAME"),
-    run:
-        shell(
-            "module load plink-2; plink2 --allow-extra-chr --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --output-chr chr26 --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}"
-        ),
+    envmodules:
+        config["environment"]["envmodules"]["plink-2"],
+    shell:
+        """
+        echo -e "\n--- LOG SECTION START | Plink-2 'trim' ---" 1>&2
+        plink2 --allow-extra-chr --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --output-chr chr26 --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}
+        echo -e "--- LOG SECTION END | Plink-2 'trim' ---\n" 1>&2
+        """
     
 
 
@@ -302,8 +381,10 @@ rule TRANSPILE_CLUSTERS:
         walltime=search("walltime", "TRANSPILE_CLUSTERS"),
     conda:
         join("envs", "snakemake.yml")
+    envmodules:
+        config["environment"]["envmodules"]["python-3"]
     script:
-        join("scripts", "01 - TRANSPILE_CLUSTERS.py")
+        join("scripts", "01-TRANSPILE_CLUSTERS.py")
 
 
 rule PLINK:
@@ -329,58 +410,72 @@ rule PLINK:
         ],
     params:
         prefix="ALL_{location}",
+        subsets_list=lambda wildcards: ' '.join(clusters)
     resources:
         cpus=search("cores", "PLINK"),
         nodes=search("nodes", "PLINK"),
         queue=search("queue", "PLINK"),
         walltime=search("walltime", "PLINK"),
-    run:
-        for cluster in clusters:
-            shell(
-                "module load plink-2; plink2 --allow-extra-chr --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/{cluster}/{params.prefix}"
-            ),
-            shell(
-                "module load plink-2; plink2 --allow-extra-chr --vcf {input.vcf} --pheno iid-only results/REFERENCE/cluster_{cluster}.txt --loop-cats {cluster} --freq counts --missing --hardy midp --out results/FINAL/{cluster}/{params.prefix}"
+    envmodules:
+        config["environment"]["envmodules"]["plink-2"],
+    shell:
+        """
+        for CLUSTER in {params.subsets_list}
+        do
+            echo -e "\n--- LOG SECTION START | Plink-2 'All freq' ---" 1>&2
+            plink2 --allow-extra-chr --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/$CLUSTER/{params.prefix}
+            echo -e "--- LOG SECTION END | Plink-2 'All freq' ---\n" 1>&2
+            
+            echo -e "\n--- LOG SECTION START | Plink-2 'Subset freq' ---" 1>&2
+            plink2 --allow-extra-chr --vcf {input.vcf} --pheno iid-only results/REFERENCE/cluster_$CLUSTER.txt --loop-cats $CLUSTER --freq counts --missing --hardy midp --out results/FINAL/$CLUSTER/{params.prefix}
+            echo -e "--- LOG SECTION END | Plink-2 'Subset freq' ---\n" 1>&2
+        done
+        """
+    
+# group: VALIDATE
+rule tabix:
+    """
+    Generate tabix-index.
+    """
+    input:
+        "results/{operation}/{output}.vcf.gz"
+    output:
+        "results/{operation}/{output}.vcf.gz.tbi"
+    log:
+        "_logs/{operation}/{output}.log"
+    benchmark:
+        "_benchmarks/{operation}/{output}.benchmark"
+    resources:
+        cpus=search("cores", "VALIDATE"),
+        nodes=search("nodes", "VALIDATE"),
+        queue=search("queue", "VALIDATE"),
+        walltime=search("walltime", "VALIDATE")
+    envmodules:
+        config["environment"]["envmodules"]["bcftools"],
+    shell:
+        """
+        tabix -p vcf {input}
+        """
+
+rule all:
+    """
+    Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
+    """
+    default_target: True
+    log:
+        "logs/ALL/ALL.log",
+    input:
+        VCFValidation.rules.all.input,
+        PopulationStructure.rules.all.input,
+        [
+            expand(
+                [
+                    "results/FINAL/%s/ALL_{location}.%s.{extension}"
+                    % (cluster, population)
+                    for population in list(samples[cluster].unique())
+                ],
+                extension=finalExtensions,
+                location=locations["location_name"],
             )
-
-
-# --indep-pairwise 50 5 .05 removed since this dataset has redundant variant names.
-
-
-# Add in VEP API calls
-# rule CALCULATIONS:
-#     """
-#     Perform Variant Effect prediction with the E! Ensembl VEP tool API.
-#     """
-#     log:
-#         "logs/VEP/{location}.log",
-#     input:
-#         vcf="results/FILTER/ALL_{location}_FILTERED.vcf.gz",
-#     output:
-#         expand("results/FINAL/{cluster}-{location}.xlsx"),
-#     params:
-#         transcript_id=lambda wildcards: config["locations"][wildcards.location][
-#             "GRCh38"
-#         ]["transcript_id"],
-#     resources:
-#         cpus=10,
-#         nodes=1,
-#         queue="normal",
-#         walltime="30:00:00",
-#     script:
-#         "scripts/02 - CALCULATIONS.py"
-# rule COMPILE_EXCEL:
-#     """
-#     Compile all calculations into final excel for distribution and analysis.
-#     """
-#     input:
-#         vcf="results/FILTER/ALL_{location}_FILTERED.vcf.gz",
-#     output:
-#         expand("results/FINAL/{cluster}-{location}.xlsx"),
-#     resources:
-#         cpus=10,
-#         nodes=1,
-#         queue="normal",
-#         walltime="30:00:00",
-#     script:
-#         "scripts/03 - MERGE.py"
+            for cluster in clusters
+        ]

@@ -1,11 +1,16 @@
-snakemake
-seaborn
-pandas
-matplotlib
-myvariant
-statsmodels
-statannot
-upsetplot
+snakemake>=7.25.0
+snakefmt
+pandas # Data Science
+pygments # Snakemake Reports
+pygments # Snakemake Reports
+kaleido # Snakemake Reports
+plotly # Graphing
+seaborn # Graphing
+matplotlib # Graphing
+myvariant # Graphing
+statsmodels # Statistics
+statannot # Graphing
+upsetplot # Graphing
 
 # PEP Validation Packages
 peppy

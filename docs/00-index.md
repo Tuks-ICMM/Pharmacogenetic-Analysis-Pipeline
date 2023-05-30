@@ -56,7 +56,7 @@ Should you wish to cite this project or software, please select an apropriate pa
 
 # Versioning:
 
-We use the [SemVer](http://semver.org/) syntax to manage and maintain version numbers. For the
+We use the [CalVer](https://calver.org/) syntax to manage and maintain version numbers. For the
 versions available, see the [releases on this repository
 here](https://github.com/SgtPorkChops/SASDGHUB/releases).
 

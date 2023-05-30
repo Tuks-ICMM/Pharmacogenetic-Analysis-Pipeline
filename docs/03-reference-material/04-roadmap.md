@@ -1,8 +1,29 @@
 ---
-layout: page
 title: Roadmap
-permalink: /roadmap
-nav_order: 2
+layout: page
+permalink: reference-material/roadmap
+nav_order: 4
+parent: Reference material
+---
+
+# Roadmap
+{: .no_toc }
+
+A quickreference summary of the roadmap for this project.
+{: .fs-6 .fw-300 }
+
+Changelog
+{: .label }
+
+<details markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+1. TOC
+{:toc}
+</details>
+
 ---
 
 # Roadmap
