@@ -26,64 +26,72 @@ Below is a diagram representing the pipeline flow and steps in the form of a pro
 ---
 title: Pharmacogenetics Analysis Pipeline
 ---
-flowchart TB
+flowchart TD
     START([Start])
     END([End - Results])
+
+    subgraph ValidateVcfModule
+        validateVcf([Validate VCF Workflow])
+    end
+    subgraph PopulationStructureModule
+        PopulationStructureWorkflow([Populaltion Structure Workflow])
+    end
+
 
     subgraph dataPrep ["Data and Metadata Preparation"]
         %% Use LR to invert axis set by parent to effectively force relative "TB"
         direction LR
-
-        subgraph Standard ["Standard Resources"]
-            genomeFasta[/"Reference Genome GRCh38 (FASTA)"/]
-        end
-        subgraph projectSpecific ["Project specific data"]
-            %% Use LR to invert axis set by parent to effectively force relative "TB"
-            direction LR
-            subgraph data ["Variant input data"]
-                datasetFiles[/"Datasets (VCF)"/]
+        genomeFasta[/"Reference Genome GRCh38 (FASTA)"/]
+            subgraph data ["Datasets"]
+                datasetFiles1[/"Dataset_1 (.vcf.gz + .tbi)"/]
+                datasetFiles2[/"Dataset_2 (.vcf.gz + .tbi)"/]
+                datasetFiles3[/"Dataset_... (.vcf.gz + .tbi)"/]
             end
             subgraph metadata ["Analysis metadata"]
                 %% Use LR to invert axis set by parent to effectively force relative "TB"
-                direction LR
+                direction TB
 
                 datasetMeta[/"Datasets metadata (CSV)"/]
                 locationMeta[/"Genomic location metadata (CSV)"/]
                 sampleMeta[/"Sample metadata (CSV)"/]
                 transcriptMeta[/"Transcript metadata (CSV)"/]
             end
-        end
+
     end
     START --> dataPrep
-    dataPrep --> VALIDATE
+    dataPrep --> validateVcf
 
-    subgraph prep [Pipeline Preparation]
+    validateVcf --> ifMultipleVcfs
+
+    subgraph prep [Process]
+        direction BT
+
+        subgraph multipleVcfProtocol [Multiple dataset protocol]
+            mergeVcf[Merge VCFs]
+        end
 
 
-        %% Choice START
-        VALIDATE{Validate VCF format} --> |No|VCFERR([Error: Invalid VCF])
-        VALIDATE --> |Yes|Qliftover{Reference genome version}
-        %% Choice END
-        Qliftover --> |GRCh37|LIFTOVER[[Liftover]]
-        %% Choice START
-        LIFTOVER --> COLLATE
-        Qliftover --> |GRCh38|COLLATE[[Collate results into psudo-single dataset]]
-        %% Choice END
+        ifMultipleVcfs{If multiple datasets provided} --> |yes| multipleVcfProtocol
+        ifMultipleVcfs{If multiple datasets provided} --> |no| refFromFasta
 
-        COLLATE --> ANNOTATE[[Annotate VCF]]
-    end
-    ANNOTATE --> processing
+        refFromFasta[[refFromfasta: Check reference alleles against provided reference genome]]
+        
+        multipleVcfProtocol --> refFromFasta
 
-    subgraph processing [Data Processing]
-        TRIM[[Trim VCF to coordinates of interest]]
-    end
-    TRIM --> FREQ
+        refFromFasta --> chrFilter[[chrFilter: Filter out non-standard chromosomes]]
 
-    subgraph analysis [Data Analysis]
-        ANNOTATE --> |Perform admixture analysis|ADMIXTURE[[Admixture analysis]]
+        chrFilter --> sampleSubset[[sampleSubset: Subset samples to labeled samples in metadata files]]
+        
+        sampleSubset --> FILTER[[FILTER: Filter variants and samples with 100% missingness & prune overrelated samples]]
 
-        FREQ[[Perform frequency analysis]]
-    end
-    FREQ --> END
-    ADMIXTURE --> END
+        FILTER --> TRIM_AND_NAME[[TRIM_AND_NAME: Trim dataset to genomic regions of interest]]
+
+        TRANSPILE_CLUSTERS[[TRANSPILE_CLUSTERS: Transpile cluster ownership from sample cluster assignment into input format]]
+
+        TRIM_AND_NAME & TRANSPILE_CLUSTERS --> PLINK[[PLINK: Perform frequency analysis]]
+ 
+    end 
+    FILTER --> PopulationStructureWorkflow
+    PopulationStructureWorkflow --> END
+    PLINK --> END
 ```
