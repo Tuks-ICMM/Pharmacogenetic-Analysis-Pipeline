@@ -38,7 +38,7 @@ Snakemake provides the ability to declare resource declarations for a wide array
 
 The provided batch scheduler profile was created from a template [provided by snakemake](). It has however been altered to facilitate declaring batch scheduler resource usage on a per-rule basis.
 
-{: .note-title }
+{: .normal-title }
 > Parallelization warning
 >
 > The ability to set granular resource allocations per-rule was required to achieve parallel rule execution. As such, this pipeline contains rule syntax that is non-standard, to facilitate this paralelization.

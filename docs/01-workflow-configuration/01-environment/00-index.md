@@ -17,7 +17,7 @@ Supported batch schedulers and how to config
 
 Snakemake supports the use of profiles, used to describe the set of commands used to interact with your batch scheduler. A profile is provided as a set of scripts which provide template bach scheduler commands.
 
-{: note-title }
+{: .normal-title }
 > Warning
 >
 > Without this profile definition, snakemake will not be able to interact with the batch scheduler directly and will not be able to run rules in parallel.

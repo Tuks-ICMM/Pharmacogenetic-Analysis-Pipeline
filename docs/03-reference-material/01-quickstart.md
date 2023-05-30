@@ -29,7 +29,7 @@ quickstart
 1. First you will need to download a copy of the pipeline to a location where you can configure and execute it. Navigate to our GitHub repository and retrieve the latest tag information.
 2. Next, you can use `GIT` to clone a copy of the pipeline to your working environment:
     ```bash
-    git clone https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline/releases/tag/\{\{TAG_VERSION_HERE}} .
+    git clone https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline .
     ```
 
     {: .normal }
@@ -70,6 +70,6 @@ quickstart
 {: .normal-title }
 > Support for non-PBS-Torque schedulers
 >
-> Currently, only support for PBS-Torque has been included in the _{{ site.title }}_. Dedicated integration of additional environments is intended for future releases. Generic snakemake profiles are currently available should you wish to manually integrate a different environments profile.
+> Currently, only support for PBS-Torque has been included in the _{{ site.title }}_. Dedicated integration of additional environments is intended for future releases. Generic snakemake profiles are currently available should you wish to manually integrate a different environments profile. Please be advised that we have made alterations to the standard Snakemake rule format to accommodate resource declarations. For more information, please see the section on the [PBS/Torque bach scheduler](/workflow-configuration/environment/pbs-torque).
 >
 > Documentation is available for [Snakemake Profiles](https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles) and a repository of standardized profiles is available on [GitHub](https://github.com/snakemake-profiles/doc).

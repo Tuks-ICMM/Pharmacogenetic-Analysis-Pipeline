@@ -106,7 +106,7 @@ You may configure a list to describe available reference genomes in the form of 
 }
 ```
 
-{: .note-title }
+{: .normal-title }
 > Performance Tips
 >
 > Users are encouraged to use compression and indexing for performance gain when using reference genomes. Block compression (BGZIP), such as that provided by [SamTools](http://www.htslib.org/doc/bgzip.html), can be used to compress a wide variety of bioinformatics file formats, including `FASTA` files. In order to decompress the blocks created through Block compression, you will also need to create an apropriate index file describing the contents of each block.
@@ -116,7 +116,7 @@ You may configure a list to describe available reference genomes in the form of 
 >-  `GRCh38.dict` file ([Samtools](http://www.htslib.org/doc/samtools-dict.html))
 >-  `GRCh38.fa.gz.fai` file ([Samtools](http://www.htslib.org/doc/samtools-faidx.html))
 
-{: .note-title}
+{: .normal-title}
 > Should I include the index files in my `config.json`?
 >
 > The accomanying index files need only be named and stored alongside the compressed file. They do not need to be listed in the `reference_genome` configuration entry.
@@ -168,7 +168,7 @@ The PBS-Torque batch scheduling system manages per-installation generic resource
 
 To do this, you may use the `queue` key to describing the available PBS-Torque resources and queues youo would like to use. These can be described as follows:
 
-{: .note-title }
+{: .normal-title }
 > Custom core and node selections
 >
 > In some cases, users might want to run some jobs on multiple nodes and some on single nodes. To support this, you may declare the same underlying queue multiple times with a different `queue` key in the config file and create multiple versions of the same underlying hardware queue.

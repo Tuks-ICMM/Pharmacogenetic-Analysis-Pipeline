@@ -51,12 +51,12 @@ source ./venv/bin/activate
 pip install -r requirements.deb.txt
 ```
 
-{: .note-title}
+{: .normal-title}
 > Virtual environments
 >
 > Users are encouraged to use Python virtual environments to maintain a clean, project-specific environment. To create one, you can run the `python -m venv <folder-to-create>` command to create a vritual environment. To activate this environment, use the `source <path-to<folder-to-create>>/bin/activate`. Now, any installation commands will install to this blank environment.
 
-{: .note-title }
+{: .normal-title }
 > Windows compatability
 >
 > Virtual environments are supported on windows, however, the `source` command is linux-specific. Users can use an IDE which is capable of auto-detecting and auto-enabling virtual environments (such as [Visual Studio Code]()) for ease-of-use.

@@ -83,7 +83,6 @@ If you wish to compress your VCF files, please provide the following files as in
 - [x] Tabix Index (`.vcf.gz.tbi` or `.vcf.bgz.tbi`)
 
 {: .normal }
-
 > This pipeline is designed to accept `.vcf.gz` files produced by **Block Compression (BGZIP)**. This is a non-standard type of compression which is not typically the default on Windows or MacOS. It is used to compress `.vcf` files in a series of blocks or chunks and can be done using many popular bioinformatics tools.
 >
 > Normally, block-compression alone would only make your data file smaller. To facilitate more efficient usage of computational resources, you can also create a **Tabix Index**. This is an accompanying index file to BGZIP-compressed `.vcf.gz` files which contains an index indicating the bounds of each compression block relative to the genomic coordinates and variant IDs in the dataset, making targeted decompression much more efficient.
@@ -95,7 +94,6 @@ If you wish to compress your VCF files, please provide the following files as in
 To run the _{{ site.title }}_, you will need to provide some additional contextual information. All metadata is provided in the form of appropriately named ` .csv` files located in the `input` directory.
 
 {: .normal-title }
-
 > Case sensitivity
 >
 > The following metadata declaration files use _**case-sensitive column names**_.
