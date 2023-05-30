@@ -1000,9 +1000,9 @@ wrapt==1.15.0 \
     --hash=sha256:fbec11614dba0424ca72f4e8ba3c420dba07b4a7c206c8c8e4e73f2e98f4c559 \
     --hash=sha256:fd69666217b62fa5d7c6aa88e507493a34dec4fa20c5bd925e4bc12fce586639
     # via snakemake
-xlsxwriter==3.0.9 \
-    --hash=sha256:5eaaf3c6f791cba1dd1c3065147c35982180f693436093aabe5b7d6c16148e95 \
-    --hash=sha256:7216d39a2075afac7a28cad81f6ac31b0b16d8976bf1b775577d157346f891dd
+xlsxwriter==3.1.2 \
+    --hash=sha256:331508ff39d610ecdaf979e458840bc1eab6e6a02cfd5d08f044f0f73636236f \
+    --hash=sha256:78751099a770273f1c98b8d6643351f68f98ae8e6acf9d09d37dc6798f8cd3de
     # via -r requirements.in
 yte==1.5.1 \
     --hash=sha256:6d0b315b78af83276d78f5f67c107c84238f772a76d74f4fc77905b46f3731f5 \
