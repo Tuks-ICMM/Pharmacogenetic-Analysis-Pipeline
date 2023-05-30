@@ -3,7 +3,7 @@ title: PBS/Torque batch scheduler profile
 permalink: configuration/environment/pbs-torque
 layout: page
 nav_order: 1
-parent: Environment
+parent: Workflow configuration
 ---
 
 # PBS/Torque batch scheduler profile
