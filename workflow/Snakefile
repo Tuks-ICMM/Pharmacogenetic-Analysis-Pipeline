@@ -226,7 +226,7 @@ rule sampleSubset:
         """
 
 
-rule FILTER:
+rule filterDataset:
     """
     Filter out individuals and variants (Safety Check).
     """
@@ -290,53 +290,7 @@ rule FILTER:
         """
     
 
-
-rule ADMIXTURE:
-    """
-    Perform Admixture analysis on the large psudo-dataset (Requires 100 000 minimum variants to distinguish sub-populations and 10 000 to distinguish super-populations.)
-    """
-    log:
-        "logs/ADMIXTURE/{cluster}.{estimation}.log",
-    input:
-        "results/FILTER/ALL_FILTERED.vcf.gz",
-    output:
-        expand(
-            "results/ADMIXTURE/{{cluster}}.{{estimation}}.{ext}",
-            ext=["bed", "bim", "fam"],
-        ),
-        expand(
-            "results/FINAL/Admixture/{{cluster}}.{{estimation}}.{mode}",
-            mode=["P", "Q"],
-        ),
-    resources:
-        cpus=search("cores", "ADMIXTURE"),
-        nodes=search("nodes", "ADMIXTURE"),
-        queue=search("queue", "ADMIXTURE"),
-        walltime=search("walltime", "ADMIXTURE"),
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"],
-        config["environment"]["envmodules"]["plink-2"],
-        config["environment"]["envmodules"]["admixture-1.3"],
-    shell:
-        """
-        # Filter to only biallelic SNPs
-        echo -e "\n--- LOG SECTION START | BcfTools 'view' ---" 1>&2
-        bcftools view -O z -o results/ADMIXTURE/BIALLELIC.vcf.gz -m2 -M2 -v snps {input}
-        echo -e "--- LOG SECTION END | BcfTools 'view' ---\n" 1>&2
-
-        echo -e "\n--- LOG SECTION START | Plink-2 'thin to 200 000 variants' ---" 1>&2
-        plink2 --allow-extra-chr --vcf results/ADMIXTURE/BIALLELIC.vcf.gz --thin-count 200000 --set-missing-var-ids @_# --make-bed --out results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}
-        echo -e "--- LOG SECTION END | Plink-2 'thin to 200 000 variants' ---\n" 1>&2
-        
-        echo -e "\n--- LOG SECTION START | Admixture-1.3.0 ---" 1>&2
-        admixture results/ADMIXTURE/{wildcards.cluster}.{wildcards.estimation}.bed {wildcards.estimation}
-        mv {wildcards.cluster}.{wildcards.estimation}.{wildcards.estimation}.P results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.P
-        mv {wildcards.cluster}.{wildcards.estimation}.{wildcards.estimation}.Q results/FINAL/Admixture/{wildcards.cluster}.{wildcards.estimation}.Q
-        echo -e "--- LOG SECTION END | Admixture-1.3.0 ---\n" 1>&2
-        """
-
-
-rule TRIM_AND_NAME:
+rule filterLocations:
     """
     Trim the whole-genome psudo-datasets down to several regions of interest for Variant analysis and Variant effect prediction.
     """
@@ -366,7 +320,7 @@ rule TRIM_AND_NAME:
     
 
 
-rule TRANSPILE_CLUSTERS:
+rule writeSampleMetadata:
     """
     Convert Cluster information given in the config file into PLINK-2.0 suitable format.
     """
@@ -387,7 +341,7 @@ rule TRANSPILE_CLUSTERS:
         join("scripts", "01-TRANSPILE_CLUSTERS.py")
 
 
-rule PLINK:
+rule reportFreq:
     """
     Perform Frequency analysis on super populations.
     """
