@@ -112,19 +112,13 @@ def VcfValidationAdapter(extension: str) -> list:
                 merge_list.append(f"results/PREP/{dataset_name}/annotate{extension}",)
     return merge_list
 
-rule merge:
+rule mergeDatasets:
     """
+    This rule merges multiple datasets into one large psudo-dataset that can be worked on more easily.
     """
     group: "COLLATE"
-    input:
-        vcf=lambda _: VcfValidationAdapter(".vcf.gz"),
-        vcfIndex=lambda _: VcfValidationAdapter(".vcf.gz.tbi"),
-    output:
-        "results/COLLATE/merge.vcf.gz"
-    log:
-        "_logs/COLLATE/merge.log"
-    benchmark:
-        "_benchmarks/merge/merge.benchmark"
+    log: "_logs/COLLATE/merge.log"
+    benchmark: "_benchmarks/merge/merge.benchmark"
     resources:
         cpus=search("cores", "COLLATE"),
         nodes=search("nodes", "COLLATE"),
@@ -132,6 +126,11 @@ rule merge:
         walltime=search("walltime", "COLLATE"),
     envmodules:
         config["environment"]["envmodules"]["bcftools"]
+    input:
+        vcf=lambda _: VcfValidationAdapter(".vcf.gz"),
+        vcfIndex=lambda _: VcfValidationAdapter(".vcf.gz.tbi"),
+    output:
+        "results/COLLATE/merge.vcf.gz"
     shell:
         """
         bcftools merge -O z -o {output} {input.vcf}
@@ -139,17 +138,11 @@ rule merge:
 
 rule refFromFasta:
     """
+    This rule verifies that the reference alleles in teh provided VCF file match that of the reference genome.
     """
     group: "COLLATE"
-    input: 
-        vcf=lambda wildcards: expand("results/COLLATE/merge.vcf.gz") if datasets.shape[0] >1 else VcfValidationAdapter(".vcf.gz"),
-        vcfIndex=lambda wildcards: expand("results/COLLATE/merge.vcf.gz.tbi") if datasets.shape[0] >1 else VcfValidationAdapter(".vcf.gz.tbi")
-    output: 
-        "results/COLLATE/refFromFasta.vcf.gz"
-    log:
-        "_logs/COLLATE/refFromFasta.log"
-    benchmark:
-        "_benchmarks/COLLATE/refFromFasta.benchmark"
+    log: "_logs/COLLATE/refFromFasta.log"
+    benchmark: "_benchmarks/COLLATE/refFromFasta.benchmark"
     resources:
         cpus=search("cores", "COLLATE"),
         nodes=search("nodes", "COLLATE"),
@@ -165,6 +158,11 @@ rule refFromFasta:
         if i["version"] == "GRCh38"
             ),
         )
+    input: 
+        vcf=lambda wildcards: expand("results/COLLATE/merge.vcf.gz") if datasets.shape[0] >1 else VcfValidationAdapter(".vcf.gz"),
+        vcfIndex=lambda wildcards: expand("results/COLLATE/merge.vcf.gz.tbi") if datasets.shape[0] >1 else VcfValidationAdapter(".vcf.gz.tbi")
+    output: 
+        "results/COLLATE/refFromFasta.vcf.gz"
     shell:
         """
         plink2 --vcf {input.vcf} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/refFromFasta
@@ -172,17 +170,11 @@ rule refFromFasta:
 
 rule chrFilter:
     """
+    This rule removes any unusual chromosomes.
     """
-    group: "COLLATE"
-    input:
-        "results/COLLATE/refFromFasta.vcf.gz",
-        "results/COLLATE/refFromFasta.vcf.gz.tbi"
-    output:
-        "results/COLLATE/chrFilter.vcf.gz"
-    log:
-        "_logs/COLLATE/chrFilter.log"
-    benchmark:
-        "_benchmarks/COLLATE/chrFilter.benchmark"
+    group: "FILTER"
+    log: "_logs/COLLATE/chrFilter.log"
+    benchmark: "_benchmarks/COLLATE/chrFilter.benchmark"
     resources:
         cpus=search("cores", "COLLATE"),
         nodes=search("nodes", "COLLATE"),
@@ -190,27 +182,23 @@ rule chrFilter:
         walltime=search("walltime", "COLLATE"),
     envmodules:
         config["environment"]["envmodules"]["plink-2"]
+    input:
+        "results/COLLATE/refFromFasta.vcf.gz",
+        "results/COLLATE/refFromFasta.vcf.gz.tbi"
+    output:
+        "results/COLLATE/chrFilter.vcf.gz"
     shell:
         """
         plink2 --vcf {input[0]} --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/chrFilter
         """
 
-# group: VALIDATE
-# conditional: true
 rule sampleSubset:
     """
-    Subset samples according to user defined list and remove variants that do not pass QC.
+    This rule subsets samples according to user defined list and remove variants that do not pass QC.
     """
-    group: "VALIDATE"
-    input:
-        vcf="results/COLLATE/chrFilter.vcf.gz",
-        samples="input/samples.csv"
-    output:
-        "results/VALIDATE/sampleSubset.vcf.gz"
-    log:
-        "_logs/VALIDATE/sampleSubset.log"
-    benchmark:
-        "_benchmarks/VALIDATE/sampleSubset.benchmark"
+    group: "FILTER"
+    log: "_logs/VALIDATE/sampleSubset.log"
+    benchmark: "_benchmarks/VALIDATE/sampleSubset.benchmark"
     resources:
         cpus=search("cores", "VALIDATE"),
         nodes=search("nodes", "VALIDATE"),
@@ -220,6 +208,11 @@ rule sampleSubset:
         config["environment"]["envmodules"]["bcftools"],
     params:
         samples=lambda wildcards, input: ",".join(read_csv(join("input", "samples.csv"), header=0)["sample_name"].tolist())
+    input:
+        vcf="results/COLLATE/chrFilter.vcf.gz",
+        samples="input/samples.csv"
+    output:
+        "results/VALIDATE/sampleSubset.vcf.gz"
     shell:
         """
         bcftools view -s {params.samples} -O z -o {output} {input.vcf}  2>{log}
@@ -230,20 +223,9 @@ rule filterDataset:
     """
     Filter out individuals and variants (Safety Check).
     """
-    log:
-        "logs/FILTER/FILTER.log",
-    input:
-        "results/VALIDATE/sampleSubset.vcf.gz"
-    output:
-        "results/FILTER/ALL_FILTERED.vcf.gz",
-    params:
-        ref=lambda wildcards: join(
-        *next(
-            i["file_path"]
-            for i in config["reference-genomes"]
-        if i["version"] == "GRCh38"
-            ),
-        ),    
+    group: "FILTER"
+    log: "logs/FILTER/FILTER.log",
+    benchmark: "_benchmarks/VALIDATE/filterDataset.benchmark"
     resources:
         cpus=search("cores", "FILTER"),
         nodes=search("nodes", "FILTER"),
@@ -253,6 +235,18 @@ rule filterDataset:
         config["environment"]["envmodules"]["plink-2"],
         config["environment"]["envmodules"]["bcftools"],
         config["environment"]["envmodules"]["plink-1.9"],
+    params:
+        ref=lambda wildcards: join(
+        *next(
+            i["file_path"]
+            for i in config["reference-genomes"]
+        if i["version"] == "GRCh38"
+            ),
+        ),    
+    input:
+        "results/VALIDATE/sampleSubset.vcf.gz"
+    output:
+        "results/FILTER/ALL_FILTERED.vcf.gz",
     shell:
         """
         # TODO: Reorganise this whole section into sub-workflow
@@ -294,16 +288,9 @@ rule filterLocations:
     """
     Trim the whole-genome psudo-datasets down to several regions of interest for Variant analysis and Variant effect prediction.
     """
-    log:
-        "logs/TRIM/{location}.log",
-    input:
-        "results/FILTER/ALL_FILTERED.vcf.gz",
-    output:
-        "results/TRIM/ALL_{location}.vcf.gz",
-    params:
-        fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "start"].item(),
-        toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "stop"].item(),
-        chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
+    group: "FILTER"
+    log: "logs/TRIM/{location}.log",
+    benchmark: "_benchmarks/VALIDATE/filterLocations.benchmark"
     resources:
         cpus=search("cores", "TRIM_AND_NAME"),
         nodes=search("nodes", "TRIM_AND_NAME"),
@@ -311,6 +298,14 @@ rule filterLocations:
         walltime=search("walltime", "TRIM_AND_NAME"),
     envmodules:
         config["environment"]["envmodules"]["plink-2"],
+    params:
+        fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "start"].item(),
+        toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "stop"].item(),
+        chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
+    input:
+        "results/FILTER/ALL_FILTERED.vcf.gz",
+    output:
+        "results/TRIM/ALL_{location}.vcf.gz",
     shell:
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'trim' ---" 1>&2
@@ -324,10 +319,9 @@ rule writeSampleMetadata:
     """
     Convert Cluster information given in the config file into PLINK-2.0 suitable format.
     """
-    log:
-        "logs/TRANSPILE/{cluster}.log",
-    output:
-        "results/REFERENCE/cluster_{cluster}.txt",
+    group: "FILTER"
+    log: "logs/TRANSPILE/{cluster}.log",
+    benchmark: "_benchmarks/VALIDATE/writeSampleMetadata.benchmark"
     resources:
         cpus=search("cores", "TRANSPILE_CLUSTERS"),
         nodes=search("nodes", "TRANSPILE_CLUSTERS"),
@@ -337,6 +331,8 @@ rule writeSampleMetadata:
         join("envs", "snakemake.yml")
     envmodules:
         config["environment"]["envmodules"]["python-3"]
+    output:
+        "results/REFERENCE/cluster_{cluster}.txt",
     script:
         join("scripts", "01-TRANSPILE_CLUSTERS.py")
 
@@ -345,8 +341,19 @@ rule reportFreq:
     """
     Perform Frequency analysis on super populations.
     """
-    log:
-        "logs/PLINK/{location}.log",
+    group: "REPORT"
+    log: "logs/PLINK/{location}.log",
+    benchmark: "_benchmarks/VALIDATE/repoprtFreq.benchmark"
+    resources:
+        cpus=search("cores", "PLINK"),
+        nodes=search("nodes", "PLINK"),
+        queue=search("queue", "PLINK"),
+        walltime=search("walltime", "PLINK"),
+    envmodules:
+        config["environment"]["envmodules"]["plink-2"],
+    params:
+        prefix="ALL_{location}",
+        subsets_list=lambda wildcards: ' '.join(clusters)
     input:
         ["results/REFERENCE/cluster_%s.txt" % (cluster) for cluster in ["SUPER", "SUB"]],
         vcf="results/TRIM/ALL_{location}.vcf.gz",
@@ -362,16 +369,6 @@ rule reportFreq:
             )
             for cluster in clusters
         ],
-    params:
-        prefix="ALL_{location}",
-        subsets_list=lambda wildcards: ' '.join(clusters)
-    resources:
-        cpus=search("cores", "PLINK"),
-        nodes=search("nodes", "PLINK"),
-        queue=search("queue", "PLINK"),
-        walltime=search("walltime", "PLINK"),
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
     shell:
         """
         for CLUSTER in {params.subsets_list}
@@ -391,14 +388,8 @@ rule tabix:
     """
     Generate tabix-index.
     """
-    input:
-        "results/{operation}/{output}.vcf.gz"
-    output:
-        "results/{operation}/{output}.vcf.gz.tbi"
-    log:
-        "_logs/{operation}/{output}.log"
-    benchmark:
-        "_benchmarks/{operation}/{output}.benchmark"
+    log: "_logs/{operation}/{output}.log"
+    benchmark: "_benchmarks/{operation}/{output}.benchmark"
     resources:
         cpus=search("cores", "VALIDATE"),
         nodes=search("nodes", "VALIDATE"),
@@ -406,6 +397,10 @@ rule tabix:
         walltime=search("walltime", "VALIDATE")
     envmodules:
         config["environment"]["envmodules"]["bcftools"],
+    input:
+        "results/{operation}/{output}.vcf.gz"
+    output:
+        "results/{operation}/{output}.vcf.gz.tbi"
     shell:
         """
         tabix -p vcf {input}
