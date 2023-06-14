@@ -60,7 +60,7 @@ include: "rules/common.py"
 container: "docker://graemeford/pipeline-os"
 
 module VCFValidation:
-    snakefile: github("Tuks-ICMM/Vcf-Validation-Workflow", path="workflow/Snakefile", branch="user/GraemeFord")
+    snakefile: github("Tuks-ICMM/Vcf-Validation-Workflow", path="workflow/Snakefile", branch="main")
     config: config
 
 use rule * from VCFValidation as VCF_Validation_*
