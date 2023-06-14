@@ -290,7 +290,7 @@ rule filterLocations:
     """
     group: "FILTER"
     log: "logs/TRIM/{location}.log",
-    benchmark: "_benchmarks/VALIDATE/filterLocations.benchmark"
+    benchmark: "_benchmarks/filterLocations/{location}.benchmark"
     resources:
         cpus=search("cores", "TRIM_AND_NAME"),
         nodes=search("nodes", "TRIM_AND_NAME"),
