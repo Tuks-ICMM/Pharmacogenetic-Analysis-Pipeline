@@ -321,7 +321,7 @@ rule writeSampleMetadata:
     """
     group: "FILTER"
     log: "logs/TRANSPILE/{cluster}.log",
-    benchmark: "_benchmarks/VALIDATE/writeSampleMetadata.benchmark"
+    benchmark: "_benchmarks/writeSampleMetadata/{cluster}.benchmark"
     resources:
         cpus=search("cores", "TRANSPILE_CLUSTERS"),
         nodes=search("nodes", "TRANSPILE_CLUSTERS"),
@@ -343,7 +343,7 @@ rule reportFreq:
     """
     group: "REPORT"
     log: "logs/PLINK/{location}.log",
-    benchmark: "_benchmarks/VALIDATE/repoprtFreq.benchmark"
+    benchmark: "_benchmarks/reportFreq/{location}.benchmark"
     resources:
         cpus=search("cores", "PLINK"),
         nodes=search("nodes", "PLINK"),
