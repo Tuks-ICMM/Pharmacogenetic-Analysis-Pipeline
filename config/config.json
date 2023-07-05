@@ -38,7 +38,6 @@
           "filterDataset"
         ]
       },
-      // VCF-Validation-Workflow rules
       {
         "queue": "long",
         "walltime": "900:00:00",
@@ -56,7 +55,6 @@
           "stats"
         ]
       },
-      // Population-Sturucture-Workflow rules
       {
         "queue": "long",
         "walltime": "900:00:00",
