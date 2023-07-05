@@ -30,13 +30,12 @@
         "nodes": "1",
         "rules": [
           "all",
-          "VALIDATE",
-          "LIFTOVER",
-          "COLLATE",
-          "ALL_COLLATE",
-          "ANNOTATE",
-          "ADMIXTURE",
-          "TRIM_AND_NAME"
+          "VcfValidationAdapter",
+          "mergeDatasets",
+          "refFromFasta",
+          "chrFilter",
+          "sampleSubset",
+          "filterDataset"
         ]
       },
       {
@@ -46,9 +45,10 @@
         "cores": "10",
         "nodes": "1",
         "rules": [
-          "FILTER",
-          "TRANSPILE_CLUSTERS",
-          "PLINK"
+          "writeSampleMetadata",
+          "reportFreq",
+          "filterLocations",
+          "tabix"
         ]
       }
     ],
