@@ -29,7 +29,7 @@ def search(property: str, rule: str) -> Union[str, int]:
     )
 
 # BEGIN DEFINING RULES:
-def vcfValidationWorkflowAdapter(extension: str, datasets: DataFrame) -> list:
+def vcfValidationWorkflowAdapter(extension: str) -> list:
     """
     An adapter to generate the correct input list from `VCF Validation Pipeline`. This is required as liftover is optional, making the output files variable.
     """
