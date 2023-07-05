@@ -120,10 +120,10 @@ rule mergeDatasets:
     log: "_logs/COLLATE/merge.log"
     benchmark: "_benchmarks/merge/merge.benchmark"
     resources:
-        cpus=search("cores", "COLLATE"),
-        nodes=search("nodes", "COLLATE"),
-        queue=search("queue", "COLLATE"),
-        walltime=search("walltime", "COLLATE"),
+        cpus=search("cores", "mergeDatasets"),
+        nodes=search("nodes", "mergeDatasets"),
+        queue=search("queue", "mergeDatasets"),
+        walltime=search("walltime", "mergeDatasets"),
     envmodules:
         config["environment"]["envmodules"]["bcftools"]
     input:
@@ -176,10 +176,10 @@ rule chrFilter:
     log: "_logs/COLLATE/chrFilter.log"
     benchmark: "_benchmarks/COLLATE/chrFilter.benchmark"
     resources:
-        cpus=search("cores", "COLLATE"),
-        nodes=search("nodes", "COLLATE"),
-        queue=search("queue", "COLLATE"),
-        walltime=search("walltime", "COLLATE"),
+        cpus=search("cores", "chrFilter"),
+        nodes=search("nodes", "chrFilter"),
+        queue=search("queue", "chrFilter"),
+        walltime=search("walltime", "chrFilter"),
     envmodules:
         config["environment"]["envmodules"]["plink-2"]
     input:
@@ -200,10 +200,10 @@ rule sampleSubset:
     log: "_logs/VALIDATE/sampleSubset.log"
     benchmark: "_benchmarks/VALIDATE/sampleSubset.benchmark"
     resources:
-        cpus=search("cores", "VALIDATE"),
-        nodes=search("nodes", "VALIDATE"),
-        queue=search("queue", "VALIDATE"),
-        walltime=search("walltime", "VALIDATE")
+        cpus=search("cores", "sampleSubset"),
+        nodes=search("nodes", "sampleSubset"),
+        queue=search("queue", "sampleSubset"),
+        walltime=search("walltime", "sampleSubset")
     envmodules:
         config["environment"]["envmodules"]["bcftools"],
     params:
@@ -227,10 +227,10 @@ rule filterDataset:
     log: "logs/FILTER/FILTER.log",
     benchmark: "_benchmarks/VALIDATE/filterDataset.benchmark"
     resources:
-        cpus=search("cores", "FILTER"),
-        nodes=search("nodes", "FILTER"),
-        queue=search("queue", "FILTER"),
-        walltime=search("walltime", "FILTER"),
+        cpus=search("cores", "filterDataset"),
+        nodes=search("nodes", "filterDataset"),
+        queue=search("queue", "filterDataset"),
+        walltime=search("walltime", "filterDataset"),
     envmodules:
         config["environment"]["envmodules"]["plink-2"],
         config["environment"]["envmodules"]["bcftools"],
@@ -292,10 +292,10 @@ rule filterLocations:
     log: "logs/TRIM/{location}.log",
     benchmark: "_benchmarks/filterLocations/{location}.benchmark"
     resources:
-        cpus=search("cores", "TRIM_AND_NAME"),
-        nodes=search("nodes", "TRIM_AND_NAME"),
-        queue=search("queue", "TRIM_AND_NAME"),
-        walltime=search("walltime", "TRIM_AND_NAME"),
+        cpus=search("cores", "filterLocations"),
+        nodes=search("nodes", "filterLocations"),
+        queue=search("queue", "filterLocations"),
+        walltime=search("walltime", "filterLocations"),
     envmodules:
         config["environment"]["envmodules"]["plink-2"],
     params:
@@ -323,10 +323,10 @@ rule writeSampleMetadata:
     log: "logs/TRANSPILE/{cluster}.log",
     benchmark: "_benchmarks/writeSampleMetadata/{cluster}.benchmark"
     resources:
-        cpus=search("cores", "TRANSPILE_CLUSTERS"),
-        nodes=search("nodes", "TRANSPILE_CLUSTERS"),
-        queue=search("queue", "TRANSPILE_CLUSTERS"),
-        walltime=search("walltime", "TRANSPILE_CLUSTERS"),
+        cpus=search("cores", "writeSampleMetadata"),
+        nodes=search("nodes", "writeSampleMetadata"),
+        queue=search("queue", "writeSampleMetadata"),
+        walltime=search("walltime", "writeSampleMetadata"),
     conda:
         join("envs", "snakemake.yml")
     envmodules:
@@ -345,10 +345,10 @@ rule reportFreq:
     log: "logs/PLINK/{location}.log",
     benchmark: "_benchmarks/reportFreq/{location}.benchmark"
     resources:
-        cpus=search("cores", "PLINK"),
-        nodes=search("nodes", "PLINK"),
-        queue=search("queue", "PLINK"),
-        walltime=search("walltime", "PLINK"),
+        cpus=search("cores", "reportFreq"),
+        nodes=search("nodes", "reportFreq"),
+        queue=search("queue", "reportFreq"),
+        walltime=search("walltime", "reportFreq"),
     envmodules:
         config["environment"]["envmodules"]["plink-2"],
     params:
@@ -391,10 +391,10 @@ rule tabix:
     log: "_logs/{operation}/{output}.log"
     benchmark: "_benchmarks/{operation}/{output}.benchmark"
     resources:
-        cpus=search("cores", "VALIDATE"),
-        nodes=search("nodes", "VALIDATE"),
-        queue=search("queue", "VALIDATE"),
-        walltime=search("walltime", "VALIDATE")
+        cpus=search("cores", "tabix"),
+        nodes=search("nodes", "tabix"),
+        queue=search("queue", "tabix"),
+        walltime=search("walltime", "tabix")
     envmodules:
         config["environment"]["envmodules"]["bcftools"],
     input:
