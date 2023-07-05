@@ -48,7 +48,7 @@ The _{{ site.title }}_ uses a global configuration located in `config/config.jso
       "plink-1.9": "",
       "bcftools": "",
       "samtools": "",
-      "piccard": "",
+      "picard": "",
       "structure": "",
       "admixture-1.3": "",
       "python-3": "",
@@ -59,7 +59,7 @@ The _{{ site.title }}_ uses a global configuration located in `config/config.jso
 }
 ```
 
-### Reference Genomes
+## Reference Genomes
 You may configure a list to describe available reference genomes in the form of an `array` of `objects`. Each object requires the following information:
 
 <dl class="def-wide">
@@ -235,7 +235,7 @@ The `envmodules` key allows users to provide [Environment Modules]() accessor na
 - plink-1.9
 - bcftools
 - samtools
-- piccard
+- picard
 - structure
 - admixture-1.3
 - python-3
@@ -251,7 +251,7 @@ The `envmodules` key allows users to provide [Environment Modules]() accessor na
     "plink-1.9": "plink-1.9",
     "bcftools": "bcftools",
     "samtools": "samtools",
-    "piccard": "piccard",
+    "picard": "picard",
     "structure": "structure",
     "admixture-1.3": "admixture-1.3",
     "python-3": "python-3",
