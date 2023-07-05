@@ -116,7 +116,7 @@ rule mergeDatasets:
     """
     This rule merges multiple datasets into one large psudo-dataset that can be worked on more easily.
     """
-    group: "COLLATE"
+    # group: "COLLATE"
     log: "_logs/COLLATE/merge.log"
     benchmark: "_benchmarks/merge/merge.benchmark"
     resources:
@@ -140,14 +140,14 @@ rule refFromFasta:
     """
     This rule verifies that the reference alleles in teh provided VCF file match that of the reference genome.
     """
-    group: "COLLATE"
-    log: "_logs/COLLATE/refFromFasta.log"
-    benchmark: "_benchmarks/COLLATE/refFromFasta.benchmark"
+    # group: "refFromFasta"
+    log: "_logs/refFromFasta/refFromFasta.log"
+    benchmark: "_benchmarks/refFromFasta/refFromFasta.benchmark"
     resources:
-        cpus=search("cores", "COLLATE"),
-        nodes=search("nodes", "COLLATE"),
-        queue=search("queue", "COLLATE"),
-        walltime=search("walltime", "COLLATE"),
+        cpus=search("cores", "refFromFasta"),
+        nodes=search("nodes", "refFromFasta"),
+        queue=search("queue", "refFromFasta"),
+        walltime=search("walltime", "refFromFasta"),
     envmodules:
         config["environment"]["envmodules"]["plink-2"]
     params:
@@ -172,7 +172,7 @@ rule chrFilter:
     """
     This rule removes any unusual chromosomes.
     """
-    group: "FILTER"
+    # group: "FILTER"
     log: "_logs/COLLATE/chrFilter.log"
     benchmark: "_benchmarks/COLLATE/chrFilter.benchmark"
     resources:
@@ -196,7 +196,7 @@ rule sampleSubset:
     """
     This rule subsets samples according to user defined list and remove variants that do not pass QC.
     """
-    group: "FILTER"
+    # group: "FILTER"
     log: "_logs/VALIDATE/sampleSubset.log"
     benchmark: "_benchmarks/VALIDATE/sampleSubset.benchmark"
     resources:
@@ -223,7 +223,7 @@ rule filterDataset:
     """
     Filter out individuals and variants (Safety Check).
     """
-    group: "FILTER"
+    # group: "FILTER"
     log: "logs/FILTER/FILTER.log",
     benchmark: "_benchmarks/VALIDATE/filterDataset.benchmark"
     resources:
@@ -288,7 +288,7 @@ rule filterLocations:
     """
     Trim the whole-genome psudo-datasets down to several regions of interest for Variant analysis and Variant effect prediction.
     """
-    group: "FILTER"
+    # group: "FILTER"
     log: "logs/TRIM/{location}.log",
     benchmark: "_benchmarks/filterLocations/{location}.benchmark"
     resources:
@@ -319,7 +319,7 @@ rule writeSampleMetadata:
     """
     Convert Cluster information given in the config file into PLINK-2.0 suitable format.
     """
-    group: "FILTER"
+    # group: "FILTER"
     log: "logs/TRANSPILE/{cluster}.log",
     benchmark: "_benchmarks/writeSampleMetadata/{cluster}.benchmark"
     resources:
@@ -341,7 +341,7 @@ rule reportFreq:
     """
     Perform Frequency analysis on super populations.
     """
-    group: "REPORT"
+    # group: "REPORT"
     log: "logs/PLINK/{location}.log",
     benchmark: "_benchmarks/reportFreq/{location}.benchmark"
     resources:
