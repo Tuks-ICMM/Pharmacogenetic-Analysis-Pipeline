@@ -39,6 +39,23 @@
         ]
       },
       {
+        "queue": "long",
+        "walltime": "900:00:00",
+        "memory": "128G",
+        "cores": "10",
+        "nodes": "1",
+        "rules": [
+          "wipeInfo",
+          "normalize",
+          "sort",
+          "filter",
+          "annotate",
+          "liftover",
+          "tabix",
+          "stats"
+        ]
+      },
+      {
         "queue": "normal",
         "walltime": "30:00:00",
         "memory": "128G",
