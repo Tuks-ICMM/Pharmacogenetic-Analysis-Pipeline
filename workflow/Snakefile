@@ -141,8 +141,8 @@ rule refFromFasta:
             ),
         )
     input: 
-        vcf=lambda wildcards: "results/COLLATE/merge.vcf.gz" if datasets.shape[0] <1 else vcfValidationWorkflowAdapter(".vcf.gz"),
-        vcfIndex=lambda wildcards: "results/COLLATE/merge.vcf.gz.tbi" if datasets.shape[0] <1 else vcfValidationWorkflowAdapter(".vcf.gz.tbi")
+        vcf=lambda wildcards: "results/COLLATE/merge.vcf.gz" if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz"),
+        vcfIndex=lambda wildcards: "results/COLLATE/merge.vcf.gz.tbi" if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz.tbi")
     output: 
         "results/COLLATE/refFromFasta.vcf.gz"
     shell:
