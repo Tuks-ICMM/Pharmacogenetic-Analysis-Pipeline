@@ -38,6 +38,7 @@
           "filterDataset"
         ]
       },
+      // VCF-Validation-Workflow rules
       {
         "queue": "long",
         "walltime": "900:00:00",
@@ -53,6 +54,22 @@
           "liftover",
           "tabix",
           "stats"
+        ]
+      },
+      // Population-Sturucture-Workflow rules
+      {
+        "queue": "long",
+        "walltime": "900:00:00",
+        "memory": "128G",
+        "cores": "10",
+        "nodes": "1",
+        "rules": [
+          "plinkPed",
+          "fetchPedLables",
+          "Admixture_v1p3",
+          "Plink_PCA",
+          "Plink2_Graphs",
+          "DAPC"
         ]
       },
       {
