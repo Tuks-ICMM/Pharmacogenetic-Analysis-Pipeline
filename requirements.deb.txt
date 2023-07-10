@@ -482,9 +482,9 @@ myvariant==1.0.0 \
     --hash=sha256:693c86d35e1d0a3f30db1bdd1e896a6c950c9807eb2a2a3a8deb63b7797cb6d8 \
     --hash=sha256:fa7d5e58627e78bb536cf65d50f9a1a55256f125d4800fd51690429298341c94
     # via -r requirements.in
-nbformat==5.8.0 \
-    --hash=sha256:46dac64c781f1c34dfd8acba16547024110348f9fc7eab0f31981c2a3dc48d1f \
-    --hash=sha256:d910082bd3e0bffcf07eabf3683ed7dda0727a326c446eeb2922abe102e65162
+nbformat==5.9.1 \
+    --hash=sha256:3a7f52d040639cbd8a3890218c8b0ffb93211588c57446c90095e32ba5881b5d \
+    --hash=sha256:b7968ebf4811178a4108ee837eae1442e3f054132100f0359219e9ed1ce3ca45
     # via snakemake
 numpy==1.24.2 \
     --hash=sha256:003a9f530e880cb2cd177cba1af7220b9aa42def9c4afc2a2fc3ee6be7eb2b22 \
