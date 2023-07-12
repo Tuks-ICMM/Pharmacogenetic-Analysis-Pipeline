@@ -82,7 +82,7 @@ module PopulationStructure:
 use rule * from PopulationStructure as Population_Structure_*
 
 # TODO: Document this behaviour for technical users
-use rule plinkPed from PopulationStructure as Population_Structure_Admixture_v1p3 with:
+use rule plinkPed from PopulationStructure as Population_Structure_plinkPed with:
     input:
         "results/FILTER/ALL_FILTERED.vcf.gz"
 # TODO: Document this behaviour for technical users
