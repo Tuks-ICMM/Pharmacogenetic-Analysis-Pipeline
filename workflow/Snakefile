@@ -79,18 +79,18 @@ module PopulationStructure:
     snakefile: github("Tuks-ICMM/Population-Structure-Workflow", path="workflow/Snakefile", branch="main")
     config: config
 
-use rule * from PopulationStructure as PopulationStructure_*
+use rule * from PopulationStructure as Population_Structure_*
 
 # TODO: Document this behaviour for technical users
-use rule Admixture_v1p3 from PopulationStructure as PopulationStructure_Admixture_v1p3 with:
+use rule plinkPed from PopulationStructure as Population_Structure_Admixture_v1p3 with:
     input:
         "results/FILTER/ALL_FILTERED.vcf.gz"
 # TODO: Document this behaviour for technical users
-use rule Plink_PCA from PopulationStructure as PopulationStructure_Plink_PCA with:
+use rule Plink_PCA from PopulationStructure as Population_Structure_Plink_PCA with:
     input:
         "results/FILTER/ALL_FILTERED.vcf.gz"
 # TODO: Document this behaviour for technical users
-use rule DAPC from PopulationStructure as PopulationStructure_DAPC with:
+use rule DAPC from PopulationStructure as Population_Structure_DAPC with:
     input:
         "results/FILTER/ALL_FILTERED.vcf.gz"
 
