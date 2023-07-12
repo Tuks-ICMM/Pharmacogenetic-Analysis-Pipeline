@@ -55,44 +55,14 @@ tExtensions = ["map", "ped"]
 
 include: "rules/common.smk"
 
+# [IMPORT] VCF-Validation-Workflow and override local rules with non-local input from theVCF-Validation-Workflow
+include: "rules/importVcfValidationWorkflow.smk"
+
+# [IMPORT] Population-Structure-Workflow and override local rules with non-local input from the Population-Structure-Workflow
+include: "rules/importPopulationStructureWorkflow.smk"
+
 # DEFINE CONTAINERIZED ENVIRONMENT:
 container: "docker://graemeford/pipeline-os"
-
-module VCFValidation:
-    snakefile: github("Tuks-ICMM/Vcf-Validation-Workflow", path="workflow/Snakefile", branch="main")
-    config: config
-
-use rule * from VCFValidation as VCF_Validation_*
-
-# TODO: Document this behaviour for technical users
-use rule stats from VCFValidation as VCF_Validation_stats with:
-    input:
-        final = "results/PREP/{dataset_name}/{operation}.vcf.gz",
-        final_tbi = "results/PREP/{dataset_name}/{operation}.vcf.gz.tbi",
-        initial = lambda wildcards: getattr(rules, str(wildcards.operation)).input.vcf,
-        initial_tbi = lambda wildcards: getattr(rules, str(wildcards.operation)).input.tbi
-
-# TODO: Document this behaviour for technical users
-ruleorder: VCF_Validation_tabix > tabix
-
-module PopulationStructure:
-    snakefile: github("Tuks-ICMM/Population-Structure-Workflow", path="workflow/Snakefile", branch="main")
-    config: config
-
-use rule * from PopulationStructure as Population_Structure_*
-
-# TODO: Document this behaviour for technical users
-use rule plinkPed from PopulationStructure as Population_Structure_plinkPed with:
-    input:
-        "results/FILTER/ALL_FILTERED.vcf.gz"
-# TODO: Document this behaviour for technical users
-use rule Plink_PCA from PopulationStructure as Population_Structure_Plink_PCA with:
-    input:
-        "results/FILTER/ALL_FILTERED.vcf.gz"
-# TODO: Document this behaviour for technical users
-use rule DAPC from PopulationStructure as Population_Structure_DAPC with:
-    input:
-        "results/FILTER/ALL_FILTERED.vcf.gz"
 
 rule mergeDatasets:
     """
