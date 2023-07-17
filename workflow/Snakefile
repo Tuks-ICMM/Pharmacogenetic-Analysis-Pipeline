@@ -141,7 +141,7 @@ rule chrFilter:
         "results/COLLATE/chrFilter.vcf.gz"
     shell:
         """
-        plink2 --vcf {input.vcf} --allow-extra-chr --output-chr chr26 --chr 1-22 --export vcf-4.2 bgz --out results/COLLATE/chrFilter
+        plink2 --vcf {input.vcf} --allow-extra-chr --output-chr chr26 --chr 1-26 --export vcf-4.2 bgz --out results/COLLATE/chrFilter
         """
 
 rule sampleSubset:
@@ -204,12 +204,12 @@ rule filterDataset:
         # TODO: Reorganise this whole section into sub-workflow
         # Filter out variants with >= 100% missingness
         echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness variants' ---" 1>&2
-        plink2 --chr 1-22 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1
+        plink2 --chr 1-26 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1
         echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness variants' ---\n" 1>&2
 
         # Filter out samples with >= 100% missingness
         echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness samples' ---" 1>&2
-        plink2 --chr 1-22 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED1.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2
+        plink2 --chr 1-26 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED1.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2
         echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness samples' ---\n" 1>&2
                 
         # TODO
@@ -219,7 +219,7 @@ rule filterDataset:
         # Filter out first- and second-degree related individuals and duplicate samples
         ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 
         echo -e "\n--- LOG SECTION START | Plink-2 'Filter -first and second-degree related individuals' ---" 1>&2
-        plink2 --chr 1-22 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED2.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --export vcf-4.2 bgz  --out results/FILTER/ALL_FILTERED_LD
+        plink2 --chr 1-26 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED2.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --export vcf-4.2 bgz  --out results/FILTER/ALL_FILTERED_LD
         plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED_LD.vcf.gz --extract results/FILTER/ALL_FILTERED_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED_LD_pruned
         plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED_LD_pruned.vcf.gz --genome --min 0.2 --recode vcf-iid bgz --out results/FILTER/ALL_FILTERED_LD_unrelated
         echo -e "--- LOG SECTION END | Plink-2 'Filter -first and second-degree related individuals' ---\n" 1>&2
