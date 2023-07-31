@@ -149,8 +149,8 @@ rule sampleSubset:
     This rule subsets samples according to user defined list and remove variants that do not pass QC.
     """
     # group: "FILTER"
-    log: "_logs/VALIDATE/sampleSubset.log"
-    benchmark: "_benchmarks/VALIDATE/sampleSubset.benchmark"
+    log: "_logs/filter/sampleSubset.log"
+    benchmark: "_benchmarks/filter/sampleSubset.benchmark"
     resources:
         cpus=search("cores", "sampleSubset"),
         nodes=search("nodes", "sampleSubset"),
@@ -164,7 +164,7 @@ rule sampleSubset:
         vcf="results/COLLATE/chrFilter.vcf.gz",
         samples="input/samples.csv"
     output:
-        "results/VALIDATE/sampleSubset.vcf.gz"
+        "results/filter/sampleSubset.vcf.gz"
     shell:
         """
         bcftools view -s {params.samples} -O z -o {output} {input.vcf}  2>{log}
