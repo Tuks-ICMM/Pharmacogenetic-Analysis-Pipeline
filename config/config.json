@@ -79,7 +79,10 @@
         "rules": [
           "writeSampleMetadata",
           "reportFreq",
-          "filterLocations",
+          "filterVariantMissingness",
+          "filterSampleMissingness",
+          "filterSampleRelatedness",
+          "filterLinkageDisequilibrium",
           "tabix"
         ]
       }

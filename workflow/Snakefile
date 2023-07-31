@@ -171,70 +171,192 @@ rule sampleSubset:
         """
 
 
-rule filterDataset:
+
+rule filterVariantMissingness:
     """
-    Filter out individuals and variants (Safety Check).
+    Filter out variants with >= 100% missingness
     """
-    # group: "FILTER"
-    log: "logs/FILTER/FILTER.log",
-    benchmark: "_benchmarks/VALIDATE/filterDataset.benchmark"
-    resources:
-        cpus=search("cores", "filterDataset"),
-        nodes=search("nodes", "filterDataset"),
-        queue=search("queue", "filterDataset"),
-        walltime=search("walltime", "filterDataset"),
+
+    log: "_logs/filter/VariantMissingness.log"
+    benchmark: "_benchmarks/filter/VariantMissingness.benchmark"
+    resources: 
+        cpus=search("cores", "filterVariantMissingness"),
+        nodes=search("nodes", "filterVariantMissingness"),
+        queue=search("queue", "filterVariantMissingness"),
+        walltime=search("walltime", "filterVariantMissingness"), 
     envmodules:
         config["environment"]["envmodules"]["plink-2"],
-        config["environment"]["envmodules"]["bcftools"],
-        config["environment"]["envmodules"]["plink-1.9"],
     params:
-        ref=lambda wildcards: join(
-        *next(
-            i["file_path"]
-            for i in config["reference-genomes"]
-        if i["version"] == "GRCh38"
-            ),
-        ),    
-    input:
-        "results/VALIDATE/sampleSubset.vcf.gz"
+        output=lambda wildcards, output: output[0][:-7]
+    input: 
+        "results/filter/sampleSubset.vcf.gz"
     output:
-        "results/FILTER/ALL_FILTERED.vcf.gz",
+        "results/filter/filterVariantMissingness.vcf.gz"
+    shell: 
+        """
+        echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness variants' ---" 1>&2
+        plink2 --chr 1-26 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out {params.output}
+        echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness variants' ---\n" 1>&2
+        """
+
+rule filterSampleMissingness:
+    """
+    Filter out samples with >= 100% missingness
+    """
+
+    log: "_logs/filter/SampleMissingness.log"
+    benchmark: "_benchmarks/filter/SampleMissingness.benchmark"
+    resources: 
+        cpus=search("cores", "filterSampleMissingness"),
+        nodes=search("nodes", "filterSampleMissingness"),
+        queue=search("queue", "filterSampleMissingness"),
+        walltime=search("walltime", "filterSampleMissingness"), 
+    envmodules:
+        config["environment"]["envmodules"]["plink-2"],
+    params:
+        output=lambda wildcards, output: output[0][:-7]
+    input:
+        "results/filter/filterVariantMissingness.vcf.gz"
+    output:
+        "results/filter/filterSampleMissingness.vcf.gz"
+    shell: 
+        """
+        echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness samples' ---" 1>&2
+        plink2 --chr 1-26 --allow-extra-chr --vcf {input} --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out {params.output}
+        echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness samples' ---\n" 1>&2
+        """
+
+rule calculateLinkageDisequilibrium:
+    """
+    Identify variants in linkage disequilibrium
+    """
+
+    log: "_logs/filter/calculateLinkageDisequilibrium.log"
+    benchmark: "_benchmarks/filter/calculateLinkageDisequilibrium.benchmark"
+    resources:
+        cpus=search("cores", "calculateLinkageDisequilibrium"),
+        nodes=search("nodes", "calculateLinkageDisequilibrium"),
+        queue=search("queue", "calculateLinkageDisequilibrium"),
+        walltime=search("walltime", "calculateLinkageDisequilibrium"),
+    envmodules: 
+        config["environment"]["envmodules"]["plink-2"],
+    params:
+        output=lambda wildcards, output: output[0][:-7]
+    input:
+        "results/filter/filterSampleMissingness.vcf.gz",
+    output:
+        "results/filter/calculateLinkageDisequilibrium.rmdup.list",
+        "results/filter/calculateLinkageDisequilibrium.prune.in",
+        "results/filter/calculateLinkageDisequilibrium.prune.out",
     shell:
         """
-        # TODO: Reorganise this whole section into sub-workflow
-        # Filter out variants with >= 100% missingness
-        echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness variants' ---" 1>&2
-        plink2 --chr 1-26 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED1
-        echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness variants' ---\n" 1>&2
+        plink2 --vcf {input} --chr 1-26 --set-all-var-ids @_#[\$1->\$2] --new-id-max-allele-len 1000 --rm-dup exclude-mismatch --indep-pairwise 50 5 0.5 --bad-ld--out {params.output}
+        """
 
-        # Filter out samples with >= 100% missingness
-        echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness samples' ---" 1>&2
-        plink2 --chr 1-26 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED1.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2
-        echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness samples' ---\n" 1>&2
-                
-        # TODO
-        # Remove variants with reference alleles not matching that of reference genome
-        # "module load bcftools-1.7; bcftools norm --check-ref x results/FILTER/ALL_FILTERED1.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_FILTERED2.vcf.gz -O z"
-        
-        # Filter out first- and second-degree related individuals and duplicate samples
-        ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 
-        echo -e "\n--- LOG SECTION START | Plink-2 'Filter -first and second-degree related individuals' ---" 1>&2
-        plink2 --chr 1-26 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 500 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_FILTERED2.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --export vcf-4.2 bgz  --out results/FILTER/ALL_FILTERED_LD
-        plink2 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED_LD.vcf.gz --extract results/FILTER/ALL_FILTERED_LD.prune.in --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED_LD_pruned
-        plink --allow-extra-chr --vcf results/FILTER/ALL_FILTERED_LD_pruned.vcf.gz --genome --min 0.2 --recode vcf-iid bgz --out results/FILTER/ALL_FILTERED_LD_unrelated
-        echo -e "--- LOG SECTION END | Plink-2 'Filter -first and second-degree related individuals' ---\n" 1>&2
-        
-        ## Extract the sample IDs of all unrelated individuals
-        echo -e "\n--- LOG SECTION START | BcfTools 'query' ---" 1>&2
-        bcftools query -l results/FILTER/ALL_FILTERED_LD_unrelated.vcf.gz > results/FILTER/unrelated_samples.txt
-        echo -e "--- LOG SECTION END | BcfTools 'query' ---\n" 1>&2
-        
-        # Subset the data by these unrelated individuals
+
+rule filterLinkageDisequilibrium:
+    """
+    """
+
+    log: "_logs/filter/filterLinkageDisequilibrium.log"
+    benchmark: "_benchmarks/filter/filterLinkageDisequilibrium.benchmark"
+    resources:
+        cpus=search("cores", "filterLinkageDisequilibrium"),
+        nodes=search("nodes", "filterLinkageDisequilibrium"),
+        queue=search("queue", "filterLinkageDisequilibrium"),
+        walltime=search("walltime", "filterLinkageDisequilibrium"),
+    envmodules: 
+        config["environment"]["envmodules"]["plink-2"],
+    params:
+        output=lambda wildcards, output: output[0][:-7]
+    input:
+        inclusion_list="results/filter/calculateLinkageDisequilibrium.prune.in",
+        vcf="results/filter/filterSampleMissingness.vcf.gz"
+    output:
+        "results/filter/filterLinkageDisequilibrium.vcf.gz"
+    shell:
+        """
+        plink2 --allow-extra-chr --vcf {input.vcf} --extract {input.inclusion_list} --export vcf-4.2 bgz --out {params.output}
+        """
+
+# TODO: Remove reliance on --recode-iid and use *.genome text-based output
+# TODO: Write bridging script to extract list of sample-ids from *.genome text format using Pandas
+rule calculateIdentityByDescent:
+    """
+    Identify samples which are related to eachother using Identity-By-Descent
+    """
+
+    log: "_logs/calculate/calculateIdentityByDescent.log"
+    benchmark: "_benchmarks/calculate/calculateIdentityByDescent.benchmark"
+    resources:
+        cpus=search("cores", "calculateIdentityByDescent"),
+        nodes=search("nodes", "calculateIdentityByDescent"),
+        queue=search("queue", "calculateIdentityByDescent"),
+        walltime=search("walltime", "calculateIdentityByDescent"),
+    envmodules:
+        config["environment"]["envmodules"]["plink-1.9"],
+    params:
+        output=lambda wildcards, output: output[0][:-7]
+    input:
+        "results/calculate/filterLinkageDisequilibrium.vcf.gz"
+    output:
+        "results/calculate/calculateIdentityByDescent.vcf.gz"
+    shell:
+        """
+        plink --vcf {input} --allow-extra-chr --keep--allele-order --genome --min 0.2 --recode vcf-iid bgz --out {params.output}
+        """
+
+
+rule calculateSampleIds:
+    """
+    Retrive a list of samples from a VCF file
+    """
+
+    log: "_logs/calculate/calculateIdentityByDescent.log"
+    benchmark: "_benchmarks/calculate/calculateSamples.benchmark"
+    resources:
+        cpus=search("cores", "calculateIdentityByDescent"),
+        nodes=search("nodes", "calculateIdentityByDescent"),
+        queue=search("queue", "calculateIdentityByDescent"),
+        walltime=search("walltime", "calculateIdentityByDescent"),
+    envmodules:
+        config["environment"]["envmodules"]["bcftools"],
+    input:
+        "results/filter/filterLinkageDisequilibrium.vcf.gz"
+    output:
+        "results/filter/calculateSampleIds.txt"
+    shell:
+        """
+        bcftools query -l {input} > {output}
+        """
+
+
+rule filterSampleRelatedness:
+    """
+    Subset the data by these unrelated individuals
+    """
+    # group: "FILTER"
+    log: "_logs/filter/SampleRelatedness.log"
+    benchmark: "_benchmarks/filter/SampleRelatedness.benchmark"
+    resources:
+        cpus=search("cores", "filterSampleRelatedness"),
+        nodes=search("nodes", "filterSampleRelatedness"),
+        queue=search("queue", "filterSampleRelatedness"),
+        walltime=search("walltime", "filterSampleRelatedness"),
+    envmodules:
+        config["environment"]["envmodules"]["bcftools"],
+    input:
+        vcf="results/filter/filterLinkageDisequilibrium.vcf.gz",
+        samples="results/filter/calculateSampleIds.txt"
+    output:
+        "results/filter/filterSampleRelatedness.vcf.gz",
+    shell:
+        """
         echo -e "\n--- LOG SECTION START | BcfTools 'view' ---" 1>&2
-        bcftools view results/FILTER/ALL_FILTERED2.vcf.gz -S results/FILTER/unrelated_samples.txt -o {output} -O z
+        bcftools view {input.vcf} -S {input.samples} -O z -o {output}
         echo -e "--- LOG SECTION END | BcfTools 'view' ---\n" 1>&2
         """
-    
+
 
 rule filterLocations:
     """
@@ -255,7 +377,7 @@ rule filterLocations:
         toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "stop"].item(),
         chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
     input:
-        "results/FILTER/ALL_FILTERED.vcf.gz",
+        "results/filter/filterSampleRelatedness.vcf.gz",
     output:
         "results/TRIM/ALL_{location}.vcf.gz",
     shell:
@@ -264,7 +386,7 @@ rule filterLocations:
         plink2 --allow-extra-chr --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --output-chr chr26 --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}
         echo -e "--- LOG SECTION END | Plink-2 'trim' ---\n" 1>&2
         """
-    
+
 
 
 rule writeSampleMetadata:
@@ -328,13 +450,13 @@ rule reportFreq:
             echo -e "\n--- LOG SECTION START | Plink-2 'All freq' ---" 1>&2
             plink2 --allow-extra-chr --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/$CLUSTER/{params.prefix}
             echo -e "--- LOG SECTION END | Plink-2 'All freq' ---\n" 1>&2
-            
+
             echo -e "\n--- LOG SECTION START | Plink-2 'Subset freq' ---" 1>&2
             plink2 --allow-extra-chr --vcf {input.vcf} --pheno iid-only results/REFERENCE/cluster_$CLUSTER.txt --loop-cats $CLUSTER --freq counts --missing --hardy midp --out results/FINAL/$CLUSTER/{params.prefix}
             echo -e "--- LOG SECTION END | Plink-2 'Subset freq' ---\n" 1>&2
         done
         """
-    
+
 # group: VALIDATE
 rule tabix:
     """
