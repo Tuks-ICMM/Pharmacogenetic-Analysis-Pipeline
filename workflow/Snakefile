@@ -250,7 +250,7 @@ rule calculateLinkageDisequilibrium:
         "results/filter/calculateLinkageDisequilibrium.prune.out",
     shell:
         """
-        plink2 --vcf {input} --chr 1-26 --set-all-var-ids @_#[\$1->\$2] --new-id-max-allele-len 1000 --rm-dup exclude-mismatch --indep-pairwise 50 5 0.5 --bad-ld --out {params.output}
+        plink2 --vcf {input} --chr 1-26 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 1000 --rm-dup exclude-mismatch --indep-pairwise 50 5 0.5 --bad-ld --out {params.output}
         """
 
 
