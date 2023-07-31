@@ -3,7 +3,7 @@ from os.path import abspath, dirname, join
 
 # from subprocess import run
 
-with open(join("config", "config.json"), "r") as file_content:
+with open(join("config", "config.json"), "r", encoding="UTF-8") as file_content:
     config = load(file_content)
 
 PBS_Headers = [
@@ -17,8 +17,8 @@ PBS_Headers = [
 
 PBS_Body = [
     "module load python-3.11.3",
-    "cd {};".format(dirname(abspath(__file__))),
-    "source {}/venv/bin/activate".format(dirname(abspath(__file__))),
+    f"cd {dirname(abspath(__file__))};",
+    f"source {dirname(abspath(__file__))}/venv/bin/activate",
     "snakemake --profile config/PBS-Torque-Profile --use-envmodules",
 ]
 
@@ -33,7 +33,5 @@ if "environment" in config:
             PBS_Headers.append("#PBS -M " + config["environment"]["email"]["address"])
 
 
-with open("run.sh", "w") as file:
+with open("run.sh", "w", encoding="UTF-8") as file:
     file.writelines("\n".join(PBS_Headers + PBS_Body))
-
-# run(["qsub", ".run.sh"], shell=True)
