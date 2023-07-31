@@ -144,18 +144,18 @@ rule chrFilter:
         plink2 --vcf {input.vcf} --allow-extra-chr --output-chr chr26 --chr 1-26 --export vcf-4.2 bgz --out results/COLLATE/chrFilter
         """
 
-rule sampleSubset:
+rule filterRequestedSamples:
     """
     This rule subsets samples according to user defined list and remove variants that do not pass QC.
     """
     # group: "FILTER"
-    log: "_logs/filter/sampleSubset.log"
-    benchmark: "_benchmarks/filter/sampleSubset.benchmark"
+    log: "_logs/filter/filterRequestedSamples.log"
+    benchmark: "_benchmarks/filter/filterRequestedSamples.benchmark"
     resources:
-        cpus=search("cores", "sampleSubset"),
-        nodes=search("nodes", "sampleSubset"),
-        queue=search("queue", "sampleSubset"),
-        walltime=search("walltime", "sampleSubset")
+        cpus=search("cores", "filterRequestedSamples"),
+        nodes=search("nodes", "filterRequestedSamples"),
+        queue=search("queue", "filterRequestedSamples"),
+        walltime=search("walltime", "filterRequestedSamples")
     envmodules:
         config["environment"]["envmodules"]["bcftools"],
     params:
@@ -164,7 +164,7 @@ rule sampleSubset:
         vcf="results/COLLATE/chrFilter.vcf.gz",
         samples="input/samples.csv"
     output:
-        "results/filter/sampleSubset.vcf.gz"
+        "results/filter/filterRequestedSamples.vcf.gz"
     shell:
         """
         bcftools view -s {params.samples} -O z -o {output} {input.vcf}  2>{log}

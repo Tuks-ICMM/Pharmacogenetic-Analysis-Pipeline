@@ -32,7 +32,7 @@
           "mergeDatasets",
           "refFromFasta",
           "chrFilter",
-          "sampleSubset",
+          "filterRequestedSamples",
           "all",
           "VcfValidationAdapter",
           "filterDataset"
