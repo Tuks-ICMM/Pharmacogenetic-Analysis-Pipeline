@@ -241,12 +241,12 @@ rule calculateLinkageDisequilibrium:
     envmodules: 
         config["environment"]["envmodules"]["plink-2"],
     params:
-        output=lambda wildcards, output: output[0][:-13]
+        output=lambda wildcards, output: output[0][:-9]
     input:
         "results/filter/filterSampleMissingness.vcf.gz",
     output:
-        "results/filter/calculateLinkageDisequilibrium.rmd.prune.in",
-        "results/filter/calculateLinkageDisequilibrium.rmd.prune.out",
+        "results/filter/calculateLinkageDisequilibrium.prune.in",
+        "results/filter/calculateLinkageDisequilibrium.prune.out",
     shell:
         """
         plink2 --vcf {input} --chr 1-26 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 1000 --rm-dup exclude-mismatch --indep-pairwise 50 5 0.5 --bad-ld --out {params.output}
