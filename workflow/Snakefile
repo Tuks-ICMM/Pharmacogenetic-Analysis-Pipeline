@@ -307,7 +307,7 @@ rule reportFreq:
         prefix="ALL_{location}",
         subsets_list=lambda wildcards: ' '.join(clusters)
     input:
-        ["results/REFERENCE/cluster_%s.txt" % (cluster) for cluster in ["SUPER", "SUB"]],
+        ["results/REFERENCE/cluster_%s.txt" % (cluster) for cluster in clusters],
         vcf="results/TRIM/ALL_{location}.vcf.gz",
     output:
         [
