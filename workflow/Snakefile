@@ -267,7 +267,7 @@ rule filterLinkageDisequilibrium:
     envmodules: 
         config["environment"]["envmodules"]["plink-2"],
     params:
-        output=lambda wildcards, output: output[0][:-9]
+        output=lambda wildcards, output: output[0][:-7]
     input:
         inclusion_list="results/filter/calculateLinkageDisequilibrium.prune.in",
         vcf="results/filter/filterSampleMissingness.vcf.gz"
