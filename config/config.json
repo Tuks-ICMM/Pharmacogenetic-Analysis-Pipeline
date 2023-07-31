@@ -29,12 +29,12 @@
         "cores": "10",
         "nodes": "1",
         "rules": [
-          "all",
-          "VcfValidationAdapter",
           "mergeDatasets",
           "refFromFasta",
           "chrFilter",
           "sampleSubset",
+          "all",
+          "VcfValidationAdapter",
           "filterDataset"
         ]
       },
@@ -79,7 +79,7 @@
         "rules": [
           "filterVariantMissingness",
           "filterSampleMissingness",
-          "filterSampleRelatedness",
+          "calculateLinkageDisequilibrium",
           "filterLinkageDisequilibrium",
           "calculateIdentityByDescent",
           "calculateSampleIds",
