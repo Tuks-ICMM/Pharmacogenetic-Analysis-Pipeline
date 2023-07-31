@@ -245,9 +245,8 @@ rule calculateLinkageDisequilibrium:
     input:
         "results/filter/filterSampleMissingness.vcf.gz",
     output:
-        "results/filter/calculateLinkageDisequilibrium.rmdup.list",
-        "results/filter/calculateLinkageDisequilibrium.prune.in",
-        "results/filter/calculateLinkageDisequilibrium.prune.out",
+        "results/filter/calculateLinkageDisequilibrium.rmd.prune.in",
+        "results/filter/calculateLinkageDisequilibrium.rmd.prune.out",
     shell:
         """
         plink2 --vcf {input} --chr 1-26 --set-all-var-ids @_#\$1,\$2 --new-id-max-allele-len 1000 --rm-dup exclude-mismatch --indep-pairwise 50 5 0.5 --bad-ld --out {params.output}
