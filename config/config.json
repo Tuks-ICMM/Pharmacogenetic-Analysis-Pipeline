@@ -77,12 +77,16 @@
         "cores": "10",
         "nodes": "1",
         "rules": [
-          "writeSampleMetadata",
-          "reportFreq",
           "filterVariantMissingness",
           "filterSampleMissingness",
           "filterSampleRelatedness",
           "filterLinkageDisequilibrium",
+          "calculateIdentityByDescent",
+          "calculateSampleIds",
+          "filterSampleRelatedness",
+          "filterLocations",
+          "writeSampleMetadata",
+          "reportFreq",
           "tabix"
         ]
       }
