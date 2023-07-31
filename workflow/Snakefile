@@ -269,7 +269,7 @@ rule filterLinkageDisequilibrium:
     params:
         output=lambda wildcards, output: output[0][:-7]
     input:
-        inclusion_list="results/filter/calculateLinkageDisequilibrium.prune.in",
+        inclusion_list="results/filter/calculateLinkageDisequilibrium.rmd.prune.in",
         vcf="results/filter/filterSampleMissingness.vcf.gz"
     output:
         "results/filter/filterLinkageDisequilibrium.vcf.gz"
