@@ -24,9 +24,6 @@ min_version("7.24.2")
 # DEFINE CONFIG FILE FOR SNAKEMAKE:
 configfile: join("config", "config.json")
 
-# LD_LIBRARY_PATH is required to inform Python where OpenSSL library files are located. This is included otherwise none of the rules queued on the system will have this variable set.
-envvars:
-    "LD_LIBRARY_PATH"
 
 # SET REPORT TEMPLATE
 report: "report/template.rst"
