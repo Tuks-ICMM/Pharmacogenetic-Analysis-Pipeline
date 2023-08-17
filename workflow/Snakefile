@@ -294,7 +294,7 @@ rule calculateIdentityByDescent:
     params:
         output=lambda wildcards, output: output[0][:-7]
     input:
-        "results/calculate/filterLinkageDisequilibrium.vcf.gz"
+        "results/filter/filterLinkageDisequilibrium.vcf.gz"
     output:
         "results/calculate/calculateIdentityByDescent.vcf.gz"
     shell:
@@ -308,7 +308,7 @@ rule calculateSampleIds:
     Retrive a list of samples from a VCF file
     """
 
-    log: "_logs/calculate/calculateIdentityByDescent.log"
+    log: "_logs/calculate/calculateSampleIds.log"
     benchmark: "_benchmarks/calculate/calculateSamples.benchmark"
     resources:
         cpus=search("cores", "calculateIdentityByDescent"),
@@ -318,7 +318,7 @@ rule calculateSampleIds:
     envmodules:
         config["environment"]["envmodules"]["bcftools"],
     input:
-        "results/filter/filterLinkageDisequilibrium.vcf.gz"
+        "results/calculate/calculateIdentityByDescent.vcf.gz"
     output:
         "results/filter/calculateSampleIds.txt"
     shell:

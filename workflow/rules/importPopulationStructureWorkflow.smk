@@ -1,4 +1,3 @@
-
 module PopulationStructure:
     snakefile: github("Tuks-ICMM/Population-Structure-Workflow", path="workflow/Snakefile", branch="main")
     config: config
