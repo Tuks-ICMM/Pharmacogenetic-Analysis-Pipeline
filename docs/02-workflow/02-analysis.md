@@ -142,7 +142,7 @@ Reference Genome Configuration
       </dl>
     </dd>
   </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -180,7 +180,7 @@ normalize[[normalize:\nNormalize all SNPs]]
       </dl>
     </dd>
   </dl>
-    <hr>
+    </hr>
 
 </details>
   
@@ -217,7 +217,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
     
 </details>
   
@@ -252,7 +252,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
   
@@ -287,7 +287,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
   
@@ -324,7 +324,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -360,7 +360,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -400,7 +400,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -439,7 +439,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -473,7 +473,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -514,7 +514,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -554,7 +554,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -594,7 +594,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -630,7 +630,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -670,7 +670,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -698,7 +698,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -730,7 +730,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -772,7 +772,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 </details>
 
@@ -797,7 +797,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 
 </details>
@@ -832,7 +832,6 @@ normalize[[normalize:\nNormalize all SNPs]]
           <dd>Save output to a BG-Zipped VCF file using the VCF-4.2 specification.</dd>
           <dt><code>--out results/TRIM/ALL_{wildcards.location}</code> | <code>--out</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
-        </dl>
           <dt><code>--pheno iid-only results/REFERENCE/cluster_$CLUSTER.txt</code> | <code>--pheno</code></dt>
           <dd>Extract phenotype information from the given file by Sample ID.</dd>
           <dt><code>--loop-cats $CLUSTER</code> | <code>--loop-cats</code></dt>
@@ -844,7 +843,7 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    <hr>
+    </hr>
 
 
 </details>
