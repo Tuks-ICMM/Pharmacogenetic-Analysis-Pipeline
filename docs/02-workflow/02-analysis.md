@@ -39,76 +39,76 @@ Reference Genome Configuration
   title: Pharmacogenetics Analysis
   ---
   flowchart TD
-subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
-    direction BT
+  subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
+      direction BT
 
-    reportFreq[[reportFreq:\nPerform frequency analysis]]
-    filterRequestedSamples[[filterRequestedSamples:\nSubset samples to labeled\nsamples in metadata files]]
-    filterVariantMissingness[[filterVariantMissingness:\nFilter variants with 100%\nmissingness]]
-    filterSampleMissingness[[filterSampleMissingness:\nFilter samples with 100%\nmissingness]]
-    refFromFasta[[refFromfasta:\nCheck reference alleles against\nprovided reference genome]]
-    chrFilter[[chrFilter:\nFilter out non-standard\nchromosomes]]
-    writeSampleMetadata[[writeSampleMetadata:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
-    calculateLinkageDisequilibrium[[calculateLinkageDisequilibrium:\nCalculate LD associations]]
-    filterLinkageDisequilibrium[[filterLinkageDisequilibrium:\nRemove variants in LD]]
-    calculateIdentityByDescent[[calculateIdentityByDescent:\nCalculate Identity-By-Descent]]
-    calculateSampleIds[[calculateSampleIds:\nQuery a list of sample IDs\nfrom the input VCF]]
-    filterSampleRelatedness[[filterSampleRelatedness:\nremove a given list of]]
-    filterLocations[[filterLocations:\nTrim the dataset to one of\nthe studied regions]]
+      reportFreq[[reportFreq:\nPerform frequency analysis]]
+      filterRequestedSamples[[filterRequestedSamples:\nSubset samples to labeled\nsamples in metadata files]]
+      filterVariantMissingness[[filterVariantMissingness:\nFilter variants with 100%\nmissingness]]
+      filterSampleMissingness[[filterSampleMissingness:\nFilter samples with 100%\nmissingness]]
+      refFromFasta[[refFromfasta:\nCheck reference alleles against\nprovided reference genome]]
+      chrFilter[[chrFilter:\nFilter out non-standard\nchromosomes]]
+      writeSampleMetadata[[writeSampleMetadata:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
+      calculateLinkageDisequilibrium[[calculateLinkageDisequilibrium:\nCalculate LD associations]]
+      filterLinkageDisequilibrium[[filterLinkageDisequilibrium:\nRemove variants in LD]]
+      calculateIdentityByDescent[[calculateIdentityByDescent:\nCalculate Identity-By-Descent]]
+      calculateSampleIds[[calculateSampleIds:\nQuery a list of sample IDs\nfrom the input VCF]]
+      filterSampleRelatedness[[filterSampleRelatedness:\nremove a given list of]]
+      filterLocations[[filterLocations:\nTrim the dataset to one of\nthe studied regions]]
 
-    ifMultipleVcfs{If multiple\ndatasetsprovided}
+      ifMultipleVcfs{If multiple\ndatasetsprovided}
 
-    subgraph multipleVcfProtocol [Multiple dataset protocol]
-        mergeDatasets[[mergeDatasets:\nMerge multiple incoming\ndatasets]]
-    end
-
-
-    ifMultipleVcfs --> |yes| multipleVcfProtocol
-    ifMultipleVcfs --> |no| refFromFasta
-
-    
-    multipleVcfProtocol --> refFromFasta --> chrFilter --> filterRequestedSamples --> filterVariantMissingness --> filterSampleMissingness --> calculateLinkageDisequilibrium
-    
-    calculateLinkageDisequilibrium & filterSampleMissingness --> filterLinkageDisequilibrium
-
-    filterLinkageDisequilibrium --> calculateIdentityByDescent --> calculateSampleIds
-
-    filterLinkageDisequilibrium & calculateSampleIds --> filterSampleRelatedness
-
-    filterSampleRelatedness --> filterLocations --> reportFreq
-    
-    
-
-    writeSampleMetadata --> reportFreq
-
-end 
-subgraph ValidateVcfWorkflow [Validate VCF Workflow]
-    wipeInfo[[wipeInfo:\nRemove INFO column for\ncomputational processing\n efficiency]]
-    normalize[[normalize:\nNormalize all SNPs]]
-    sort[[sort:\nEnsure correct variant order]]
-    filter[[filter:\nRemove all variants except\nSNPs and INDELs]]
-    annotate[[annotate:\nannotate VCF against given\nreference VCF such as \n dbSNP]]
-    liftover[[liftover:\nPerform reference genome\nliftover]]
-
-    wipeInfo --> normalize --> sort --> filter --> annotate --> liftover
-end
-subgraph PopulationStructureWorkflow [Population Structure Workflow]
-    plinkPca[[Plink_PCA:\nPerform a PLINK-2.0 PCA]]
-    plinkPed[[plinkPed:\nConvert to PLINK-1.9's PED\n format]]
-    fetchPedLables[[fetchPedLables:\nGenerate Ind2Pop sample annotations\n file]]
-    Admixture[[Admixture:\nPerform an admixture analysis]]
-
-    plinkPed --> fetchPedLables --> Admixture
-    filterSampleRelatedness --> plinkPca & plinkPed
-
-end
-
-liftover --> ifMultipleVcfs
+      subgraph multipleVcfProtocol [Multiple dataset protocol]
+          mergeDatasets[[mergeDatasets:\nMerge multiple incoming\ndatasets]]
+      end
 
 
-plinkPca --> END
-Admixture --> END
-reportFreq --> END
+      ifMultipleVcfs --> |yes| multipleVcfProtocol
+      ifMultipleVcfs --> |no| refFromFasta
+
+      
+      multipleVcfProtocol --> refFromFasta --> chrFilter --> filterRequestedSamples --> filterVariantMissingness --> filterSampleMissingness --> calculateLinkageDisequilibrium
+      
+      calculateLinkageDisequilibrium & filterSampleMissingness --> filterLinkageDisequilibrium
+
+      filterLinkageDisequilibrium --> calculateIdentityByDescent --> calculateSampleIds
+
+      filterLinkageDisequilibrium & calculateSampleIds --> filterSampleRelatedness
+
+      filterSampleRelatedness --> filterLocations --> reportFreq
+      
+      
+
+      writeSampleMetadata --> reportFreq
+
+  end 
+  subgraph ValidateVcfWorkflow [Validate VCF Workflow]
+      wipeInfo[[wipeInfo:\nRemove INFO column for\ncomputational processing\n efficiency]]
+      normalize[[normalize:\nNormalize all SNPs]]
+      sort[[sort:\nEnsure correct variant order]]
+      filter[[filter:\nRemove all variants except\nSNPs and INDELs]]
+      annotate[[annotate:\nannotate VCF against given\nreference VCF such as \n dbSNP]]
+      liftover[[liftover:\nPerform reference genome\nliftover]]
+
+      wipeInfo --> normalize --> sort --> filter --> annotate --> liftover
+  end
+  subgraph PopulationStructureWorkflow [Population Structure Workflow]
+      plinkPca[[Plink_PCA:\nPerform a PLINK-2.0 PCA]]
+      plinkPed[[plinkPed:\nConvert to PLINK-1.9's PED\n format]]
+      fetchPedLables[[fetchPedLables:\nGenerate Ind2Pop sample annotations\n file]]
+      Admixture[[Admixture:\nPerform an admixture analysis]]
+
+      plinkPed --> fetchPedLables --> Admixture
+      filterSampleRelatedness --> plinkPca & plinkPed
+
+  end
+
+  liftover --> ifMultipleVcfs
+
+
+  plinkPca --> END
+  Admixture --> END
+  reportFreq --> END
   ```
 
 </details>
