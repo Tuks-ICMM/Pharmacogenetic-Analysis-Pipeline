@@ -34,10 +34,10 @@ title: Pharmacogenetics Analysis
 ---
 flowchart TD
 subgraph ValidateVcfModule
-    validateVcf([Validate VCF Workflow])
+    validateVcf([Validate VCF\nWorkflow])
 end
 subgraph PopulationStructureModule
-    PopulationStructureWorkflow([Populaltion Structure Workflow])
+    PopulationStructureWorkflow([Populaltion Structure\nWorkflow])
 end
 
 validateVcf --> ifMultipleVcfs
@@ -50,24 +50,24 @@ subgraph prep [Process]
     end
 
 
-    ifMultipleVcfs{If multiple datasets provided} --> |yes| multipleVcfProtocol
-    ifMultipleVcfs{If multiple datasets provided} --> |no| refFromFasta
+    ifMultipleVcfs{If multiple\ndatasetsprovided} --> |yes| multipleVcfProtocol
+    ifMultipleVcfs --> |no| refFromFasta
 
-    refFromFasta[[refFromfasta: Check reference alleles against provided reference genome]]
+    refFromFasta[[refFromfasta:\nCheck reference alleles against\nprovided reference genome]]
     
     multipleVcfProtocol --> refFromFasta
 
-    refFromFasta --> chrFilter[[chrFilter: Filter out non-standard chromosomes]]
+    refFromFasta --> chrFilter[[chrFilter:\nFilter out non-standard\nchromosomes]]
 
-    chrFilter --> sampleSubset[[sampleSubset: Subset samples to labeled samples in metadata files]]
+    chrFilter --> sampleSubset[[sampleSubset:\nSubset samples to labeled\nsamples in metadata files]]
     
-    sampleSubset --> FILTER[[FILTER: Filter variants and samples with 100% missingness & prune overrelated samples]]
+    sampleSubset --> FILTER[[FILTER:\nFilter variants and samples\nwith 100% missingness & prune\noverrelated samples]]
 
-    FILTER --> TRIM_AND_NAME[[TRIM_AND_NAME: Trim dataset to genomic regions of interest]]
+    FILTER --> TRIM_AND_NAME[[TRIM_AND_NAME:\nTrim dataset to\ngenomic regions of interest]]
 
-    TRANSPILE_CLUSTERS[[TRANSPILE_CLUSTERS: Transpile cluster ownership from sample cluster assignment into input format]]
+    TRANSPILE_CLUSTERS[[TRANSPILE_CLUSTERS:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
 
-    TRIM_AND_NAME & TRANSPILE_CLUSTERS --> PLINK[[PLINK: Perform frequency analysis]]
+    TRIM_AND_NAME & TRANSPILE_CLUSTERS --> PLINK[[PLINK:\nPerform frequency analysis]]
 
 end 
 FILTER --> PopulationStructureWorkflow
@@ -76,47 +76,83 @@ PLINK --> END
 ```
 
 
+#### Rule Reference
 
-
-## `refFromFasta`
+<details markdown="block">
+  <summary>
+    <code>refFromFasta</code>
+  </summary>
+  
 ```mermaid
 flowchart TD
-refFromFasta[[refFromfasta: Check reference alleles against provided reference genome]]
+refFromFasta[[refFromfasta:\nCheck reference alleles against\nprovided reference genome]]
 ```
 This rule is responsible for checking each loci and comparing its listed reference to that provided in the reference genome.
 
-## `chrFilter`
+</details>
+
+<details markdown="block">
+  <summary>
+    <code>chrFilter</code>
+  </summary>
+
 ```mermaid
 flowchart TD
-chrFilter[[chrFilter: Filter out non-standard chromosomes]]
+chrFilter[[chrFilter:\nFilter out non-standard\nchromosomes]]
 ```
 
-## `sampleSubset`
+</details>
+
+
+<details markdown="block">
+  <summary>
+    <code>sampleSubset</code>
+  </summary>
+
 ```mermaid
 flowchart TD
-sampleSubset[[sampleSubset: Subset samples to labeled samples in metadata files]]
+sampleSubset[[sampleSubset:\nSubset samples to labeled\nsamples in metadata files]]
 ```
 
-## `FILTER`
+</details>
+
+
+<details markdown="block">
+  <summary>
+    <code>FILTER</code>
+  </summary>
+
 ```mermaid
 flowchart TD
-FILTER[[FILTER: Filter variants and samples with 100% missingness & prune overrelated samples]]
+FILTER[[FILTER:\nFilter variants and samples\nwith 100% missingness &prune over-related\nsamples]]
 ```
 
-## `TRIM_AND_NAME`
-```mermaid
-flowchart TD
-TRIM_AND_NAME[[TRIM_AND_NAME: Trim dataset to genomic regions of interest]]
-```
+</details>
 
-## `TRANSPILE_CLUSTERS`
+<details markdown="block">
+  <summary>
+    <code>TRIM_AND_NAME</code>
+  </summary>
 ```mermaid
 flowchart TD
-TRANSPILE_CLUSTERS[[TRANSPILE_CLUSTERS: Transpile cluster ownership from sample cluster assignment into input format]]
+TRIM_AND_NAME[[TRIM_AND_NAME:\nTrim dataset to genomic regions of interest]]
 ```
-
-## `PLINK`
+</details>
+<details markdown="block">
+  <summary>
+    <code>TRANSPILE_CLUSTERS</code>
+  </summary>
 ```mermaid
 flowchart TD
-PLINK[[PLINK: Perform frequency analysis]]
+TRANSPILE_CLUSTERS[[TRANSPILE_CLUSTERS:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
 ```
+</details>
+<details markdown="block">
+  <summary>
+    <code>PLINK</code>
+  </summary>
+```mermaid
+flowchart TD
+PLINK[[PLINK:\nPerform frequency analysis]]
+```
+</details>

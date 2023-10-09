@@ -39,13 +39,19 @@ This page lists the informational requirements needed to execute the _{{ site.ti
 
 ## Overview
 
+<details markdown="block">
+  <summary>
+    Data Requirements Diagram
+  </summary>
+  {: .text-delta }
+
 ```mermaid
 ---
 title: Data Requirements
 ---
 flowchart TB
   subgraph Standard ["Standard Resources"]
-            genomeFasta[/"Reference Genome GRCh38 (FASTA)"/]
+            genomeFasta[/"Reference Genome\nGRCh38 (FASTA)"/]
         end
         subgraph projectSpecific ["Project specific data"]
             %% Use LR to invert axis set by parent to effectively force relative "TB"
@@ -57,13 +63,16 @@ flowchart TB
                 %% Use LR to invert axis set by parent to effectively force relative "TB"
                 direction LR
 
-                datasetMeta[/"Datasets metadata (CSV)"/]
-                locationMeta[/"Genomic location metadata (CSV)"/]
-                sampleMeta[/"Sample metadata (CSV)"/]
-                transcriptMeta[/"Transcript metadata (CSV)"/]
+                datasetMeta[/"Datasets metadata\n(CSV)"/]
+                locationMeta[/"Genomic location\nmetadata (CSV)"/]
+                sampleMeta[/"Sample metadata\n(CSV)"/]
+                transcriptMeta[/"Transcript metadata\n(CSV)"/]
             end
         end
 ```
+
+</details>
+
 
 ## Reference Genome
 
@@ -91,7 +100,7 @@ If you wish to compress your VCF files, please provide the following files as in
 
 ## Metadata Declarations
 
-To run the _{{ site.title }}_, you will need to provide some additional contextual information. All metadata is provided in the form of appropriately named ` .csv` files located in the `input` directory.
+To run the _{{ site.title }}_, you will need to provide some additional contextual information. All metadata is provided in the form of appropriately named ` .csv` files located in the input directory.
 
 {: .normal-title }
 > Case sensitivity
@@ -122,13 +131,19 @@ The `datasets.csv` file allows you to declare datasets and provide the necessary
   <br><strong><i>E.g. <code>GRCh37</code> or <code>GRCh38</code></i></strong></dd>
 </dl>
 
-#### `datasets.csv` data example
+<details markdown="block">
+  <summary>
+    <code>datasets.csv</code> data example
+  </summary>
+  {: .text-delta }
 
 | **dataset_name** | **reference_genome** | **file**                                                    |
 | :--------------- | :------------------- | :---------------------------------------------------------- |
 | HG002            | GRCh38               | `/nlustre/users/graeme/PUBLIC/GenomeInABottle/HG002.vcf.gz` |
 | HG002            | GRCh38               | `/nlustre/users/graeme/PUBLIC/GenomeInABottle/HG002.vcf.gz` |
 | HG002            | GRCh38               | `/nlustre/users/graeme/PUBLIC/GenomeInABottle/HG002.vcf.gz` |
+
+</details>
 
 ---
 ### Samples
@@ -154,13 +169,19 @@ The `samples.csv` file allows you to declare samples and provide the necessary s
   <br><strong><i>E.g. <code>GRCh37</code> or <code>GRCh38</code></i></strong></dd>
 </dl>
 
-#### `samples.csv` data example
+<details markdown="block">
+  <summary>
+    <code>samples.csv</code> data example
+  </summary>
+  {: .text-delta }
 
 | **sample_name** | **dataset** | **SUPER** | **SUB** |
 | :-------------- | :---------- | :-------- | :------ |
 | HG002           | HG002       | `EUR`     | `GBR`   |
 | HG002           | HG003       | `AFR`     | `GWD`   |
 | HG002           | HG004       | `SAS`     | `GIH`   |
+
+</details>
 
 ---
 ### Genomic Locations
@@ -195,14 +216,19 @@ The `locations.csv` file allows you to declare samples and provide the necessary
   
   <br><strong><i>E.g. <code>-1</code></i></strong></dd>
 </dl>
-
-#### `locations.csv` data example
+<details markdown="block">
+  <summary>
+    <code>locations.csv</code> data example
+  </summary>
+  {: .text-delta }
 
 | **location_name** | **chromosome** | **start** | **stop**  | **strand** |
 | :---------------- | :------------- | :-------- | :-------- | :--------- |
 | CYP2A6            | 19             | 40842850  | 40851138  | -1         |
 | CYP2B6            | 19             | 40988570  | 41021110  | 1          |
 | UGT2B7            | 4              | 69045214  | 69112987  | 1          |
+
+</details>
 
 ---
 ### Transcripts
@@ -235,7 +261,10 @@ During the execution of the _{{ site.title }}_, variant-effect-prediction (VEP) 
   <br><strong><i>E.g. <code>NM_000762.6</code></i></strong></dd>
 </dl>
 
-#### `transcripts.csv` data example
+<details markdown="block">
+  <summary>
+    <code>transcripts.csv</code> data example
+  </summary>
 
 | **gene_name** | **transcript_id**   |
 | :------------ | :------------------ |
@@ -253,3 +282,5 @@ During the execution of the _{{ site.title }}_, variant-effect-prediction (VEP) 
 | UGT2B7        | ENST00000622664.1   |
 | UGT2B7        | ENST00000502942.5   |
 | UGT2B7        | ENST00000509763.1   |
+
+</details>

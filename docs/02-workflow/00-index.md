@@ -31,30 +31,30 @@ flowchart TD
     END([End - Results])
 
     subgraph ValidateVcfModule
-        validateVcf([Validate VCF Workflow])
+        validateVcf([Validate VCF\nWorkflow])
     end
     subgraph PopulationStructureModule
-        PopulationStructureWorkflow([Populaltion Structure Workflow])
+        PopulationStructureWorkflow([Populaltion Structure\nWorkflow])
     end
 
 
     subgraph dataPrep ["Data and Metadata Preparation"]
         %% Use LR to invert axis set by parent to effectively force relative "TB"
         direction LR
-        genomeFasta[/"Reference Genome GRCh38 (FASTA)"/]
+        genomeFasta[/"Reference Genome\nGRCh38 (FASTA)"/]
             subgraph data ["Datasets"]
-                datasetFiles1[/"Dataset_1 (.vcf.gz + .tbi)"/]
-                datasetFiles2[/"Dataset_2 (.vcf.gz + .tbi)"/]
-                datasetFiles3[/"Dataset_... (.vcf.gz + .tbi)"/]
+                datasetFiles1[/"Dataset_1\n(.vcf.gz + .tbi)"/]
+                datasetFiles2[/"Dataset_2\n(.vcf.gz + .tbi)"/]
+                datasetFiles3[/"Dataset_n...\n(.vcf.gz + .tbi)"/]
             end
             subgraph metadata ["Analysis metadata"]
                 %% Use LR to invert axis set by parent to effectively force relative "TB"
                 direction TB
 
-                datasetMeta[/"Datasets metadata (CSV)"/]
-                locationMeta[/"Genomic location metadata (CSV)"/]
-                sampleMeta[/"Sample metadata (CSV)"/]
-                transcriptMeta[/"Transcript metadata (CSV)"/]
+                datasetMeta[/"Datasets metadata\n(CSV)"/]
+                locationMeta[/"Genomic location\nmetadata (CSV)"/]
+                sampleMeta[/"Sample metadata\n(CSV)"/]
+                transcriptMeta[/"Transcript metadata\n(CSV)"/]
             end
 
     end
@@ -71,24 +71,24 @@ flowchart TD
         end
 
 
-        ifMultipleVcfs{If multiple datasets provided} --> |yes| multipleVcfProtocol
-        ifMultipleVcfs{If multiple datasets provided} --> |no| refFromFasta
+        ifMultipleVcfs{If multiple\ndatasets provided} --> |yes| multipleVcfProtocol
+        ifMultipleVcfs --> |no| refFromFasta
 
-        refFromFasta[[refFromfasta: Check reference alleles against provided reference genome]]
+        refFromFasta[[refFromfasta:\nCheck reference alleles against\nprovided reference genome]]
         
         multipleVcfProtocol --> refFromFasta
 
-        refFromFasta --> chrFilter[[chrFilter: Filter out non-standard chromosomes]]
+        refFromFasta --> chrFilter[[chrFilter:\nFilter out non-standard\nchromosomes]]
 
-        chrFilter --> sampleSubset[[sampleSubset: Subset samples to labeled samples in metadata files]]
+        chrFilter --> sampleSubset[[sampleSubset:\nSubset samples to labeled\nsamples in metadata files]]
         
-        sampleSubset --> FILTER[[FILTER: Filter variants and samples with 100% missingness & prune overrelated samples]]
+        sampleSubset --> FILTER[[FILTER:\nFilter variants and samples\nwith 100% missingness & prune\noverrelated samples]]
 
-        FILTER --> TRIM_AND_NAME[[TRIM_AND_NAME: Trim dataset to genomic regions of interest]]
+        FILTER --> TRIM_AND_NAME[[TRIM_AND_NAME:\nTrim dataset to genomic\nregions of interest]]
 
-        TRANSPILE_CLUSTERS[[TRANSPILE_CLUSTERS: Transpile cluster ownership from sample cluster assignment into input format]]
+        TRANSPILE_CLUSTERS[[TRANSPILE_CLUSTERS:\nTranspile cluster ownership\nfrom sample cluster assignment\ninto input format]]
 
-        TRIM_AND_NAME & TRANSPILE_CLUSTERS --> PLINK[[PLINK: Perform frequency analysis]]
+        TRIM_AND_NAME & TRANSPILE_CLUSTERS --> PLINK[[PLINK:\nPerform frequency analysis]]
  
     end 
     FILTER --> PopulationStructureWorkflow
