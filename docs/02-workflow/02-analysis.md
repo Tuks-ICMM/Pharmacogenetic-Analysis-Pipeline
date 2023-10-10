@@ -351,7 +351,6 @@ normalize[[normalize:\nNormalize all SNPs]]
           <dt><code>-o {output.vcf}</code></dt>
           <dd>Output file.</dd>
         </dl>
-        </dl>
       </dd>
     </dl>
 
@@ -390,7 +389,6 @@ normalize[[normalize:\nNormalize all SNPs]]
           <dt><code>--out results/COLLATE/refFromFasta</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
-        </dl>
       </dd>
     </dl>
 
@@ -428,7 +426,6 @@ normalize[[normalize:\nNormalize all SNPs]]
           <dt><code>--out results/COLLATE/chrFilter</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
-        </dl>
       </dd>
     </dl>
 
@@ -460,7 +457,6 @@ normalize[[normalize:\nNormalize all SNPs]]
           <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
           <dt><code>-o {output}</code></dt>
           <dd>Output file.</dd>
-        </dl>
         </dl>
       </dd>
     </dl>
@@ -776,6 +772,8 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
+        <dt><code>input/samples.csv</code></dt>
+        <dd>The sample information provided that should be used in this analysis.</dd>
         </dl>
       </dd>
     </dl>
