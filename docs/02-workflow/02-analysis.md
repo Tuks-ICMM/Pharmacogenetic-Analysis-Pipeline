@@ -1,18 +1,27 @@
 ---
-title: Analysis
-permalink: workflow/analysis
+title: Methodology Summary
+permalink: workflow/methodology-summary
 layout: page
 nav_order: 2
 parent: Workflow
 ---
 
-# Configuration
+# Methodology
 {: .no_toc }
 
-A breakdown of the process used in this workflow and how it has been implemented.
+A breakdown of the methodology and softwares used in this workflow.
 {: .fs-6 .fw-300 }
 
-Reference Genome Configuration
+`plink2`
+{: .label }
+
+`plink`
+{: .label }
+
+`bcftools`
+{: .label }
+
+`java -jar $PICCARD`
 {: .label }
 
 
