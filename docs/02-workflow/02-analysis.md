@@ -87,10 +87,11 @@ Reference Genome Configuration
       normalize[[normalize:\nNormalize all SNPs]]
       sort[[sort:\nEnsure correct variant order]]
       filter[[filter:\nRemove all variants except\nSNPs and INDELs]]
-      annotate[[annotate:\nannotate VCF against given\nreference VCF such as \n dbSNP]]
+      annotateKnown[[annotateKnown:\nAnnotate VCF against given\nreference VCF such as \n dbSNP]]
+      annotateUnknown[[annotateUnknown:\nName all un-annotated variants using \nstandardized naming conventions.]]
       liftover[[liftover:\nPerform reference genome\nliftover]]
 
-      wipeInfo --> normalize --> sort --> filter --> annotate --> liftover
+      wipeInfo --> normalize --> sort --> filter --> annotateKnown --> annotateUnknown --> liftover
   end
   subgraph PopulationStructureWorkflow [Population Structure Workflow]
       plinkPca[[Plink_PCA:\nPerform a PLINK-2.0 PCA]]
@@ -234,12 +235,12 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dd>
       To remove all variant types except SNPs and INDELs</dd>
       <dt>Command</dt>
-      <dd><code>bcftools view -v snps,indels -f PASS -O z -o {output.vcf} < {input.vcf}</code></dd>
+      <dd><code>bcftools view -v snps -f PASS -O z -o {output.vcf} < {input.vcf}</code></dd>
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>-v snps,indels</code></dt>
-          <dd>Only include SNPs and INDELs</dd>
+          <dt><code>-v snps</code></dt>
+          <dd>Only include SNPs</dd>
           <dt><code>-f PASS</code></dt>
           <dd>Only select variants with <code>PASS</code> values.</dd>
           <dt><code>-Oz</code></dt>
@@ -255,15 +256,13 @@ normalize[[normalize:\nNormalize all SNPs]]
 
 <details markdown="block">
   <summary>
-    <code>annotate</code>
+    <code>annotateKnown</code>
   </summary>
   
   ```mermaid
   flowchart TD
-  annotate[[annotate:\nannotate VCF against given\nreference VCF such as \n dbSNP]]
+  annotateKnown[[annotate:\nAnnotate VCF against given\nreference VCF such as \n dbSNP]]
   ```
-
-  This rule is responsible for annotating the incoming data with variant IDs from the provided `resources/annotations.vcf.gz`.
 
   <dl>
       <dt>Function</dt>
@@ -280,6 +279,39 @@ normalize[[normalize:\nNormalize all SNPs]]
           <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
           <dt><code>-o {output.vcf}</code></dt>
           <dd>Output file.</dd>
+        </dl>
+      </dd>
+    </dl>
+
+</details>
+
+<details markdown="block">
+  <summary>
+    <code>annotateUnknown</code>
+  </summary>
+  
+  ```mermaid
+  flowchart TD
+  annotateUnknown[[annotateUnknown:\nName all un-annotated variants using \nstandardized naming conventions.]]
+  ```
+
+  <dl>
+      <dt>Function</dt>
+      <dd>
+      To name all un-named variants which did not have a matching annotation ID.</dd>
+      <dt>Command</dt>
+      <dd><code>plink --vcf {input.vcf} --set-missing-var-ids @:#\$1-\$2 --new-id-max-allele-len 200 --out {params.output}</code></dd>
+      <dt>Parameters</dt>
+      <dd>
+        <dl>
+          <dt><code>--vcf {input.vcf}</code></dt>
+          <dd>File path to the input VCF file via parameter.</dd>
+          <dt><code>--set-missing-var-ids @:#\$1-\$2</code></dt>
+          <dd>A string which describes a naming scheme to be used when setting all un-named variants <code>@</code> denotes the chromosome code, <code>#</code> denotes the base-pair coordinates, <code>$1</code> denotes the reference allele and <code>$2</code> denotes the alternate allele.</dd>
+          <dt><code>--new-id-max-allele-len 200</code></dt>
+          <dd>Sets a maximum allowed variant ID length.</dd>
+          <dt><code>--out {params.output}</code></dt>
+          <dd>Provide the file name and path for output creation.</dd>
         </dl>
       </dd>
     </dl>
