@@ -56,20 +56,23 @@ Reference Genome Configuration
       filterSampleRelatedness[[filterSampleRelatedness:\nremove a given list of]]
       filterLocations[[filterLocations:\nTrim the dataset to one of\nthe studied regions]]
 
-      ifMultipleVcfs{If multiple\ndatasetsprovided}
 
       subgraph multipleVcfProtocol [Multiple dataset protocol]
-          mergeDatasets[[mergeDatasets:\nMerge multiple incoming\ndatasets]]
+        direction LR
+        multipleVcfProtocolStart(((Start)))
+        ifMergeRequired{Is a \nmerge needed?}
+        mergeDatasets[[mergeDatasets:\nMerge multiple incoming\ndatasets]]
+        multipleVcfProtocolEnd(((End)))
+
+        multipleVcfProtocolStart --> ifMergeRequired
+        ifMergeRequired --> |yes| mergeDatasets --> multipleVcfProtocolEnd
+        ifMergeRequired --> |No| multipleVcfProtocolEnd
       end
-
-
-      ifMultipleVcfs --> |yes| multipleVcfProtocol
-      ifMultipleVcfs --> |no| refFromFasta
 
       
       multipleVcfProtocol --> refFromFasta --> chrFilter --> filterRequestedSamples --> filterVariantMissingness --> filterSampleMissingness --> calculateLinkageDisequilibrium
       
-      calculateLinkageDisequilibrium & filterSampleMissingness --> filterLinkageDisequilibrium
+      filterSampleMissingness & calculateLinkageDisequilibrium --> filterLinkageDisequilibrium
 
       filterLinkageDisequilibrium --> calculateIdentityByDescent --> calculateSampleIds
 
@@ -89,9 +92,20 @@ Reference Genome Configuration
       filter[[filter:\nRemove all variants except\nSNPs and INDELs]]
       annotateKnown[[annotateKnown:\nAnnotate VCF against given\nreference VCF such as \n dbSNP]]
       annotateUnknown[[annotateUnknown:\nName all un-annotated variants using \nstandardized naming conventions.]]
-      liftover[[liftover:\nPerform reference genome\nliftover]]
 
-      wipeInfo --> normalize --> sort --> filter --> annotateKnown --> annotateUnknown --> liftover
+      subgraph liftoverProtocol [Liftover]
+        direction LR
+        liftoverProtocolStart(((Start)))
+        liftover[[liftover:\nPerform reference genome\nliftover]]
+        liftoverProtocolEnd(((End)))
+        ifLiftoverRequired{Is a\nliftover\nrequired?}
+
+        liftoverProtocolStart --> ifLiftoverRequired
+        ifLiftoverRequired --> |yes| liftover --> liftoverProtocolEnd
+        ifLiftoverRequired --> |no| liftoverProtocolEnd
+      end
+
+      wipeInfo --> normalize --> sort --> filter --> annotateKnown --> annotateUnknown --> liftoverProtocol
   end
   subgraph PopulationStructureWorkflow [Population Structure Workflow]
       plinkPca[[Plink_PCA:\nPerform a PLINK-2.0 PCA]]
@@ -104,12 +118,15 @@ Reference Genome Configuration
 
   end
 
-  liftover --> ifMultipleVcfs
+  liftoverProtocol --> multipleVcfProtocol
 
+  END((Results))
 
-  plinkPca --> END
   Admixture --> END
+  plinkPca --> END
   reportFreq --> END
+  calculateIdentityByDescent --> END
+  calculateLinkageDisequilibrium --> END
   ```
 
 </details>
@@ -227,13 +244,13 @@ normalize[[normalize:\nNormalize all SNPs]]
   
   ```mermaid
   flowchart TD
-  filter[[filter:\nRemove all variants except\nSNPs and INDELs]]
+  filter[[filter:\nRemove all variant types\nexcept SNPs]]
   ```
 
   <dl>
       <dt>Function</dt>
       <dd>
-      To remove all variant types except SNPs and INDELs</dd>
+      To remove all variant types except SNPs</dd>
       <dt>Command</dt>
       <dd><code>bcftools view -v snps -f PASS -O z -o {output.vcf} < {input.vcf}</code></dd>
       <dt>Parameters</dt>
@@ -273,6 +290,8 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
+          <dt><code>-a {input.annotations}</code></dt>
+          <dd>The VCF file that contains the desired annotations.</dd>
           <dt><code>-c ID</code></dt>
           <dd>Copy the <code>ID</code> column from the provided annotation VCF.</dd>
           <dt><code>-O z</code></dt>
@@ -326,7 +345,17 @@ normalize[[normalize:\nNormalize all SNPs]]
   
   ```mermaid
   flowchart TD
-  liftover[[liftover:\nPerform reference genome\nliftover]]
+  subgraph liftoverProtocol [Liftover]
+    direction LR
+    liftoverProtocolStart(((Start)))
+    liftover[[liftover:\nPerform reference genome\nliftover]]
+    liftoverProtocolEnd(((End)))
+    ifLiftoverRequired{Is a\nliftover\nrequired?}
+
+    liftoverProtocolStart --> ifLiftoverRequired
+    ifLiftoverRequired --> |yes| liftover --> liftoverProtocolEnd
+    ifLiftoverRequired --> |no| liftoverProtocolEnd
+  end
   ```
 
   <dl>
@@ -363,16 +392,24 @@ normalize[[normalize:\nNormalize all SNPs]]
   
   ```mermaid
   flowchart TD
-  mergeDatasets[[mergeDatasets:\nMerge multiple incoming\ndatasets]]
-  ```
+  subgraph multipleVcfProtocol [Multiple dataset protocol]
+    direction LR
+    multipleVcfProtocolStart(((Start)))
+    ifMergeRequired{Is a \nmerge needed?}
+    mergeDatasets[[mergeDatasets:\nMerge multiple incoming\ndatasets]]
+    multipleVcfProtocolEnd(((End)))
 
-  > This rule only executes when multiple described datasets are detected.
-  This rule is responsible for merging multiple datasets into a single VCF file, suitable for collective analysis.
+    multipleVcfProtocolStart --> ifMergeRequired
+    ifMergeRequired --> |yes| mergeDatasets --> multipleVcfProtocolEnd
+    ifMergeRequired --> |No| multipleVcfProtocolEnd
+  end
+  ```
+  {: .normal }
+  > This rule only executes when multiple described datasets are detected. This rule is responsible for merging multiple datasets into a single VCF file, suitable for collective analysis.
 
  <dl>
       <dt>Function</dt>
-      <dd>
-      To perform reference-genome version liftovers.</dd>
+      <dd>To perform reference-genome version liftovers.</dd>
       <dt>Command</dt>
       <dd><code>bcftools merge -O z -o {output} {input.vcf}</code></dd>
       <dt>Parameters</dt>
@@ -721,7 +758,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  filterSampleRelatedness[[filterSampleRelatedness:\nremove a given list of]]
+  filterSampleRelatedness[[filterSampleRelatedness:\nremove a given list of samples\nbased on IBD results]]
   ```
 
  <dl>
