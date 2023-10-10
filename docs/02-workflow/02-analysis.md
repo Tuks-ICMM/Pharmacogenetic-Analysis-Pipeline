@@ -142,7 +142,6 @@ Reference Genome Configuration
       </dl>
     </dd>
   </dl>
-    </hr>
 
 </details>
 
@@ -180,7 +179,6 @@ normalize[[normalize:\nNormalize all SNPs]]
       </dl>
     </dd>
   </dl>
-    </hr>
 
 </details>
   
@@ -217,7 +215,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
     
 </details>
   
@@ -252,7 +249,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
   
@@ -287,7 +283,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
   
@@ -324,7 +319,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -360,7 +354,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -471,7 +464,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -512,7 +504,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -552,7 +543,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -592,7 +582,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -628,7 +617,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -668,7 +656,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -696,7 +683,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -728,7 +714,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -770,7 +755,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -795,7 +779,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 
 </details>
@@ -841,7 +824,6 @@ normalize[[normalize:\nNormalize all SNPs]]
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
