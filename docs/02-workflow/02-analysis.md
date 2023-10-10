@@ -98,7 +98,7 @@ A breakdown of the methodology and softwares used in this workflow.
       wipeInfo[[wipeInfo:\nRemove INFO column for\ncomputational processing\n efficiency]]
       normalize[[normalize:\nNormalize all SNPs]]
       sort[[sort:\nEnsure correct variant order]]
-      filter[[filter:\nRemove all variants except\nSNPs and INDELs]]
+      filter[[filter:\nRemove all variants\nexcept SNPs]]
       annotateKnown[[annotateKnown:\nAnnotate VCF against given\nreference VCF such as \n dbSNP]]
       annotateUnknown[[annotateUnknown:\nName all un-annotated variants using \nstandardized naming conventions.]]
 
