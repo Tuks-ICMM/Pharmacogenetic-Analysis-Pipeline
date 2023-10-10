@@ -133,11 +133,11 @@ Reference Genome Configuration
     <dt>Parameters</dt>
     <dd>
       <dl>
-        <dt><code>-x INFO,FORMAT</code> | <code>-x</code>, <code>--remove</code></dt>
+        <dt><code>-x INFO,FORMAT</code></dt>
         <dd>Remove the <code>INFO</code> and <code>FORMAT</code> annotations from the input VCF file.</dd>
-        <dt><code>-Oz</code> | <code>-O</code>, <code>--output-type</code></dt>
+        <dt><code>-Oz</code></dt>
         <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-        <dt><code>-o {output.vcf}</code> | <code>-o</code>, <code>--output</code></dt>
+        <dt><code>-o {output.vcf}</code></dt>
         <dd>Output file.</dd>
       </dl>
     </dd>
@@ -171,11 +171,11 @@ normalize[[normalize:\nNormalize all SNPs]]
     <dt>Parameters</dt>
     <dd>
       <dl>
-        <dt><code>-m -any</code> | <code>-m</code>, <code>--multiallelics</code></dt>
+        <dt><code>-m -any</code></dt>
         <dd>Decompose multi-allelic entries to bi-allelic entries (<code>-</code>) and merge both SNPs and INDELS into single records (<code>any</code>)</dd>
-        <dt><code>-Oz</code> | <code>-O</code>, <code>--output-type</code></dt>
+        <dt><code>-Oz</code></dt>
         <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-        <dt><code>-o {output.vcf}</code> | <code>-o</code>, <code>--output</code></dt>
+        <dt><code>-o {output.vcf}</code></dt>
         <dd>Output file.</dd>
       </dl>
     </dd>
@@ -206,13 +206,13 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>-m {params.memory} </code> | <code>-m</code>, <code>--max-mem</code></dt>
+          <dt><code>-m {params.memory} </code></dt>
           <dd>Provide a RAM memory available to the <code>bcftools sort</code> command.</dd>
-          <dt><code>-T results/PREP/{wildcards.dataset_name}</code> | <code>-t</code>, <code>--temp-dir</code></dt>
+          <dt><code>-T results/PREP/{wildcards.dataset_name}</code></dt>
           <dd>Provide a RAM memory available to the <code>bcftools sort</code> command.</dd>
-          <dt><code>-Oz</code> | <code>-O</code>, <code>--output-type</code></dt>
+          <dt><code>-Oz</code></dt>
           <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-          <dt><code>-o {output.vcf}</code> | <code>-o</code>, <code>--output</code></dt>
+          <dt><code>-o {output.vcf}</code></dt>
           <dd>Output file.</dd>
         </dl>
       </dd>
@@ -241,13 +241,13 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>-v snps,indels</code> | <code>-v</code>, <code>--types</code></dt>
+          <dt><code>-v snps,indels</code></dt>
           <dd>Only include SNPs and INDELs</dd>
-          <dt><code>-f PASS</code> | <code>-f</code>, <code>--apply-filters</code></dt>
+          <dt><code>-f PASS</code></dt>
           <dd>Only select variants with <code>PASS</code> values.</dd>
-          <dt><code>-Oz</code> | <code>-O</code>, <code>--output-type</code></dt>
+          <dt><code>-Oz</code></dt>
           <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-          <dt><code>-o {output.vcf}</code> | <code>-o</code>, <code>--output</code></dt>
+          <dt><code>-o {output.vcf}</code></dt>
           <dd>Output file.</dd>
         </dl>
       </dd>
@@ -278,11 +278,11 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>-c ID</code> | <code>-c</code>, <code>--columns</code></dt>
+          <dt><code>-c ID</code></dt>
           <dd>Copy the <code>ID</code> column from the provided annotation VCF.</dd>
-          <dt><code>-O z</code> | <code>-O</code>, <code>--output-type</code></dt>
+          <dt><code>-O z</code></dt>
           <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-          <dt><code>-o {output.vcf}</code> | <code>-o</code>, <code>--output</code></dt>
+          <dt><code>-o {output.vcf}</code></dt>
           <dd>Output file.</dd>
         </dl>
       </dd>
@@ -311,15 +311,15 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>I={input.vcf}</code> | <code>-I</code>, <code>--INPUT</code></dt>
+          <dt><code>I={input.vcf}</code></dt>
           <dd>Provide the input VCF via parameter.</dd>
-          <dt><code>O={output.vcf}</code> | <code>-O</code>, <code>--OUTPUT</code></dt>
+          <dt><code>O={output.vcf}</code></dt>
           <dd>Provide the output VCF to be written to via parameter.</dd>
-          <dt><code>R={params.ref}</code> | <code>-R</code>, <code>--REFERENCE_SEQUENCE</code></dt>
+          <dt><code>R={params.ref}</code></dt>
           <dd>Provide the reference genome to be used during LiftOver</dd>
-          <dt><code>C={params.chainFile}</code> | <code>-C</code>, <code>--CHAIN</code></dt>
+          <dt><code>C={params.chainFile}</code></dt>
           <dd>Provide the chain-file describing the nature of the changes between two reference genome versions.</dd>
-          <dt><code>REJECT={params.chainFile}</code> | <code>--REJECT</code></dt>
+          <dt><code>REJECT={params.chainFile}</code></dt>
           <dd>Creates a file containing records which could not be lifted over.</dd>
         </dl>
       </dd>
@@ -352,9 +352,9 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>-O z</code> | <code>-O</code>, <code>--output-type</code></dt>
+          <dt><code>-O z</code></dt>
           <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-          <dt><code>-o {output.vcf}</code> | <code>-o</code>, <code>--output</code></dt>
+          <dt><code>-o {output.vcf}</code></dt>
           <dd>Output file.</dd>
         </dl>
         </dl>
@@ -384,23 +384,22 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>--vcf {input.vcf}</code> | <code>--vcf</code></dt>
+          <dt><code>--vcf {input.vcf}</code></dt>
           <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--fa {params.ref}</code> | <code>--fa</code></dt>
+          <dt><code>--fa {params.ref}</code></dt>
           <dd>File path to reference genome to be used for comparison.</dd>
-          <dt><code>--ref-from-fa force</code> | <code>--ref-from-fa</code></dt>
+          <dt><code>--ref-from-fa force</code></dt>
           <dd>Sets REF allele to provided reference FASTA when possible unambiguously (Does not apply to some INDELS)</dd>
           <dt><code>--allow-extra-chr</code></dt>
           <dd>Permits non-standard chromosome codes in input data</dd>
-          <dt><code>--export vcf-4.2 bgz</code> | <code>--export</code></dt>
+          <dt><code>--export vcf-4.2 bgz</code></dt>
           <dd>Save output to a BG-Zipped VCF file using the VCF-4.2 specification.</dd>
-          <dt><code>--out results/COLLATE/refFromFasta</code> | <code>--out</code></dt>
+          <dt><code>--out results/COLLATE/refFromFasta</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -423,23 +422,22 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>--vcf {input.vcf}</code> | <code>-vcf</code></dt>
+          <dt><code>--vcf {input.vcf}</code></dt>
           <dd>File path to the input VCF file via parameter.</dd>
           <dt><code>--allow-extra-chr</code></dt>
           <dd>Permits non-standard chromosome codes in input data.</dd>
-          <dt><code>--output-chr chr26</code> | <code>--output-chr</code></dt>
+          <dt><code>--output-chr chr26</code></dt>
           <dd>Sets chromosome code notation in output files to include the 'chr' as a prefix.</dd>
-          <dt><code>--chr 1-26</code> | <code>--chr</code></dt>
+          <dt><code>--chr 1-26</code></dt>
           <dd>Request a subset of chromosomes to be included in the output file.</dd>
-          <dt><code>--export vcf-4.2 bgz</code> | <code>--export</code></dt>
+          <dt><code>--export vcf-4.2 bgz</code></dt>
           <dd>Save output to a BG-Zipped VCF file using the VCF-4.2 specification.</dd>
-          <dt><code>--out results/COLLATE/chrFilter</code> | <code>--out</code></dt>
+          <dt><code>--out results/COLLATE/chrFilter</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
         </dl>
       </dd>
     </dl>
-    </hr>
 
 </details>
 
@@ -463,11 +461,11 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>-s {params.samples}</code> | <code>-s</code>, <code>--samples-file</code></dt>
+          <dt><code>-s {params.samples}</code></dt>
           <dd>Provide a list of sample IDs to include in output.</dd>
-          <dt><code>-O z</code> | <code>-O</code>, <code>--output-type</code></dt>
+          <dt><code>-O z</code></dt>
           <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-          <dt><code>-o {output}</code> | <code>-o</code>, <code>--output</code></dt>
+          <dt><code>-o {output}</code></dt>
           <dd>Output file.</dd>
         </dl>
         </dl>
@@ -497,19 +495,19 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>--chr 1-26</code> | <code>--chr</code></dt>
+          <dt><code>--chr 1-26</code></dt>
           <dd>Request a subset of chromosomes to be included in the output file.</dd>
           <dt><code>--allow-extra-chr</code></dt>
           <dd>Permits non-standard chromosome codes in input data.</dd>
-          <dt><code>--vcf {input.vcf}</code> | <code>--vcf</code></dt>
+          <dt><code>--vcf {input.vcf}</code></dt>
           <dd>Removes all variants with a missing call rate exceeding <code>1.0</code></dd>
-          <dt><code>--geno 1.0</code> | <code>--geno</code></dt>
+          <dt><code>--geno 1.0</code></dt>
           <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--output-chr chr26</code> | <code>--output-chr</code></dt>
+          <dt><code>--output-chr chr26</code></dt>
           <dd>Sets chromosome code notation in output files to include the 'chr' as a prefix.</dd>
-          <dt><code>--export vcf-4.2 bgz</code> | <code>--export</code></dt>
+          <dt><code>--export vcf-4.2 bgz</code></dt>
           <dd>Save output to a BG-Zipped VCF file using the VCF-4.2 specification.</dd>
-          <dt><code>--out {params.output}</code> | <code>--out</code></dt>
+          <dt><code>--out {params.output}</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
       </dd>
@@ -537,19 +535,19 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>--chr 1-26</code> | <code>--chr</code></dt>
+          <dt><code>--chr 1-26</code></dt>
           <dd>Request a subset of chromosomes to be included in the output file.</dd>
           <dt><code>--allow-extra-chr</code></dt>
           <dd>Permits non-standard chromosome codes in input data.</dd>
-          <dt><code>--vcf {input.vcf}</code> | <code>--vcf</code></dt>
+          <dt><code>--vcf {input.vcf}</code></dt>
           <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--mind 1.0</code> | <code>--mind</code></dt>
+          <dt><code>--mind 1.0</code></dt>
           <dd>Removes all samples with a missing call rate exceeding <code>1.0</code></dd>
-          <dt><code>--output-chr chr26</code> | <code>--output-chr</code></dt>
+          <dt><code>--output-chr chr26</code></dt>
           <dd>Sets chromosome code notation in output files to include the 'chr' as a prefix.</dd>
-          <dt><code>--export vcf-4.2 bgz</code> | <code>--export</code></dt>
+          <dt><code>--export vcf-4.2 bgz</code></dt>
           <dd>Save output to a BG-Zipped VCF file using the VCF-4.2 specification.</dd>
-          <dt><code>--out {params.output}</code> | <code>--out</code></dt>
+          <dt><code>--out {params.output}</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
       </dd>
@@ -577,19 +575,19 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>--vcf {input.vcf}</code> | <code>--vcf</code></dt>
+          <dt><code>--vcf {input.vcf}</code></dt>
           <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--chr 1-26</code> | <code>--chr</code></dt>
+          <dt><code>--chr 1-26</code></dt>
           <dd>Request a subset of chromosomes to be included in the output file.</dd>
-          <dt><code>--new-id-max-allele-len 1000</code> | <code>--new-id-max-allele-len</code></dt>
+          <dt><code>--new-id-max-allele-len 1000</code></dt>
           <dd>Sets a new internal maximum length for variant IDs.</dd>
-          <dt><code>--rm-dup exclude-mismatch</code> | <code>--rm-dup</code></dt>
+          <dt><code>--rm-dup exclude-mismatch</code></dt>
           <dd>When duplicate IDs are found, remove all entries.</dd>
-          <dt><code>--indep-pairwise 50 5 0.5</code> | <code>--indep-pairwise</code></dt>
+          <dt><code>--indep-pairwise 50 5 0.5</code></dt>
           <dd>Only include variants in approximate linkage equilibrium, using a <code>50</code>-variant window which moves <code>5</code> variants per step and removes variants with an r<sub>2</sub> value greater than <code>0.5</code>.</dd>
-          <dt><code>--bad-ld</code> | <code>--bad-ld</code></dt>
+          <dt><code>--bad-ld</code></dt>
           <dd>Overrides warning for less than 50 sample datasets where LD is not accurate.</dd>
-          <dt><code>--out {params.output}</code> | <code>--out</code></dt>
+          <dt><code>--out {params.output}</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
       </dd>
@@ -619,13 +617,13 @@ normalize[[normalize:\nNormalize all SNPs]]
         <dl>
           <dt><code>--allow-extra-chr</code></dt>
           <dd>Permits non-standard chromosome codes in input data.</dd>
-          <dt><code>--vcf {input.vcf}</code> | <code>--vcf</code></dt>
+          <dt><code>--vcf {input.vcf}</code></dt>
           <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--extract {input.inclusion_list}</code> | <code>--extract</code></dt>
+          <dt><code>--extract {input.inclusion_list}</code></dt>
           <dd>Extracts only the listed samples.</dd>
-          <dt><code>--export vcf-4.2 bgz</code> | <code>--export</code></dt>
+          <dt><code>--export vcf-4.2 bgz</code></dt>
           <dd>Save output to a BG-Zipped VCF file using the VCF-4.2 specification.</dd>
-          <dt><code>--out {params.output}</code> | <code>--out</code></dt>
+          <dt><code>--out {params.output}</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
       </dd>
@@ -653,19 +651,19 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>--vcf {input.vcf}</code> | <code>--vcf</code></dt>
+          <dt><code>--vcf {input.vcf}</code></dt>
           <dd>File path to the input VCF file via parameter.</dd>
           <dt><code>--allow-extra-chr</code></dt>
           <dd>Permits non-standard chromosome codes in input data.</dd>
-          <dt><code>--keep-allele-order</code> | <code>--keep-allele-order</code></dt>
+          <dt><code>--keep-allele-order</code></dt>
           <dd>Tells Plink-1.9 to maintain original A1/A2, otherwise major allele is set to A2.</dd>
-          <dt><code>--genome</code> | <code>--genome</code></dt>
+          <dt><code>--genome</code></dt>
           <dd>Run an identity-by-descent report.</dd>
-          <dt><code>--min 0.2</code> | <code>--min</code></dt>
+          <dt><code>--min 0.2</code></dt>
           <dd>Removes individuals with an IBD score below <code>0.2</code>.</dd>
-          <dt><code>--recode vcf-iid bgz</code> | <code>--recode</code></dt>
+          <dt><code>--recode vcf-iid bgz</code></dt>
           <dd>Sets output format to a BG-ZIpped VCF with individual-identifiers.</dd>
-          <dt><code>--out {params.output}</code> | <code>--out</code></dt>
+          <dt><code>--out {params.output}</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
       </dd>
@@ -693,7 +691,7 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>-l {input}</code> | <code>-l</code></dt>
+          <dt><code>-l {input}</code></dt>
           <dd>A file containing a list of Sample IDs to keep.</dd>
         </dl>
       </dd>
@@ -721,11 +719,11 @@ normalize[[normalize:\nNormalize all SNPs]]
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>-S {input.vcf}</code> | <code>-S</code>, <code>--samples-file</code></dt>
+          <dt><code>-S {input.vcf}</code></dt>
           <dd>A file containing a list of Sample IDs to include.</dd>
-          <dt><code>-O z</code> | <code>-O</code>, <code>--output-type</code></dt>
+          <dt><code>-O z</code></dt>
           <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-          <dt><code>-o {output}</code> | <code>-o</code>, <code>--output</code></dt>
+          <dt><code>-o {output}</code></dt>
           <dd>Output file.</dd>
         </dl>
       </dd>
@@ -755,19 +753,19 @@ normalize[[normalize:\nNormalize all SNPs]]
         <dl>
           <dt><code>--allow-extra-chr</code></dt>
           <dd>Permits non-standard chromosome codes in input data.</dd>
-          <dt><code>--vcf {input.vcf}</code> | <code>--vcf</code></dt>
+          <dt><code>--vcf {input.vcf}</code></dt>
           <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--from-bp {params.fromBP}</code> | <code>--from-bp</code></dt>
+          <dt><code>--from-bp {params.fromBP}</code></dt>
           <dd>Start coordinates for the region to trim to.</dd>
-          <dt><code>--to-bp {params.toBP}</code> | <code>--to-bp</code></dt>
+          <dt><code>--to-bp {params.toBP}</code></dt>
           <dd>Stop coordinates for the region to trim to.</dd>
-          <dt><code>--chr {params.chr}</code> | <code>--chr</code></dt>
+          <dt><code>--chr {params.chr}</code></dt>
           <dd>The chromosome to trim on.</dd>
-          <dt><code>--output-chr chr26</code> | <code>--output-chr</code></dt>
+          <dt><code>--output-chr chr26</code></dt>
           <dd>Sets chromosome code notation in output files to include the 'chr' as a prefix.</dd>
-          <dt><code>--export vcf-4.2 bgz</code> | <code>--export</code></dt>
+          <dt><code>--export vcf-4.2 bgz</code></dt>
           <dd>Save output to a BG-Zipped VCF file using the VCF-4.2 specification.</dd>
-          <dt><code>--out results/TRIM/ALL_{wildcards.location}</code> | <code>--out</code></dt>
+          <dt><code>--out results/TRIM/ALL_{wildcards.location}</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
       </dd>
@@ -824,27 +822,26 @@ normalize[[normalize:\nNormalize all SNPs]]
         <dl>
           <dt><code>--allow-extra-chr</code></dt>
           <dd>Permits non-standard chromosome codes in input data.</dd>
-          <dt><code>--vcf {input.vcf}</code> | <code>--vcf</code></dt>
+          <dt><code>--vcf {input.vcf}</code></dt>
           <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--freq counts</code> | <code>--freq</code></dt>
+          <dt><code>--freq counts</code></dt>
           <dd>Generate a frequency report including variant count data.</dd>
-          <dt><code>--export vcf-4.2 bgz</code> | <code>--export</code></dt>
+          <dt><code>--export vcf-4.2 bgz</code></dt>
           <dd>Save output to a BG-Zipped VCF file using the VCF-4.2 specification.</dd>
-          <dt><code>--out results/TRIM/ALL_{wildcards.location}</code> | <code>--out</code></dt>
+          <dt><code>--out results/TRIM/ALL_{wildcards.location}</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
-          <dt><code>--pheno iid-only results/REFERENCE/cluster_$CLUSTER.txt</code> | <code>--pheno</code></dt>
+          <dt><code>--pheno iid-only results/REFERENCE/cluster_$CLUSTER.txt</code></dt>
           <dd>Extract phenotype information from the given file by Sample ID.</dd>
-          <dt><code>--loop-cats $CLUSTER</code> | <code>--loop-cats</code></dt>
+          <dt><code>--loop-cats $CLUSTER</code></dt>
           <dd>Re-run this command and focus on the populated cluster (This command is designed to be executed in a bash for loop, where $CLUSTER is set each iteration).</dd>
-          <dt><code>--missing</code> | <code>--missing</code></dt>
+          <dt><code>--missing</code></dt>
           <dd>Generate a missingness report for both samples and variants.</dd>
-          <dt><code>--hardy midp</code> | <code>--hardy</code></dt>
+          <dt><code>--hardy midp</code></dt>
           <dd>Generate a Hardy-Weinburg report with Mid-P adjustments.</dd>
         </dl>
       </dd>
     </dl>
     </hr>
-
 
 </details>
 
