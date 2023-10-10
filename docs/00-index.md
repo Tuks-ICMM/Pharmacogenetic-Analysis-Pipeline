@@ -168,27 +168,6 @@ Many thanks to the following individuals who have been instrumental to the succe
         </italic>
       </h6>
     </td>
-    <td style="text-align:center;">
-      <div>
-        {% avatar sarahsaraht size=100 %}
-      </div>
-      <h4>Tester</h4>
-      <hr />
-      <h4>
-        <strong>
-          <a href="https://upload.wikimedia.org/wikipedia/commons/c/cd/Portrait_Placeholder_Square.png" target="_blank">
-            Sarah Turner
-          </a>
-        </strong>
-      </h4>
-      <h6>
-        <italic>
-          <a href="https://github.com/orgs/Tuks-ICMM/people/sarahsaraht" target="_blank">
-            sarahsaraht
-          </a>
-        </italic>
-      </h6>
-    </td>
   </tr>
 </table>
 
