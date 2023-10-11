@@ -99,8 +99,7 @@ A breakdown of the methodology and softwares used in this workflow.
       normalize[[normalize:\nNormalize all SNPs]]
       sort[[sort:\nEnsure correct variant order]]
       filter[[filter:\nRemove all variants\nexcept SNPs]]
-      annotateKnown[[annotateKnown:\nAnnotate VCF against given\nreference VCF such as \n dbSNP]]
-      annotateUnknown[[annotateUnknown:\nName all un-annotated variants using \nstandardized naming conventions.]]
+      annotate[[annotate:\nAnnotate VCF against given\nreference VCF such as \n dbSNP, and rename any\nunknown variants.]]
 
       subgraph liftoverProtocol [Liftover]
         direction LR
@@ -114,7 +113,7 @@ A breakdown of the methodology and softwares used in this workflow.
         ifLiftoverRequired --> |no| liftoverProtocolEnd
       end
 
-      wipeInfo --> normalize --> sort --> filter --> annotateKnown --> annotateUnknown --> liftoverProtocol
+      wipeInfo --> normalize --> sort --> filter --> annotate --> liftoverProtocol
   end
   subgraph PopulationStructureWorkflow [Population Structure Workflow]
       plinkPca[[Plink_PCA:\nPerform a PLINK-2.0 PCA]]
@@ -282,18 +281,18 @@ normalize[[normalize:\nNormalize all SNPs]]
 
 <details markdown="block">
   <summary>
-    <code>annotateKnown</code>
+    <code></code>
   </summary>
   
   ```mermaid
   flowchart TD
-  annotateKnown[[annotate:\nAnnotate VCF against given\nreference VCF such as \n dbSNP]]
+  annotate[[annotate:\nAnnotate VCF against given\nreference VCF such as \n dbSNP, and rename any unknown\nvariants.]]
   ```
 
   <dl>
       <dt>Function</dt>
       <dd>
-      To annotate the incoming data with variant IDs from the provided <code>resources/annotations.vcf.gz</code>.</dd>
+      To annotate the incoming data with variant IDs from the provided <code>resources/annotations.vcf.gz</code>, and rename any unknown variants.</dd>
       <dt>Command</dt>
       <dd><code>bcftools annotate -c ID -a {input.annotations} -O z -o {output.vcf} {input.vcf}</code></dd>
       <dt>Parameters</dt>
@@ -303,6 +302,8 @@ normalize[[normalize:\nNormalize all SNPs]]
           <dd>The VCF file that contains the desired annotations.</dd>
           <dt><code>-c ID</code></dt>
           <dd>Copy the <code>ID</code> column from the provided annotation VCF.</dd>
+          <dt><code>-I +'%CHROM:%POS|%REF-%FIRST_ALT'</code></dt>
+          <dd>Name all variants using the provided formula. The <code>+</code> indicates that this renaming logic should only be applied to variants which have no name, and is applied after retrieving annotations from the provided annotations VCF. <code>%CHROM</code> denotes the chromosome, <code>%POS</code> denotes the base-pair position of this variant, <code>%REF</code> denotes the reference allele at this location, and <code>%FIRST_ALT</code> denotes the first allele. Since this VCF file has been normalized and multi-allelic variants have already been decomposed to bi-allelic records, this will correspond to the only available allele for a loci.</dd>
           <dt><code>-O z</code></dt>
           <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
           <dt><code>-o {output.vcf}</code></dt>
