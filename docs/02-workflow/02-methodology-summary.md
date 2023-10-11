@@ -281,7 +281,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
 <details markdown="block">
   <summary>
-    <code></code>
+    <code>annotate</code>
   </summary>
   
   ```mermaid
@@ -314,39 +314,6 @@ normalize[[normalize:\nNormalize all SNPs]]
 
 </details>
 
-<details markdown="block">
-  <summary>
-    <code>annotateUnknown</code>
-  </summary>
-  
-  ```mermaid
-  flowchart TD
-  annotateUnknown[[annotateUnknown:\nName all un-annotated variants using \nstandardized naming conventions.]]
-  ```
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      To name all un-named variants which did not have a matching annotation ID.</dd>
-      <dt>Command</dt>
-      <dd><code>plink --vcf {input.vcf} --set-missing-var-ids @:#\$1-\$2 --new-id-max-allele-len 200 --out {params.output}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>--vcf {input.vcf}</code></dt>
-          <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--set-missing-var-ids @:#\$1-\$2</code></dt>
-          <dd>A string which describes a naming scheme to be used when setting all un-named variants <code>@</code> denotes the chromosome code, <code>#</code> denotes the base-pair coordinates, <code>$1</code> denotes the reference allele and <code>$2</code> denotes the alternate allele.</dd>
-          <dt><code>--new-id-max-allele-len 200</code></dt>
-          <dd>Sets a maximum allowed variant ID length.</dd>
-          <dt><code>--out {params.output}</code></dt>
-          <dd>Provide the file name and path for output creation.</dd>
-        </dl>
-      </dd>
-    </dl>
-
-</details>
-  
 
 <details markdown="block">
   <summary>
