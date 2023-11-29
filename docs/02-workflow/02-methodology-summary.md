@@ -148,7 +148,7 @@ A breakdown of the methodology and softwares used in this workflow.
   
   ```mermaid
   flowchart TD
-  wipeInfo[[wipeInfo:\nRemove INFO column for\ncomputational processing\n efficiency]]
+    wipeInfo[[wipeInfo:\nRemove INFO column for\ncomputational processing\n efficiency]]
   ```
 
   <dl>
@@ -176,10 +176,10 @@ A breakdown of the methodology and softwares used in this workflow.
     <code>normalize</code>
   </summary>
   
-```mermaid
-flowchart TD
-normalize[[normalize:\nNormalize all SNPs]]
-```
+  ```mermaid
+  flowchart TD
+    normalize[[normalize:\nNormalize all SNPs]]
+  ```
 
   <dl>
     <dt>Function</dt>
@@ -216,7 +216,7 @@ normalize[[normalize:\nNormalize all SNPs]]
   
   ```mermaid
   flowchart TD
-  sort[[sort:\nEnsure correct variant order]]
+    sort[[sort:\nEnsure correct variant order]]
   ```
 
   This rule is responsible for sorting variants according to position, relative to the provided reference genome. This is important for downstream analysis which assumes ordered variants.
@@ -252,7 +252,7 @@ normalize[[normalize:\nNormalize all SNPs]]
   
   ```mermaid
   flowchart TD
-  filter[[filter:\nRemove all variant types\nexcept SNPs]]
+    filter[[filter:\nRemove all variant types\nexcept SNPs]]
   ```
 
   <dl>
@@ -286,7 +286,7 @@ normalize[[normalize:\nNormalize all SNPs]]
   
   ```mermaid
   flowchart TD
-  annotate[[annotate:\nAnnotate VCF against given\nreference VCF such as \n dbSNP, and rename any unknown\nvariants.]]
+    annotate[[annotate:\nAnnotate VCF against given\nreference VCF such as \n dbSNP, and rename any unknown\nvariants.]]
   ```
 
   <dl>
@@ -314,6 +314,39 @@ normalize[[normalize:\nNormalize all SNPs]]
 
 </details>
 
+<details markdown="block">
+  <summary>
+    <code>annotateUnknown</code>
+  </summary>
+  
+  ```mermaid
+  flowchart TD
+    annotateUnknown[[annotateUnknown:\nName all un-annotated variants using \nstandardized naming conventions.]]
+  ```
+
+  <dl>
+      <dt>Function</dt>
+      <dd>
+      To name all un-named variants which did not have a matching annotation ID.</dd>
+      <dt>Command</dt>
+      <dd><code>plink --vcf {input.vcf} --set-missing-var-ids @:#\$1-\$2 --new-id-max-allele-len 200 --out {params.output}</code></dd>
+      <dt>Parameters</dt>
+      <dd>
+        <dl>
+          <dt><code>--vcf {input.vcf}</code></dt>
+          <dd>File path to the input VCF file via parameter.</dd>
+          <dt><code>--set-missing-var-ids @:#\$1-\$2</code></dt>
+          <dd>A string which describes a naming scheme to be used when setting all un-named variants <code>@</code> denotes the chromosome code, <code>#</code> denotes the base-pair coordinates, <code>$1</code> denotes the reference allele and <code>$2</code> denotes the alternate allele.</dd>
+          <dt><code>--new-id-max-allele-len 200</code></dt>
+          <dd>Sets a maximum allowed variant ID length.</dd>
+          <dt><code>--out {params.output}</code></dt>
+          <dd>Provide the file name and path for output creation.</dd>
+        </dl>
+      </dd>
+    </dl>
+
+</details>
+  
 
 <details markdown="block">
   <summary>
@@ -322,17 +355,17 @@ normalize[[normalize:\nNormalize all SNPs]]
   
   ```mermaid
   flowchart TD
-  subgraph liftoverProtocol [Liftover]
-    direction LR
-    liftoverProtocolStart(((Start)))
-    liftover[[liftover:\nPerform reference genome\nliftover]]
-    liftoverProtocolEnd(((End)))
-    ifLiftoverRequired{Is a\nliftover\nrequired?}
+    subgraph liftoverProtocol [Liftover]
+      direction LR
+      liftoverProtocolStart(((Start)))
+      liftover[[liftover:\nPerform reference genome\nliftover]]
+      liftoverProtocolEnd(((End)))
+      ifLiftoverRequired{Is a\nliftover\nrequired?}
 
-    liftoverProtocolStart --> ifLiftoverRequired
-    ifLiftoverRequired --> |yes| liftover --> liftoverProtocolEnd
-    ifLiftoverRequired --> |no| liftoverProtocolEnd
-  end
+      liftoverProtocolStart --> ifLiftoverRequired
+      ifLiftoverRequired --> |yes| liftover --> liftoverProtocolEnd
+      ifLiftoverRequired --> |no| liftoverProtocolEnd
+    end
   ```
 
   <dl>
@@ -369,17 +402,17 @@ normalize[[normalize:\nNormalize all SNPs]]
   
   ```mermaid
   flowchart TD
-  subgraph multipleVcfProtocol [Multiple dataset protocol]
-    direction LR
-    multipleVcfProtocolStart(((Start)))
-    ifMergeRequired{Is a \nmerge needed?}
-    mergeDatasets[[mergeDatasets:\nMerge multiple incoming\ndatasets]]
-    multipleVcfProtocolEnd(((End)))
+    subgraph multipleVcfProtocol [Multiple dataset protocol]
+      direction LR
+      multipleVcfProtocolStart(((Start)))
+      ifMergeRequired{Is a \nmerge needed?}
+      mergeDatasets[[mergeDatasets:\nMerge multiple incoming\ndatasets]]
+      multipleVcfProtocolEnd(((End)))
 
-    multipleVcfProtocolStart --> ifMergeRequired
-    ifMergeRequired --> |yes| mergeDatasets --> multipleVcfProtocolEnd
-    ifMergeRequired --> |No| multipleVcfProtocolEnd
-  end
+      multipleVcfProtocolStart --> ifMergeRequired
+      ifMergeRequired --> |yes| mergeDatasets --> multipleVcfProtocolEnd
+      ifMergeRequired --> |No| multipleVcfProtocolEnd
+    end
   ```
   {: .normal }
   > This rule only executes when multiple described datasets are detected. This rule is responsible for merging multiple datasets into a single VCF file, suitable for collective analysis.
@@ -410,7 +443,7 @@ normalize[[normalize:\nNormalize all SNPs]]
   
   ```mermaid
   flowchart TD
-  refFromFasta[[refFromfasta:\nCheck reference alleles against\nprovided reference genome]]
+    refFromFasta[[refFromfasta:\nCheck reference alleles against\nprovided reference genome]]
   ```
 
  <dl>
@@ -447,7 +480,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  chrFilter[[chrFilter:\nFilter out non-standard\nchromosomes]]
+    chrFilter[[chrFilter:\nFilter out non-standard\nchromosomes]]
   ```
 
  <dl>
@@ -485,7 +518,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  filterRequestedSamples[[filterRequestedSamples:\nSubset samples to labeled\nsamples in metadata files]]
+    filterRequestedSamples[[filterRequestedSamples:\nSubset samples to labeled\nsamples in metadata files]]
   ```
 
  <dl>
@@ -517,7 +550,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  filterVariantMissingness[[filterVariantMissingness:\nFilter variants with 100%\nmissingness]]
+    filterVariantMissingness[[filterVariantMissingness:\nFilter variants with 100%\nmissingness]]
   ```
 
  <dl>
@@ -556,7 +589,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  filterSampleMissingness[[filterSampleMissingness:\nFilter samples with 100%\nmissingness]]
+    filterSampleMissingness[[filterSampleMissingness:\nFilter samples with 100%\nmissingness]]
   ```
 
  <dl>
@@ -595,7 +628,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  calculateLinkageDisequilibrium[[calculateLinkageDisequilibrium:\nCalculate LD associations]]
+    calculateLinkageDisequilibrium[[calculateLinkageDisequilibrium:\nCalculate LD associations]]
   ```
   
  <dl>
@@ -634,7 +667,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  filterLinkageDisequilibrium[[filterLinkageDisequilibrium:\nRemove variants in LD]]
+    filterLinkageDisequilibrium[[filterLinkageDisequilibrium:\nRemove variants in LD]]
   ```
 
  <dl>
@@ -669,7 +702,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  calculateIdentityByDescent[[calculateIdentityByDescent:\nCalculate Identity-By-Descent]]
+    calculateIdentityByDescent[[calculateIdentityByDescent:\nCalculate Identity-By-Descent]]
   ```
 
  <dl>
@@ -708,7 +741,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  calculateSampleIds[[calculateSampleIds:\nQuery a list of sample IDs\nfrom the input VCF]]
+    calculateSampleIds[[calculateSampleIds:\nQuery a list of sample IDs\nfrom the input VCF]]
   ```
 
  <dl>
@@ -735,7 +768,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  filterSampleRelatedness[[filterSampleRelatedness:\nremove a given list of samples\nbased on IBD results]]
+    filterSampleRelatedness[[filterSampleRelatedness:\nremove a given list of samples\nbased on IBD results]]
   ```
 
  <dl>
@@ -766,7 +799,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  filterLocations[[filterLocations:\nTrim the dataset to one of\nthe studied regions]]
+    filterLocations[[filterLocations:\nTrim the dataset to one of\nthe studied regions]]
   ```
 
  <dl>
@@ -807,7 +840,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  writeSampleMetadata[[writeSampleMetadata:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
+    writeSampleMetadata[[writeSampleMetadata:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
   ```
   
  <dl>
@@ -834,7 +867,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  reportFreq[[reportFreq:\nPerform frequency analysis]]
+    reportFreq[[reportFreq:\nPerform frequency analysis]]
   ```
 
   <dl>
@@ -880,7 +913,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  plinkPed[[plinkPed:\nConvert to PLINK-1.9's PED\n format]]
+    plinkPed[[plinkPed:\nConvert to PLINK-1.9's PED\n format]]
   ```
 
 </details>
@@ -892,7 +925,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  fetchPedLables[[fetchPedLables:\nGenerate Ind2Pop sample annotations\n file]]
+    fetchPedLables[[fetchPedLables:\nGenerate Ind2Pop sample annotations\n file]]
   ```
 
 </details>
@@ -904,7 +937,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  Admixture[[Admixture:\nPerform an admixture analysis]]
+    Admixture[[Admixture:\nPerform an admixture analysis]]
   ```
 
 </details>
@@ -916,7 +949,7 @@ normalize[[normalize:\nNormalize all SNPs]]
 
   ```mermaid
   flowchart TD
-  plinkPca[[Plink_PCA:\nPerform a PLINK-2.0 PCA]]
+    plinkPca[[Plink_PCA:\nPerform a PLINK-2.0 PCA]]
   ```
 
 </details>
