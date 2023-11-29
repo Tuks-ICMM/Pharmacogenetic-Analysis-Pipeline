@@ -31,7 +31,7 @@ github_username: G-Kodes
 mermaid:
   # Version of mermaid library
   # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
-  version: "10.5.0"
+  version: "10.6.1"
 
 # Build settings
 remote_theme: just-the-docs/just-the-docs
