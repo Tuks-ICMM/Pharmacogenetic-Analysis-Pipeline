@@ -84,9 +84,31 @@ rule mergeDatasets:
         bcftools merge -O z -o {output} {input.vcf}
         """
 
+rule compileSexAnnotations:
+    """
+    This rule extracts and compiles sex annotations per-sample in a format that Plink-2 can consume.
+    """
+    log: "results/tmp/compileSexAnnotations/All.log"
+    benchmark: "results/tmp/compileSexAnnotations/All.benchmark"
+    resources:
+        cpus=search("cores", "compileSexAnnotations"),
+        nodes=search("nodes", "compileSexAnnotations"),
+        queue=search("queue", "compileSexAnnotations"),
+        walltime=search("walltime", "compileSexAnnotations"),
+    conda:
+        join("envs", "snakemake.yml")
+    envmodules:
+        config["environment"]["envmodules"]["python-3"]
+    input:
+        sample_annotations="input/samples.csv"
+    output:
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
+    script:
+        join("scripts", "01.5-TRANSPILE_SAMPLE_SEXES.py")
+
 rule refFromFasta:
     """
-    This rule verifies that the reference alleles in teh provided VCF file match that of the reference genome.
+    This rule verifies that the reference alleles in the provided VCF file match that of the reference genome.
     """
     # group: "refFromFasta"
     log: "results/tmp/refFromFasta/All_refFromFasta.log"
@@ -106,16 +128,16 @@ rule refFromFasta:
         if i["version"] == "GRCh38"
             ),
         ),
-        sample_sex_assignments=lambda wildcards: samples.columns.get_loc("sex")
+        out=lambda wildcards, output: output["vcf"][:-7]
     input: 
         vcf=lambda wildcards: "results/tmp/mergeDatasets/All_mergeDatasets.vcf.gz" if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz"),
         vcfIndex=lambda wildcards: "results/tmp/mergeDatasets/All_mergeDatasets.vcf.gz.tbi" if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz.tbi"),
-        sampleSexes="input/samples.csv"
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output: 
-        "results/tmp/refFromFasta/All_refFromFasta.vcf.gz"
+        vcf="results/tmp/refFromFasta/All_refFromFasta.vcf.gz"
     shell:
         """
-        plink2 --vcf {input.vcf} --fa {params.ref} --ref-from-fa force --allow-extra-chr --update-sex {params.sample_sex_assignments} col-num=2 --split-par hg38 --export vcf-4.2 bgz --out results/COLLATE/refFromFasta
+        plink2 --vcf {input.vcf} --fa {params.ref} --ref-from-fa force --allow-extra-chr --update-sex {input.sample_sex_annotations} --split-par hg38 --export vcf-4.2 bgz --out {params.out}
         """
 
 rule chrFilter:
@@ -132,14 +154,17 @@ rule chrFilter:
         walltime=search("walltime", "chrFilter"),
     envmodules:
         config["environment"]["envmodules"]["plink-2"]
+    params:
+        out=lambda wildcards,output: output["vcf"][:-7]
     input:
         vcf="results/tmp/refFromFasta/All_refFromFasta.vcf.gz",
-        vcfIndex="results/tmp/refFromFasta/All_refFromFasta.vcf.gz.tbi"
+        vcfIndex="results/tmp/refFromFasta/All_refFromFasta.vcf.gz.tbi",
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
-        "results/tmp/chrFilter/All_chrFilter.vcf.gz"
+        vcf="results/tmp/chrFilter/All_chrFilter.vcf.gz"
     shell:
         """
-        plink2 --vcf {input.vcf} --allow-extra-chr --output-chr chr26 --chr 1-26 --export vcf-4.2 bgz --out results/COLLATE/chrFilter
+        plink2 --vcf {input.vcf} --update-sex {input.sample_sex_annotations} --allow-extra-chr --output-chr chr26 --chr 1-26 --export vcf-4.2 bgz --out {params.out}
         """
 
 rule filterRequestedSamples:
@@ -160,7 +185,8 @@ rule filterRequestedSamples:
         samples=lambda wildcards, input: ",".join(samples["sample_name"].tolist())
     input:
         vcf="results/tmp/chrFilter/All_chrFilter.vcf.gz",
-        samples="input/samples.csv"
+        samples="input/samples.csv",
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
         "results/tmp/filterRequestedSamples/All_filterRequestedSamples.vcf.gz"
     shell:
@@ -187,13 +213,14 @@ rule filterVariantMissingness:
     params:
         output=lambda wildcards, output: output[0][:-7]
     input: 
-        "results/tmp/filterRequestedSamples/All_filterRequestedSamples.vcf.gz"
+        vcf="results/tmp/filterRequestedSamples/All_filterRequestedSamples.vcf.gz",
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
         "results/tmp/filterVariantMissingness/All_filterVariantMissingness.vcf.gz"
     shell: 
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness variants' ---" 1>&2
-        plink2 --chr 1-26 --allow-extra-chr --vcf {input} --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out {params.output}
+        plink2 --vcf {input.vcf} --update-sex {input.sample_sex_annotations} --chr 1-26 --allow-extra-chr --geno 1.0 --output-chr chr26 --export vcf-4.2 bgz --out {params.output}
         echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness variants' ---\n" 1>&2
         """
 
@@ -214,13 +241,14 @@ rule filterSampleMissingness:
     params:
         output=lambda wildcards, output: output[0][:-7]
     input:
-        "results/tmp/filterVariantMissingness/All_filterVariantMissingness.vcf.gz"
+        vcf="results/tmp/filterVariantMissingness/All_filterVariantMissingness.vcf.gz",
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
         "results/tmp/filterSampleMissingness/All_filterSampleMissingness.vcf.gz"
     shell: 
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness samples' ---" 1>&2
-        plink2 --chr 1-26 --allow-extra-chr --vcf {input} --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out {params.output}
+        plink2 --vcf {input.vcf} --update-sex {input.sample_sex_annotations} --chr 1-26 --allow-extra-chr --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out {params.output}
         echo -e "--- LOG SECTION END | Plink-2 'Filter 100% Missingness samples' ---\n" 1>&2
         """
 
@@ -241,13 +269,14 @@ rule calculateLinkageDisequilibrium:
     params:
         output=lambda wildcards, output: output[0][:-9]
     input:
-        "results/tmp/filterSampleMissingness/All_filterSampleMissingness.vcf.gz",
+        vcf="results/tmp/filterSampleMissingness/All_filterSampleMissingness.vcf.gz",
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
         "results/tmp/calculateLinkageDisequilibrium/All_calculateLinkageDisequilibrium.prune.in",
         "results/tmp/calculateLinkageDisequilibrium/All_calculateLinkageDisequilibrium.prune.out",
     shell:
         """
-        plink2 --vcf {input} --chr 1-26 --new-id-max-allele-len 1000 --rm-dup exclude-mismatch --indep-pairwise 50 5 0.5 --bad-ld --out {params.output}
+        plink2 --vcf {input.vcf} --update-sex {input.sample_sex_annotations} --chr 1-26 --new-id-max-allele-len 1000 --rm-dup exclude-mismatch --indep-pairwise 50 5 0.5 --bad-ld --out {params.output}
         """
 
 
@@ -267,13 +296,14 @@ rule filterLinkageDisequilibrium:
     params:
         output=lambda wildcards, output: output[0][:-7]
     input:
+        vcf="results/tmp/filterSampleMissingness/All_filterSampleMissingness.vcf.gz",
         inclusion_list="results/tmp/calculateLinkageDisequilibrium/All_calculateLinkageDisequilibrium.prune.in",
-        vcf="results/tmp/filterSampleMissingness/All_filterSampleMissingness.vcf.gz"
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
         "results/tmp/filterLinkageDisequilibrium/All_filterLinkageDisequilibrium.vcf.gz"
     shell:
         """
-        plink2 --allow-extra-chr --vcf {input.vcf} --extract {input.inclusion_list} --export vcf-4.2 bgz --out {params.output}
+        plink2 --vcf {input.vcf} --update-sex {input.sample_sex_annotations} --allow-extra-chr --extract {input.inclusion_list} --export vcf-4.2 bgz --out {params.output}
         """
 
 # TODO: Remove reliance on --recode-iid and use *.genome text-based output
@@ -295,13 +325,14 @@ rule calculateSampleRelatedness:
     params:
         output=lambda wildcards, output: output["inclusion_list"][:-18]
     input:
-        "results/tmp/filterLinkageDisequilibrium/All_filterLinkageDisequilibrium.vcf.gz"
+        vcf="results/tmp/filterLinkageDisequilibrium/All_filterLinkageDisequilibrium.vcf.gz",
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
         inclusion_list="results/tmp/calculate/calculateIdentityByDescent.king.cutoff.in.id",
         exclusion_list="results/tmp/calculate/calculateIdentityByDescent.king.cutoff.out.id"
     shell:
         """
-        plink2 --vcf {input} --allow-extra-chr --king-cutoff 0.354 --out {params.output}
+        plink2 --vcf {input.vcf} --update-sex {input.sample_sex_annotations} --allow-extra-chr --king-cutoff 0.354 --out {params.output}
         """
 
 
@@ -323,13 +354,14 @@ rule filterSampleRelatedness:
         out=lambda wildcards, output: output[0][:-7]
     input:
         vcf="results/tmp/filterLinkageDisequilibrium/All_filterLinkageDisequilibrium.vcf.gz",
-        unrelated_samples="results/tmp/calculate/calculateIdentityByDescent.king.cutoff.in.id"
+        unrelated_samples="results/tmp/calculate/calculateIdentityByDescent.king.cutoff.in.id",
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
         "results/tmp/filterSampleRelatedness/All_filterSampleRelatedness.vcf.gz",
     shell:
         """
         echo -e "\n--- LOG SECTION START | Plink-2 '--keep' ---" 1>&2
-        plink2 --vcf {input.vcf} --split-par b38  --keep {input.unrelated_samples} --export vcf-4.2 bgz --out {params.out}
+        plink2 --vcf {input.vcf} --update-sex {input.sample_sex_annotations} --split-par b38  --keep {input.unrelated_samples} --export vcf-4.2 bgz --out {params.out}
         echo -e "--- LOG SECTION END | Plink-2 '--keep' ---\n" 1>&2
         """
 
@@ -355,12 +387,13 @@ rule filterLocations:
         out=lambda wildcards, output: output["vcf"][:-7]
     input:
         vcf="results/tmp/filterSampleRelatedness/All_filterSampleRelatedness.vcf.gz",
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
         vcf="results/tmp/filterLocations/{location}_filterLocations.vcf.gz",
     shell:
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'trim' ---" 1>&2
-        plink2 --vcf {input} --allow-extra-chr --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --output-chr chr26 --export vcf-4.2 bgz --out {params.out}
+        plink2 --vcf {input.vcf} --allow-extra-chr --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --output-chr chr26 --export vcf-4.2 bgz --out {params.out}
         echo -e "--- LOG SECTION END | Plink-2 'trim' ---\n" 1>&2
         """
 
@@ -452,6 +485,7 @@ rule reportFreqAllPerLocation:
         out=lambda wildcards,output: output["allele_count"][:-7],
     input:
         vcf="results/tmp/filterLocations/{location}_filterLocations.vcf.gz",
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
         allele_count="results/reportFreqAllPerLocation/All_{location}.acount",
         hardy="results/reportFreqAllPerLocation/All_{location}.hardy",
@@ -460,7 +494,7 @@ rule reportFreqAllPerLocation:
     shell:
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'All freq' ---" 1>&2
-        plink2 --vcf {input.vcf} --allow-extra-chr --split-par b38 --freq counts --export vcf-4.2 bgz --out {params.out}
+        plink2 --vcf {input.vcf} --update-sex {input.sample_sex_annotations} --allow-extra-chr --split-par b38 --freq counts --missing --hardy midp --out {params.out}
         echo -e "--- LOG SECTION END | Plink-2 'All freq' ---\n" 1>&2
         """
 
@@ -482,7 +516,8 @@ rule reportFreqPerClusterPerLocation:
         out=lambda wildcards,output: output["allele_count"][:-7]
     input:
         vcf="results/tmp/filterLocations/{location}_filterLocations.vcf.gz",
-        cluster_samples="results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.txt"
+        cluster_samples="results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.txt",
+        sample_sex_annotations="results/tmp/compileSexAnnotations/All_compileSexAnnotations.txt"
     output:
         allele_count="results/reportFreqPerClusterPerLocation/{cluster}_{location}.acount",
         hardy="results/reportFreqPerClusterPerLocation/{cluster}_{location}.hardy",
@@ -491,7 +526,7 @@ rule reportFreqPerClusterPerLocation:
     shell:
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'Subset freq' ---" 1>&2
-        plink2 --vcf {input.vcf} --allow-extra-chr --keep {input.cluster_samples} --freq counts --missing --hardy midp --out {params.out}
+        plink2 --vcf {input.vcf} --update-sex {input.sample_sex_annotations} --allow-extra-chr --keep {input.cluster_samples} --freq counts --missing --hardy midp --out {params.out}
         echo -e "--- LOG SECTION END | Plink-2 'Subset freq' ---\n" 1>&2
         """
 
