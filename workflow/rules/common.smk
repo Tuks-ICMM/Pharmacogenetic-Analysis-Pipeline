@@ -38,9 +38,9 @@ def vcfValidationWorkflowAdapter(extension: str) -> list:
         if reference_genome != "GRCh38" and groupby_subset is not None: # [IF] reference genome version
             for dataset_name in groupby_subset.index.get_level_values("dataset_name"): # [FOR] the column in our MultiIndex that contains the dataset_name's in this subset
                 # [EACH] add liftover request for the DAG
-                merge_list.append(f"results/PREP/{dataset_name}/liftover{extension}",)
+                merge_list.append(f"results/tmp/{dataset_name}_liftover{extension}",)
         else:
             for dataset_name in groupby_subset.index.get_level_values("dataset_name"): # [FOR] the column in our MultiIndex that contains the dataset_name's in this subset
                     # [EACH] add liftover request for the DAG
-                    merge_list.append(f"results/PREP/{dataset_name}/annotate{extension}",)
+                    merge_list.append(f"results/tmp/filter/{dataset_name}_filter{extension}",)
     return merge_list
