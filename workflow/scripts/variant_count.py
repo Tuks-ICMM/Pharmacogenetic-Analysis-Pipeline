@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 """
-A Python script designed to run Fishers Exact Test with Bonferonni corrections and save the results.
+A Python script designed to collect the count data from the Plink-2.0 reports. SAves to an Excel file.
+
+
+[NEEDS] WORKFLOW_RUNTIME
+
+[NEEDED_BY] fishers_exact_bonferonni_corrected.py
+[NEEDED_BY] frequency_calculations.py
+
 """
 # %%
 ############ IMPORT DEPENDANCIES ############
@@ -8,9 +15,8 @@ A Python script designed to run Fishers Exact Test with Bonferonni corrections a
 
 from os.path import join
 
-from pandas import merge, read_csv
-
 from common.common import read_vcf, save_or_append_to_excel
+from pandas import merge, read_csv
 
 __author__ = "Graeme Ford"
 __credits__ = [
@@ -53,18 +59,21 @@ REFERENCE_POPULATION = "AFR"
 COMPARISON_POPULATIONS = ["AMR", "EUR", "EAS", "SAS"]
 ALL_POPULATIONS = ["AFR", "AMR", "EUR", "EAS", "SAS"]
 
+# [SET] standard multi-index Columns
+MULTIINDEX = ["CHROM", "POS", "ID", "REF", "ALT"]
+
 # [IMPORT] variant count data:
 DATA = dict()
 for cluster in CLUSTERS:
     DATA[cluster] = dict()
     for gene in GENES:
         DATA[cluster][gene] = read_vcf(
-            join("..", "..", "results", "FINAL", f"ALL_{gene}.vcf.gz")
-        )[["CHROM", "POS", "ID", "REF", "ALT"]]
+            join("..", "..", "results", "FINAL", f"{cluster}", f"ALL_{gene}.vcf.gz")
+        )[MULTIINDEX]
         # Rename the chromosome notation
-        DATA[cluster][gene]["CHROM"] = DATA[cluster][gene]["CHROM"].str.extract(
-            "chr([1-9]{1,2}|[XY])"
-        )
+        # DATA[cluster][gene]["CHROM"] = DATA[cluster][gene]["CHROM"].str.extract(
+        #     "chr([1-9]{1,2}|[XY])"
+        # )
 
 # %%
 ############ MERGE RAW COUNTS ############
@@ -110,7 +119,5 @@ for cluster in CLUSTERS:
 #################################################
 for cluster in CLUSTERS:
     for gene in GENES:
-        save_or_append_to_excel(
-            DATA[cluster][gene], cluster, gene, "Count", "replace"
-        )
+        save_or_append_to_excel(DATA[cluster][gene], cluster, gene, "Count", "replace")
 # %%

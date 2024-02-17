@@ -18,8 +18,7 @@ __author__ = "Graeme Ford"
 __credits__ = [
     "Graeme Ford",
     "Prof. Michael S. Pepper",
-    "Prof. Fourie Joubert",
-    "Antionette Colic",
+    "Prof. Fourie Joubert",wd
     "Fatima Barmania",
     "Megan Ryder",
 ]

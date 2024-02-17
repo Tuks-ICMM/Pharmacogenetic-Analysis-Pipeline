@@ -9,7 +9,6 @@ __credits__ = [
     "Prof. Fourie Joubert",
     "Antionette Colic",
     "Fatima Barmania",
-    "Sarah Turner",
     "Megan Ryder",
 ]
 __version__ = "1.0.0"
@@ -19,9 +18,9 @@ __status__ = "Development"
 
 samples = read_csv(join("input", "samples.csv"))
 samples[["sample_name", snakemake.wildcards.cluster]].rename(
-    columns={"sample_name": "IID"}
+    columns={"sample_name": "#IID"}
 ).to_csv(
-    join("results", "REFERENCE", "cluster_{}.txt".format(snakemake.wildcards.cluster)),
+    snakemake.output.metadata,
     sep="\t",
     index=False,
 )

@@ -2,6 +2,9 @@
 """
 A Python script designed to run Variant Effect Prediction calculations
 and API calls as well as save the results to file.
+
+[NEEDS] WORKFLOW_RUNTIME
+
 """
 # %%
 ############ IMPORT DEPENDANCIES ############
@@ -12,8 +15,6 @@ from os.path import join
 from time import sleep
 
 import pandas as pd
-from requests import post
-
 from common.common import (
     chunk,
     directory_exists,
@@ -24,6 +25,9 @@ from common.common import (
     save_or_append_to_excel,
 )
 from common.condel_score import condel_weighted_score
+from requests import post
+
+# from workflow.scripts.entities.VariantConsequence import VariantConsequenceResult
 
 # [SET] Pandas Chained-Assignment off to prevent writing changes to transient DF copies:
 pd.set_option("chained_assignment", None)
@@ -78,7 +82,12 @@ ALL_POPULATIONS = ["AFR", "AMR", "EUR", "EAS", "SAS"]
 ENDPOINT = "https://rest.ensembl.org/vep/homo_sapiens/region/"
 HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 
-
+# [SET] API payload categories for results:
+VARIANT_TYPE_CATEGORIES = [
+    "colocated_variants",
+    "transcript_consequences",
+    "regulatory_feature_consequences",
+]
 # %%
 ############ READ IN VCF FILE AS BASE ############
 ##################################################
@@ -86,72 +95,115 @@ HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
 RAW_DATA_TEMPLATE = dict()
 for gene in GENES:
     RAW_DATA_TEMPLATE[gene] = read_vcf(
-        join("..", "..", "results", "FINAL", f"ALL_{gene}.vcf.gz")
+        join("..", "..", "results_OLD_BACKUP", "FINAL", "super-population", f"ALL_{gene}.vcf.gz")
     )[["CHROM", "POS", "ID", "REF", "ALT"]]
-    RAW_DATA_TEMPLATE[gene]["CHROM"] = RAW_DATA_TEMPLATE[gene]["CHROM"].str.extract(
-        "chr([1-9]{1,2}|[XY])"
-    )
+    RAW_DATA_TEMPLATE[gene]["QUERY"] = None
+    # Lets create a multi-index to access specific variant records, more easily:
+    RAW_DATA_TEMPLATE[gene].set_index(["CHROM", "POS", "REF", "ALT"], inplace=True)
 
 # %%
 ############ SUB_DIVIDE DATA ############
 #########################################
 DATA_IN_CHUNKS = dict()
-for genomic_location_name, dataset in RAW_DATA_TEMPLATE.items():
-    DATA_IN_CHUNKS[genomic_location_name] = chunk(
-        RAW_DATA_TEMPLATE[genomic_location_name], 100
-    )
+for gene, data in RAW_DATA_TEMPLATE.items():
+    chunk_var = chunk(data, 200)
+    DATA_IN_CHUNKS[gene] = chunk_var
 
 
-# %%
+# %%k
 ############ COMPILE E! ENSEMBL REQUEST PAYLOADS ############
 #############################################################
 # Compile and format request bodies:
-API_PAYLOADS = dict()
+API_QUERY_STATEMENTS = dict()
 # Iterate through each gene:
-for dataset in GENES:
-    API_PAYLOADS[dataset] = list()
+for gene in GENES:
+    # Nest, lets create a placeholder list that we can append
+    # the query strings to in preparation to make the API calls
+    API_QUERY_STATEMENTS[gene] = list()
 
     # Iterate through each n-sized chunk generated:
-    for chunk in DATA_IN_CHUNKS[dataset]:
+    for chunk in DATA_IN_CHUNKS[gene]:
         temp_list = list()
 
         # Iterate through each row in the chunk and add the HGVS notation to the list:
         for index, row in chunk.iterrows():
-            temp_list.extend(
-                generate_notation(
-                    row,
-                    GENE_DATA.loc[
-                        GENE_DATA["location_name"] == dataset, "strand"
-                    ].item(),
-                )
+            # Here we extract the multiindex key for this spesific variant record.
+            # This is done because we are going to build a second indexable column. This
+            # column will be to track the E! Ensembl query string and will also serve as
+            # the new index when annotating teh DataFrame with the API payloads.
+            CHROM, POS, REF, ALT = row.name
+
+            # Here, we generate the query string for the E! Ensembl API:
+            ensembl_query_string: str = generate_notation(
+                row,
+                GENE_DATA.loc[GENE_DATA["location_name"] == gene, "strand"].item(),
             )
-        API_PAYLOADS[dataset].append(dict(variants=temp_list))
+
+            # Add the generated notation to the growing temp list of variants in this chunk of data
+            RAW_DATA_TEMPLATE[gene].loc[
+                (CHROM, POS, REF, ALT), "QUERY"
+            ] = ensembl_query_string
+            temp_list.append(ensembl_query_string)
+
+        # Add the chunks worth of formatted variant query strings into the payload object
+        API_QUERY_STATEMENTS[gene].append(dict(variants=temp_list))
 
 # %%
-############ PERFORM E! ENSEMBL API CALLS ############
-######################################################
+########### PERFORM E! ENSEMBL API CALLS ############
+#####################################################
 API_RESPONSE = dict()
-for genomic_location_name, dataset in API_PAYLOADS.items():
-    API_RESPONSE[genomic_location_name] = list()
-    for index, chunk in enumerate(dataset):
+for gene in API_QUERY_STATEMENTS.keys():
+    API_RESPONSE[gene] = list()
+    for index, chunk in enumerate(API_QUERY_STATEMENTS[gene]):
         REQUESTING = True
-        temp_list = list()
         while REQUESTING:
             r = post(
                 ENDPOINT,
                 headers=HEADERS,
                 data=dumps(chunk),
-                params=generate_params(genomic_location_name),
+                params=generate_params(gene, True),
             )
             if not r.ok:
                 print(str(r.reason))
+                print(r.json())
                 sleep(2)
             else:
                 decoded = r.json()
-                API_RESPONSE[genomic_location_name] = (
-                    API_RESPONSE[genomic_location_name] + decoded
-                )
+                API_RESPONSE[gene].extend(decoded)
                 REQUESTING = False
+# %%
+
+import pickle
+
+with open("ENSEMBL_API_PAYLOAD_WITH_PICK_FLAGS.pkl", "wb") as file:
+    pickle.dump(API_RESPONSE, file)
+
+# %%
+
+############ OPEN 'CANNED' E! ENSEMBL API CALLS ############
+############################################################
+# import pickle
+
+with open("ENSEMBL_API_PAYLOAD.pkl", "rb") as file:
+    API_RESPONSE = pickle.load(file)
+
+# %%
+# TODO: Improve this piece of code
+# DATA = dict()
+# for gene, genomic_location_responses in API_RESPONSE.items():
+#     DATA[gene] = RAW_DATA_TEMPLATE[gene].set_index("QUERY")
+#     # [["CHROM", "ID", "POS", "REF", "ALT"]]
+#     # DATA[gene].set_index(["CHROM", "POS", "REF", "ALT"])
+#     new_columns = []
+#     for column in new_columns:
+#         DATA[gene][column] = None
+
+#     for response in genomic_location_responses:
+#         resp: VariantConsequenceResult = VariantConsequenceResult.from_dict(response)
+    #     consequence = resp.transcript_consequences
+    #     DATA[gene].loc[
+    #         (resp.input), "colocated variant start"
+    #     ] = resp.generateDataFrameRow()
 
 
 # %%
@@ -160,270 +212,67 @@ for genomic_location_name, dataset in API_PAYLOADS.items():
 # Abstract response parsing to functions
 ##########################################################
 DATA = dict()
-for genomic_location_name, genomic_location_responses in API_RESPONSE.items():
-    DATA[genomic_location_name] = RAW_DATA_TEMPLATE[genomic_location_name][
-        ["CHROM", "ID", "POS", "REF", "ALT"]
-    ]
-    new_columns = [
-        "Co-Located Variant",
-        "Transcript ID",
-        "Transcript Strand",
-        "Existing Variation",
-        "Start Coordinates",
-        "Consequence",
-        "Diseases",
-        "Biotype",
-        "CADD_PHRED",
-        # 'LoFtool',
-        "input",
-        "SIFT_score",
-        "SIFT_pred",
-        "Polyphen_score",
-        "Polyphen_pred",
-        "CONDEL",
-        "CONDEL_pred",
-    ]
-    for column in new_columns:
-        DATA[genomic_location_name][column] = None
+for gene in GENES:
+    DATA[gene] = dict()
+    for category in VARIANT_TYPE_CATEGORIES:
+        # Filter records per category so that we can group all related variant types in groups:
+        filtered_subset = list(
+            filter(lambda record: category in record, API_RESPONSE[gene])
+        )
+        if category == "colocated_variants":
+            for record in filtered_subset:
+                for colocated_variant in record["colocated_variants"]:
+                    if "frequencies" in colocated_variant:
+                        colocated_variant["frequencies_gnomad"] = colocated_variant[
+                            "frequencies"
+                        ][record["allele_string"].split("/")[1]]
+                        del colocated_variant["frequencies"]
 
-    # for _, genomic_location in API_RESPONSE.items():
-    for variant in genomic_location_responses:
-        # row = supplementary[dataset_key].loc[supplementary[dataset_key]['POS'] ==
-        # int(variant['start'])]
-        DATA[genomic_location_name].loc[
-            DATA[genomic_location_name]["POS"] == int(variant["start"]),
-            "Start Coordinates",
-        ] = variant["start"]
-        DATA[genomic_location_name].loc[
-            DATA[genomic_location_name]["POS"] == int(variant["start"]), "input"
-        ] = variant["input"]
+        if filtered_subset:
+            normalized_dataframe = pd.json_normalize(
+                filtered_subset,
+                category,
+                record_prefix=f"{category}.",
+                meta=[
+                    "assembly_name",
+                    "seq_region_name",
+                    "most_severe_consequence",
+                    "id",
+                    "start",
+                    "strand",
+                    "variant_class",
+                    "input",
+                    "end",
+                ],
+            )
+            DATA[gene][category] = pd.merge(
+                RAW_DATA_TEMPLATE[gene].reset_index(),
+                normalized_dataframe,
+                how="left",
+                left_on="QUERY",
+                right_on="input",
+            )
 
-        co_variants = list()
-        if "colocated_variants" in variant:
-            DATA[genomic_location_name].loc[
-                DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                "Co-Located Variant",
-            ] = True
-            for colocated_variant in variant["colocated_variants"]:
-                co_variants.append(colocated_variant["id"])
-        else:
-            DATA[genomic_location_name].loc[
-                DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                "Co-Located Variant",
-            ] = False
-            co_variants.append("-")
-        DATA[genomic_location_name].loc[
-            DATA[genomic_location_name]["POS"] == int(variant["start"]),
-            "Existing Variation",
-        ] = "| ".join(co_variants)
+            # DATA[gene][category] = merged_dataframe.reindex(
+            #     [
+            #         "CHROM",
+            #         "POS",
+            #         "REF",
+            #         "ALT",
+            #         "assembly_name",
+            #         "seq_region_name",
+            #         "most_severe_consequence",
+            #         "input",
+            #         "id",
+            #         "start",
+            #         "end",
+            #         "strand",
+            #         "variant_class",
+            #     ], axis='columns'
+            # )
 
-        if "transcript_consequences" in variant:
-            transcripts_requested = TRANSCRIPT_DATA.query(
-                f"gene_name == '{genomic_location_name}'"
-            )["transcript_id"].tolist()
-            for transcript in transcripts_requested:
-                consequence = next(
-                    (
-                        n
-                        for n in variant["transcript_consequences"]
-                        if n["transcript_id"] == transcript
-                    ),
-                    None,
-                )
-                if consequence is not None:
-                    phenotype = set()
+# %%
 
-                    if "phenotypes" in consequence:
-                        for instance in consequence["phenotypes"]:
-                            phenotype.add(instance["phenotype"])
-
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "SIFT_score",
-                    ] = (
-                        consequence["sift_score"]
-                        if ("sift_score" in consequence)
-                        else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "SIFT_pred",
-                    ] = (
-                        consequence["sift_prediction"]
-                        if ("sift_prediction" in consequence)
-                        else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Polyphen_score",
-                    ] = (
-                        str(consequence["polyphen_score"])
-                        if ("polyphen_score" in consequence)
-                        else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Polyphen_pred",
-                    ] = (
-                        consequence["polyphen_prediction"]
-                        if ("polyphen_prediction" in consequence)
-                        else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Diseases",
-                    ] = merge(phenotype)
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Consequence",
-                    ] = merge(consequence["consequence_terms"])
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Transcript ID",
-                    ] = consequence["transcript_id"]
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Biotype",
-                    ] = (
-                        consequence["biotype"] if ("biotype" in consequence) else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "CADD_PHRED",
-                    ] = (
-                        consequence["cadd_phred"]
-                        if ("cadd_phred" in consequence)
-                        else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Transcript Strand",
-                    ] = (
-                        consequence["strand"] if ("strand" in consequence) else None
-                    )
-                    # row['LoFtool'] = consequence['loftool'] if 'loftool' in consequence
-                    # else None
-                    if "sift_score" in consequence and "polyphen_score" in consequence:
-                        s, p = condel_weighted_score(
-                            int(consequence["sift_score"]),
-                            consequence["polyphen_score"],
-                        )
-                        DATA[genomic_location_name].loc[
-                            DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                            "CONDEL",
-                        ] = s
-                        DATA[genomic_location_name].loc[
-                            DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                            "CONDEL_pred",
-                        ] = p
-                    else:
-                        DATA[genomic_location_name].loc[
-                            DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                            "CONDEL",
-                        ] = None
-                        DATA[genomic_location_name].loc[
-                            DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                            "CONDEL_pred",
-                        ] = None
-                    break
-
-                else:
-                    consequence = variant["transcript_consequences"][0]
-                    phenotype = set()
-
-                    if "phenotypes" in consequence:
-                        for instance in consequence["phenotypes"]:
-                            phenotype.add(instance["phenotype"])
-
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "SIFT_score",
-                    ] = (
-                        consequence["sift_score"]
-                        if ("sift_score" in consequence)
-                        else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "SIFT_pred",
-                    ] = (
-                        consequence["sift_prediction"]
-                        if ("sift_prediction" in consequence)
-                        else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Polyphen_score",
-                    ] = (
-                        str(consequence["polyphen_score"])
-                        if ("polyphen_score" in consequence)
-                        else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Polyphen_pred",
-                    ] = (
-                        consequence["polyphen_prediction"]
-                        if ("polyphen_prediction" in consequence)
-                        else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Diseases",
-                    ] = merge(phenotype)
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Consequence",
-                    ] = merge(consequence["consequence_terms"])
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Transcript ID",
-                    ] = consequence["transcript_id"]
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Biotype",
-                    ] = (
-                        consequence["biotype"] if ("biotype" in consequence) else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "CADD_PHRED",
-                    ] = (
-                        consequence["cadd_phred"]
-                        if ("cadd_phred" in consequence)
-                        else None
-                    )
-                    DATA[genomic_location_name].loc[
-                        DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                        "Transcript Strand",
-                    ] = (
-                        consequence["strand"] if ("strand" in consequence) else None
-                    )
-                    # row['LoFtool'] = consequence['loftool'] if 'loftool' in
-                    # consequence else None
-                    if "sift_score" in consequence and "polyphen_score" in consequence:
-                        s, p = condel_weighted_score(
-                            int(consequence["sift_score"]),
-                            consequence["polyphen_score"],
-                        )
-                        DATA[genomic_location_name].loc[
-                            DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                            "CONDEL",
-                        ] = s
-                        DATA[genomic_location_name].loc[
-                            DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                            "CONDEL_pred",
-                        ] = p
-                    else:
-                        DATA[genomic_location_name].loc[
-                            DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                            "CONDEL",
-                        ] = None
-                        DATA[genomic_location_name].loc[
-                            DATA[genomic_location_name]["POS"] == int(variant["start"]),
-                            "CONDEL_pred",
-                        ] = None
-                    break
 
 # %%
 ############ SAVE TO EXCEL ############
@@ -433,5 +282,8 @@ for genomic_location_name, genomic_location_responses in API_RESPONSE.items():
 for cluster in CLUSTERS:
     directory_exists(join("..", "..", "results", "FINAL"))
     for gene in GENES:
-        save_or_append_to_excel(DATA[gene], cluster, gene, "VEP", "replace")
+        for category in DATA[gene].keys():
+            save_or_append_to_excel(
+                DATA[gene][category], cluster, gene, category, "replace"
+            )
 # %%
