@@ -43,10 +43,10 @@ transcripts = read_csv(join("input", "transcripts.csv"), header=0)
 
 
 # DEFINE CONTEXT-VARIABLES:
-finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.out",
+# finalExtensions = ["acount", "hardy", "smiss", "vmiss"]  # "prune.in", "prune.out",
 clusters = set([cluster for cluster in samples.keys() if cluster not in ["sample_name", "dataset"]])
-bExtensions = ["bed", "bim", "fam"]
-tExtensions = ["map", "ped"]
+# bExtensions = ["bed", "bim", "fam"]
+# tExtensions = ["map", "ped"]
 
 
 include: "rules/common.smk"
@@ -352,14 +352,15 @@ rule filterLocations:
         fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "start"].item(),
         toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "stop"].item(),
         chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
+        out=lambda wildcards, output: output["vcf"][:-7]
     input:
-        "results/tmp/filterSampleRelatedness/All_filterSampleRelatedness.vcf.gz",
+        vcf="results/tmp/filterSampleRelatedness/All_filterSampleRelatedness.vcf.gz",
     output:
-        "results/tmp/filterLocations/{location}_filterLocations.vcf.gz",
+        vcf="results/tmp/filterLocations/{location}_filterLocations.vcf.gz",
     shell:
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'trim' ---" 1>&2
-        plink2 --allow-extra-chr --vcf {input} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --output-chr chr26 --export vcf-4.2 bgz --out results/TRIM/ALL_{wildcards.location}
+        plink2 --vcf {input} --allow-extra-chr --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --output-chr chr26 --export vcf-4.2 bgz --out {params.out}
         echo -e "--- LOG SECTION END | Plink-2 'trim' ---\n" 1>&2
         """
 
@@ -382,12 +383,58 @@ rule writeSampleMetadata:
     envmodules:
         config["environment"]["envmodules"]["python-3"]
     output:
-        "results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.txt",
+        metadata="results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.txt",
     script:
         join("scripts", "01-TRANSPILE_CLUSTERS.py")
 
 
-rule reportFreq:
+# rule reportFreq:
+#     """
+#     Perform Frequency analysis on super populations.
+#     """
+#     # group: "REPORT"
+#     log: "logs/PLINK/{location}.log",
+#     benchmark: "_benchmarks/reportFreq/{location}.benchmark"
+#     resources:
+#         cpus=search("cores", "reportFreq"),
+#         nodes=search("nodes", "reportFreq"),
+#         queue=search("queue", "reportFreq"),
+#         walltime=search("walltime", "reportFreq"),
+#     envmodules:
+#         config["environment"]["envmodules"]["plink-2"],
+#     params:
+#         prefix="ALL_{location}",
+#         subsets_list=lambda wildcards: ' '.join(clusters)
+#     input:
+#         [f"results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.txt" for cluster in clusters],
+#         vcf="results/tmp/filterLocations/{location}_filterLocations.vcf.gz",
+#     output:
+#         [
+#             expand(
+#                 [
+#                     "results/FINAL/%s/ALL_{{location}}.%s.{extension}"
+#                     % (cluster, population)
+#                     for population in list(samples[cluster].unique())
+#                 ],
+#                 extension=finalExtensions,
+#             )
+#             for cluster in clusters
+#         ],
+#     shell:
+#         """
+#         for CLUSTER in {params.subsets_list}
+#         do
+#             echo -e "\n--- LOG SECTION START | Plink-2 'All freq' ---" 1>&2
+#             plink2 --allow-extra-chr --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/$CLUSTER/{params.prefix}
+#             echo -e "--- LOG SECTION END | Plink-2 'All freq' ---\n" 1>&2
+
+#             echo -e "\n--- LOG SECTION START | Plink-2 'Subset freq' ---" 1>&2
+#             plink2 --allow-extra-chr --vcf {input.vcf} --pheno iid-only results/REFERENCE/cluster_$CLUSTER.txt --loop-cats $CLUSTER --freq counts --missing --hardy midp --out results/FINAL/$CLUSTER/{params.prefix}
+#             echo -e "--- LOG SECTION END | Plink-2 'Subset freq' ---\n" 1>&2
+#         done
+#         """
+
+rule reportFreqAllPerLocation:
     """
     Perform Frequency analysis on super populations.
     """
@@ -402,35 +449,50 @@ rule reportFreq:
     envmodules:
         config["environment"]["envmodules"]["plink-2"],
     params:
-        prefix="ALL_{location}",
-        subsets_list=lambda wildcards: ' '.join(clusters)
+        out=lambda wildcards,output: output["allele_count"][:-7],
     input:
-        [f"results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.txt" for cluster in clusters],
         vcf="results/tmp/filterLocations/{location}_filterLocations.vcf.gz",
     output:
-        [
-            expand(
-                [
-                    "results/FINAL/%s/ALL_{{location}}.%s.{extension}"
-                    % (cluster, population)
-                    for population in list(samples[cluster].unique())
-                ],
-                extension=finalExtensions,
-            )
-            for cluster in clusters
-        ],
+        allele_count="results/reportFreqAllPerLocation/All_{location}.acount",
+        hardy="results/reportFreqAllPerLocation/All_{location}.hardy",
+        sample_missingness="results/reportFreqAllPerLocation/All_{location}.smiss",
+        variant_missingness="results/reportFreqAllPerLocation/All_{location}.vmiss",
     shell:
         """
-        for CLUSTER in {params.subsets_list}
-        do
-            echo -e "\n--- LOG SECTION START | Plink-2 'All freq' ---" 1>&2
-            plink2 --allow-extra-chr --vcf {input.vcf} --freq counts --export vcf-4.2 bgz --out results/FINAL/$CLUSTER/{params.prefix}
-            echo -e "--- LOG SECTION END | Plink-2 'All freq' ---\n" 1>&2
+        echo -e "\n--- LOG SECTION START | Plink-2 'All freq' ---" 1>&2
+        plink2 --vcf {input.vcf} --allow-extra-chr --split-par b38 --freq counts --export vcf-4.2 bgz --out {params.out}
+        echo -e "--- LOG SECTION END | Plink-2 'All freq' ---\n" 1>&2
+        """
 
-            echo -e "\n--- LOG SECTION START | Plink-2 'Subset freq' ---" 1>&2
-            plink2 --allow-extra-chr --vcf {input.vcf} --pheno iid-only results/REFERENCE/cluster_$CLUSTER.txt --loop-cats $CLUSTER --freq counts --missing --hardy midp --out results/FINAL/$CLUSTER/{params.prefix}
-            echo -e "--- LOG SECTION END | Plink-2 'Subset freq' ---\n" 1>&2
-        done
+rule reportFreqPerClusterPerLocation:
+    """
+    Perform Frequency analysis on super populations.
+    """
+    # group: "REPORT"
+    log: "logs/PLINK/{cluster}_{location}.log",
+    benchmark: "_benchmarks/reportFreq/{cluster}_{location}.benchmark"
+    resources:
+        cpus=search("cores", "reportFreq"),
+        nodes=search("nodes", "reportFreq"),
+        queue=search("queue", "reportFreq"),
+        walltime=search("walltime", "reportFreq"),
+    envmodules:
+        config["environment"]["envmodules"]["plink-2"],
+    params:
+        out=lambda wildcards,output: output["allele_count"][:-7]
+    input:
+        vcf="results/tmp/filterLocations/{location}_filterLocations.vcf.gz",
+        cluster_samples="results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.txt"
+    output:
+        allele_count="results/reportFreqPerClusterPerLocation/{cluster}_{location}.acount",
+        hardy="results/reportFreqPerClusterPerLocation/{cluster}_{location}.hardy",
+        sample_missingness="results/reportFreqPerClusterPerLocation/{cluster}_{location}.smiss",
+        variant_missingness="results/reportFreqPerClusterPerLocation/{cluster}_{location}.vmiss",
+    shell:
+        """
+        echo -e "\n--- LOG SECTION START | Plink-2 'Subset freq' ---" 1>&2
+        plink2 --vcf {input.vcf} --allow-extra-chr --keep {input.cluster_samples} --freq counts --missing --hardy midp --out {params.out}
+        echo -e "--- LOG SECTION END | Plink-2 'Subset freq' ---\n" 1>&2
         """
 
 # group: VALIDATE
@@ -465,16 +527,12 @@ rule all:
         "logs/ALL/ALL.log",
     input:
         VCFValidation.rules.all.input,
+        expand("results/reportFreqPerClusterPerLocation/{cluster}_{location}.acount", cluster=clusters, location=locations["location_name"]),
+        expand("results/reportFreqPerClusterPerLocation/{cluster}_{location}.hardy", cluster=clusters, location=locations["location_name"]),
+        expand("results/reportFreqPerClusterPerLocation/{cluster}_{location}.smiss", cluster=clusters, location=locations["location_name"]),
+        expand("results/reportFreqPerClusterPerLocation/{cluster}_{location}.vmiss", cluster=clusters, location=locations["location_name"]),
+        expand("results/reportFreqAllPerLocation/All_{location}.acount", location=locations["location_name"]),
+        expand("results/reportFreqAllPerLocation/All_{location}.hardy", location=locations["location_name"]),
+        expand("results/reportFreqAllPerLocation/All_{location}.smiss", location=locations["location_name"]),
+        expand("results/reportFreqAllPerLocation/All_{location}.vmiss", location=locations["location_name"]),
         # PopulationStructure.rules.all.input,
-        [
-            expand(
-                [
-                    "results/FINAL/%s/ALL_{location}.%s.{extension}"
-                    % (cluster, population)
-                    for population in list(samples[cluster].unique())
-                ],
-                extension=finalExtensions,
-                location=locations["location_name"],
-            )
-            for cluster in clusters
-        ]
