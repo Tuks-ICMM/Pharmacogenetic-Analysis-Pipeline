@@ -9,7 +9,6 @@ __credits__ = [
     "Prof. Fourie Joubert",
     "Antionette Colic",
     "Fatima Barmania",
-    "Sarah Turner",
     "Megan Holborn",
 ]
 __version__ = "1.0.0"
@@ -56,7 +55,7 @@ include: "rules/common.smk"
 include: "rules/importVcfValidationWorkflow.smk"
 
 # [IMPORT] Population-Structure-Workflow and override local rules with non-local input from the Population-Structure-Workflow
-include: "rules/importPopulationStructureWorkflow.smk"
+# include: "rules/importPopulationStructureWorkflow.smk"
 
 # DEFINE CONTAINERIZED ENVIRONMENT:
 container: "docker://graemeford/pipeline-os"
@@ -66,8 +65,8 @@ rule mergeDatasets:
     This rule merges multiple datasets into one large psudo-dataset that can be worked on more easily.
     """
     # group: "COLLATE"
-    log: "_logs/COLLATE/merge.log"
-    benchmark: "_benchmarks/merge/merge.benchmark"
+    log: "results/tmp/mergeDatasets/All_mergeDatasets.log"
+    benchmark: "results/tmp/mergeDatasets/All_mergeDatasets.benchmark"
     resources:
         cpus=search("cores", "mergeDatasets"),
         nodes=search("nodes", "mergeDatasets"),
@@ -79,7 +78,7 @@ rule mergeDatasets:
         vcf=lambda _: vcfValidationWorkflowAdapter(".vcf.gz"),
         vcfIndex=lambda _: vcfValidationWorkflowAdapter(".vcf.gz.tbi"),
     output:
-        "results/COLLATE/merge.vcf.gz"
+        "results/tmp/mergeDatasets/All_mergeDatasets.vcf.gz"
     shell:
         """
         bcftools merge -O z -o {output} {input.vcf}
@@ -90,8 +89,8 @@ rule refFromFasta:
     This rule verifies that the reference alleles in teh provided VCF file match that of the reference genome.
     """
     # group: "refFromFasta"
-    log: "_logs/refFromFasta/refFromFasta.log"
-    benchmark: "_benchmarks/refFromFasta/refFromFasta.benchmark"
+    log: "results/tmp/refFromFasta/All_refFromFasta.log"
+    benchmark: "results/tmp/refFromFasta/All_refFromFasta.benchmark"
     resources:
         cpus=search("cores", "refFromFasta"),
         nodes=search("nodes", "refFromFasta"),
@@ -106,15 +105,17 @@ rule refFromFasta:
             for i in config["reference-genomes"]
         if i["version"] == "GRCh38"
             ),
-        )
+        ),
+        sample_sex_assignments=lambda wildcards: samples.columns.get_loc("sex")
     input: 
-        vcf=lambda wildcards: "results/COLLATE/merge.vcf.gz" if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz"),
-        vcfIndex=lambda wildcards: "results/COLLATE/merge.vcf.gz.tbi" if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz.tbi")
+        vcf=lambda wildcards: "results/tmp/mergeDatasets/All_mergeDatasets.vcf.gz" if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz"),
+        vcfIndex=lambda wildcards: "results/tmp/mergeDatasets/All_mergeDatasets.vcf.gz.tbi" if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz.tbi"),
+        sampleSexes="input/samples.csv"
     output: 
-        "results/COLLATE/refFromFasta.vcf.gz"
+        "results/tmp/refFromFasta/All_refFromFasta.vcf.gz"
     shell:
         """
-        plink2 --vcf {input.vcf} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/refFromFasta
+        plink2 --vcf {input.vcf} --fa {params.ref} --ref-from-fa force --allow-extra-chr --update-sex {params.sample_sex_assignments} col-num=2 --split-par hg38 --export vcf-4.2 bgz --out results/COLLATE/refFromFasta
         """
 
 rule chrFilter:
@@ -122,8 +123,8 @@ rule chrFilter:
     This rule removes any unusual chromosomes.
     """
     # group: "FILTER"
-    log: "_logs/COLLATE/chrFilter.log"
-    benchmark: "_benchmarks/COLLATE/chrFilter.benchmark"
+    log: "results/tmp/chrFilter/All_chrFilter.log"
+    benchmark: "results/tmp/chrFilter/All_chrFilter.benchmark"
     resources:
         cpus=search("cores", "chrFilter"),
         nodes=search("nodes", "chrFilter"),
@@ -132,10 +133,10 @@ rule chrFilter:
     envmodules:
         config["environment"]["envmodules"]["plink-2"]
     input:
-        vcf="results/COLLATE/refFromFasta.vcf.gz",
-        vcfIndex="results/COLLATE/refFromFasta.vcf.gz.tbi"
+        vcf="results/tmp/refFromFasta/All_refFromFasta.vcf.gz",
+        vcfIndex="results/tmp/refFromFasta/All_refFromFasta.vcf.gz.tbi"
     output:
-        "results/COLLATE/chrFilter.vcf.gz"
+        "results/tmp/chrFilter/All_chrFilter.vcf.gz"
     shell:
         """
         plink2 --vcf {input.vcf} --allow-extra-chr --output-chr chr26 --chr 1-26 --export vcf-4.2 bgz --out results/COLLATE/chrFilter
@@ -146,8 +147,8 @@ rule filterRequestedSamples:
     This rule subsets samples according to user defined list and remove variants that do not pass QC.
     """
     # group: "FILTER"
-    log: "_logs/filter/filterRequestedSamples.log"
-    benchmark: "_benchmarks/filter/filterRequestedSamples.benchmark"
+    log: "results/tmp/filterRequestedSamples/All_filterRequestedSamples.log"
+    benchmark: "results/tmp/filterRequestedSamples/All_filterRequestedSamples.benchmark"
     resources:
         cpus=search("cores", "filterRequestedSamples"),
         nodes=search("nodes", "filterRequestedSamples"),
@@ -156,12 +157,12 @@ rule filterRequestedSamples:
     envmodules:
         config["environment"]["envmodules"]["bcftools"],
     params:
-        samples=lambda wildcards, input: ",".join(read_csv(join("input", "samples.csv"), header=0)["sample_name"].tolist())
+        samples=lambda wildcards, input: ",".join(samples["sample_name"].tolist())
     input:
-        vcf="results/COLLATE/chrFilter.vcf.gz",
+        vcf="results/tmp/chrFilter/All_chrFilter.vcf.gz",
         samples="input/samples.csv"
     output:
-        "results/filter/filterRequestedSamples.vcf.gz"
+        "results/tmp/filterRequestedSamples/All_filterRequestedSamples.vcf.gz"
     shell:
         """
         bcftools view -s {params.samples} -O z -o {output} {input.vcf}  2>{log}
@@ -174,8 +175,8 @@ rule filterVariantMissingness:
     Filter out variants with >= 100% missingness
     """
 
-    log: "_logs/filter/VariantMissingness.log"
-    benchmark: "_benchmarks/filter/VariantMissingness.benchmark"
+    log: "results/tmp/filterVariantMissingness/All_filterVariantMissingness.log"
+    benchmark: "results/tmp/filterVariantMissingness/All_filterVariantMissingness.benchmark"
     resources: 
         cpus=search("cores", "filterVariantMissingness"),
         nodes=search("nodes", "filterVariantMissingness"),
@@ -186,9 +187,9 @@ rule filterVariantMissingness:
     params:
         output=lambda wildcards, output: output[0][:-7]
     input: 
-        "results/filter/filterRequestedSamples.vcf.gz"
+        "results/tmp/filterRequestedSamples/All_filterRequestedSamples.vcf.gz"
     output:
-        "results/filter/filterVariantMissingness.vcf.gz"
+        "results/tmp/filterVariantMissingness/All_filterVariantMissingness.vcf.gz"
     shell: 
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness variants' ---" 1>&2
@@ -201,8 +202,8 @@ rule filterSampleMissingness:
     Filter out samples with >= 100% missingness
     """
 
-    log: "_logs/filter/SampleMissingness.log"
-    benchmark: "_benchmarks/filter/SampleMissingness.benchmark"
+    log: "results/tmp/filterSampleMissingness/All_filterSampleMissingness.log"
+    benchmark: "results/tmp/filterSampleMissingness/All_filterSampleMissingness.benchmark"
     resources: 
         cpus=search("cores", "filterSampleMissingness"),
         nodes=search("nodes", "filterSampleMissingness"),
@@ -213,9 +214,9 @@ rule filterSampleMissingness:
     params:
         output=lambda wildcards, output: output[0][:-7]
     input:
-        "results/filter/filterVariantMissingness.vcf.gz"
+        "results/tmp/filterVariantMissingness/All_filterVariantMissingness.vcf.gz"
     output:
-        "results/filter/filterSampleMissingness.vcf.gz"
+        "results/tmp/filterSampleMissingness/All_filterSampleMissingness.vcf.gz"
     shell: 
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'Filter 100% Missingness samples' ---" 1>&2
@@ -228,8 +229,8 @@ rule calculateLinkageDisequilibrium:
     Identify variants in linkage disequilibrium
     """
 
-    log: "_logs/filter/calculateLinkageDisequilibrium.log"
-    benchmark: "_benchmarks/filter/calculateLinkageDisequilibrium.benchmark"
+    log: "results/tmp/calculateLinkageDisequilibrium/All_calculateLinkageDisequilibrium.log"
+    benchmark: "results/tmp/calculateLinkageDisequilibrium/All_calculateLinkageDisequilibrium.benchmark"
     resources:
         cpus=search("cores", "calculateLinkageDisequilibrium"),
         nodes=search("nodes", "calculateLinkageDisequilibrium"),
@@ -240,10 +241,10 @@ rule calculateLinkageDisequilibrium:
     params:
         output=lambda wildcards, output: output[0][:-9]
     input:
-        "results/filter/filterSampleMissingness.vcf.gz",
+        "results/tmp/filterSampleMissingness/All_filterSampleMissingness.vcf.gz",
     output:
-        "results/filter/calculateLinkageDisequilibrium.prune.in",
-        "results/filter/calculateLinkageDisequilibrium.prune.out",
+        "results/tmp/calculateLinkageDisequilibrium/All_calculateLinkageDisequilibrium.prune.in",
+        "results/tmp/calculateLinkageDisequilibrium/All_calculateLinkageDisequilibrium.prune.out",
     shell:
         """
         plink2 --vcf {input} --chr 1-26 --new-id-max-allele-len 1000 --rm-dup exclude-mismatch --indep-pairwise 50 5 0.5 --bad-ld --out {params.output}
@@ -254,8 +255,8 @@ rule filterLinkageDisequilibrium:
     """
     """
 
-    log: "_logs/filter/filterLinkageDisequilibrium.log"
-    benchmark: "_benchmarks/filter/filterLinkageDisequilibrium.benchmark"
+    log: "results/tmp/filterLinkageDisequilibrium/All_filterLinkageDisequilibrium.log"
+    benchmark: "results/tmp/filterLinkageDisequilibrium/All_filterLinkageDisequilibrium.benchmark"
     resources:
         cpus=search("cores", "filterLinkageDisequilibrium"),
         nodes=search("nodes", "filterLinkageDisequilibrium"),
@@ -266,10 +267,10 @@ rule filterLinkageDisequilibrium:
     params:
         output=lambda wildcards, output: output[0][:-7]
     input:
-        inclusion_list="results/filter/calculateLinkageDisequilibrium.prune.in",
-        vcf="results/filter/filterSampleMissingness.vcf.gz"
+        inclusion_list="results/tmp/calculateLinkageDisequilibrium/All_calculateLinkageDisequilibrium.prune.in",
+        vcf="results/tmp/filterSampleMissingness/All_filterSampleMissingness.vcf.gz"
     output:
-        "results/filter/filterLinkageDisequilibrium.vcf.gz"
+        "results/tmp/filterLinkageDisequilibrium/All_filterLinkageDisequilibrium.vcf.gz"
     shell:
         """
         plink2 --allow-extra-chr --vcf {input.vcf} --extract {input.inclusion_list} --export vcf-4.2 bgz --out {params.output}
@@ -277,53 +278,30 @@ rule filterLinkageDisequilibrium:
 
 # TODO: Remove reliance on --recode-iid and use *.genome text-based output
 # TODO: Write bridging script to extract list of sample-ids from *.genome text format using Pandas
-rule calculateIdentityByDescent:
+rule calculateSampleRelatedness:
     """
     Identify samples which are related to eachother using Identity-By-Descent
     """
 
-    log: "_logs/calculate/calculateIdentityByDescent.log"
-    benchmark: "_benchmarks/calculate/calculateIdentityByDescent.benchmark"
+    log: "results/tmp/calculateIdentityByDescent/All_calculateIdentityByDescent.log"
+    benchmark: "results/tmp/calculateIdentityByDescent/All_calculateIdentityByDescent.benchmark"
     resources:
         cpus=search("cores", "calculateIdentityByDescent"),
         nodes=search("nodes", "calculateIdentityByDescent"),
         queue=search("queue", "calculateIdentityByDescent"),
         walltime=search("walltime", "calculateIdentityByDescent"),
     envmodules:
-        config["environment"]["envmodules"]["plink-1.9"],
+        config["environment"]["envmodules"]["plink-2"],
     params:
-        output=lambda wildcards, output: output[0][:-7]
+        output=lambda wildcards, output: output["inclusion_list"][:-18]
     input:
-        "results/filter/filterLinkageDisequilibrium.vcf.gz"
+        "results/tmp/filterLinkageDisequilibrium/All_filterLinkageDisequilibrium.vcf.gz"
     output:
-        "results/calculate/calculateIdentityByDescent.vcf.gz"
+        inclusion_list="results/tmp/calculate/calculateIdentityByDescent.king.cutoff.in.id",
+        exclusion_list="results/tmp/calculate/calculateIdentityByDescent.king.cutoff.out.id"
     shell:
         """
-        plink --vcf {input} --allow-extra-chr --keep--allele-order --genome --min 0.2 --recode vcf-iid bgz --out {params.output}
-        """
-
-
-rule calculateSampleIds:
-    """
-    Retrive a list of samples from a VCF file
-    """
-
-    log: "_logs/calculate/calculateSampleIds.log"
-    benchmark: "_benchmarks/calculate/calculateSamples.benchmark"
-    resources:
-        cpus=search("cores", "calculateIdentityByDescent"),
-        nodes=search("nodes", "calculateIdentityByDescent"),
-        queue=search("queue", "calculateIdentityByDescent"),
-        walltime=search("walltime", "calculateIdentityByDescent"),
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"],
-    input:
-        "results/calculate/calculateIdentityByDescent.vcf.gz"
-    output:
-        "results/filter/calculateSampleIds.txt"
-    shell:
-        """
-        bcftools query -l {input} > {output}
+        plink2 --vcf {input} --allow-extra-chr --king-cutoff 0.354 --out {params.output}
         """
 
 
@@ -332,8 +310,8 @@ rule filterSampleRelatedness:
     Subset the data by these unrelated individuals
     """
     # group: "FILTER"
-    log: "_logs/filter/SampleRelatedness.log"
-    benchmark: "_benchmarks/filter/SampleRelatedness.benchmark"
+    log: "results/tmp/filterSampleRelatedness/All_SampleRelatedness.log"
+    benchmark: "results/tmp/filterSampleRelatedness/All_SampleRelatedness.benchmark"
     resources:
         cpus=search("cores", "filterSampleRelatedness"),
         nodes=search("nodes", "filterSampleRelatedness"),
@@ -341,16 +319,18 @@ rule filterSampleRelatedness:
         walltime=search("walltime", "filterSampleRelatedness"),
     envmodules:
         config["environment"]["envmodules"]["bcftools"],
+    params:
+        out=lambda wildcards, output: output[0][:-7]
     input:
-        vcf="results/filter/filterLinkageDisequilibrium.vcf.gz",
-        samples="results/filter/calculateSampleIds.txt"
+        vcf="results/tmp/filterLinkageDisequilibrium/All_filterLinkageDisequilibrium.vcf.gz",
+        unrelated_samples="results/tmp/calculate/calculateIdentityByDescent.king.cutoff.in.id"
     output:
-        "results/filter/filterSampleRelatedness.vcf.gz",
+        "results/tmp/filterSampleRelatedness/All_filterSampleRelatedness.vcf.gz",
     shell:
         """
-        echo -e "\n--- LOG SECTION START | BcfTools 'view' ---" 1>&2
-        bcftools view {input.vcf} -S {input.samples} -O z -o {output}
-        echo -e "--- LOG SECTION END | BcfTools 'view' ---\n" 1>&2
+        echo -e "\n--- LOG SECTION START | Plink-2 '--keep' ---" 1>&2
+        plink2 --vcf {input.vcf} --split-par b38  --keep {input.unrelated_samples} --export vcf-4.2 bgz --out {params.out}
+        echo -e "--- LOG SECTION END | Plink-2 '--keep' ---\n" 1>&2
         """
 
 
@@ -359,8 +339,8 @@ rule filterLocations:
     Trim the whole-genome psudo-datasets down to several regions of interest for Variant analysis and Variant effect prediction.
     """
     # group: "FILTER"
-    log: "logs/TRIM/{location}.log",
-    benchmark: "_benchmarks/filterLocations/{location}.benchmark"
+    log: "results/tmp/filterLocations/{location}_filterLocations.log",
+    benchmark: "results/tmp/filterLocations/{location}_filterLocations.benchmark"
     resources:
         cpus=search("cores", "filterLocations"),
         nodes=search("nodes", "filterLocations"),
@@ -373,9 +353,9 @@ rule filterLocations:
         toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "stop"].item(),
         chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
     input:
-        "results/filter/filterSampleRelatedness.vcf.gz",
+        "results/tmp/filterSampleRelatedness/All_filterSampleRelatedness.vcf.gz",
     output:
-        "results/TRIM/ALL_{location}.vcf.gz",
+        "results/tmp/filterLocations/{location}_filterLocations.vcf.gz",
     shell:
         """
         echo -e "\n--- LOG SECTION START | Plink-2 'trim' ---" 1>&2
@@ -390,8 +370,8 @@ rule writeSampleMetadata:
     Convert Cluster information given in the config file into PLINK-2.0 suitable format.
     """
     # group: "FILTER"
-    log: "logs/TRANSPILE/{cluster}.log",
-    benchmark: "_benchmarks/writeSampleMetadata/{cluster}.benchmark"
+    log: "results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.log",
+    benchmark: "results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.benchmark"
     resources:
         cpus=search("cores", "writeSampleMetadata"),
         nodes=search("nodes", "writeSampleMetadata"),
@@ -402,7 +382,7 @@ rule writeSampleMetadata:
     envmodules:
         config["environment"]["envmodules"]["python-3"]
     output:
-        "results/REFERENCE/cluster_{cluster}.txt",
+        "results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.txt",
     script:
         join("scripts", "01-TRANSPILE_CLUSTERS.py")
 
@@ -425,8 +405,8 @@ rule reportFreq:
         prefix="ALL_{location}",
         subsets_list=lambda wildcards: ' '.join(clusters)
     input:
-        ["results/REFERENCE/cluster_%s.txt" % (cluster) for cluster in clusters],
-        vcf="results/TRIM/ALL_{location}.vcf.gz",
+        [f"results/tmp/writeSampleMetadata/{cluster}_writeSampleMetadata.txt" for cluster in clusters],
+        vcf="results/tmp/filterLocations/{location}_filterLocations.vcf.gz",
     output:
         [
             expand(
@@ -458,8 +438,8 @@ rule tabix:
     """
     Generate tabix-index.
     """
-    log: "_logs/{operation}/{output}.log"
-    benchmark: "_benchmarks/{operation}/{output}.benchmark"
+    log: "results/tmp/{operation}/{output}_{operation}.log"
+    benchmark: "results/tmp/{operation}/{output}_{operation}.benchmark"
     resources:
         cpus=search("cores", "tabix"),
         nodes=search("nodes", "tabix"),
@@ -468,9 +448,9 @@ rule tabix:
     envmodules:
         config["environment"]["envmodules"]["bcftools"],
     input:
-        "results/{operation}/{output}.vcf.gz"
+        "results/tmp/{operation}/{output}_{operation}.vcf.gz"
     output:
-        "results/{operation}/{output}.vcf.gz.tbi"
+        "results/tmp/{operation}/{output}_{operation}.vcf.gz.tbi"
     shell:
         """
         tabix -p vcf {input}
@@ -485,7 +465,7 @@ rule all:
         "logs/ALL/ALL.log",
     input:
         VCFValidation.rules.all.input,
-        PopulationStructure.rules.all.input,
+        # PopulationStructure.rules.all.input,
         [
             expand(
                 [
