@@ -11,7 +11,7 @@ __credits__ = [
     "Antionette Colic",
     "Fatima Barmania",
     "Sarah Turner",
-    "Megan Holborn",
+    "Megan Ryder",
 ]
 __version__ = "1.0.0"
 __maintainer__ = "Graeme Ford"
@@ -92,13 +92,96 @@ rule all:
         # "results/FINAL/Admixture/EIGENSOFT.eval",
         # "results/FINAL/Admixture/EIGENSOFT.log",
 
-module VcfValidation:
-    snakefile:
-        # Vcf-Validation sub-workflow is imported here from GitHub:
-        github("Tuks-ICMM/Vcf-Validation", path="workflow/Snakefile", tag="v1.1.1-ALPHA")
-    config: config
 
-use rule * from VcfValidation as VcfValidation_*
+rule VALIDATE:
+    """
+    Perform normalisation of variants, validation of VCF format as well as REF alleles and strip out INFO tags.
+
+    Question: Is this a valid VCF file?
+    """
+    log:
+        "logs/VALIDATE/{sample}.log",
+    input:
+        lambda wildcards: datasets.loc[datasets["dataset_name"] == wildcards.sample, "file"].item()
+    output:
+        "results/PREP/{sample}.vcf.gz",
+    params:
+        memory=search("memory", "VALIDATE"),
+    resources:
+        cpus=search("cores", "VALIDATE"),
+        nodes=search("nodes", "VALIDATE"),
+        queue=search("queue", "VALIDATE"),
+        walltime=search("walltime", "VALIDATE"),
+    run:
+        # Strip out INFO tags:
+        shell(
+            "module load bcftools-1.7; bcftools annotate -x INFO,FORMAT -O z -o results/PREP/{wildcards.sample}_NO_INFO.vcf.gz {input}"
+        ),
+        # Regenerate and verify the VCF header:
+        shell(
+            "module load picard-2.17.11; java -Xmx{params.memory} -jar $PICARD FixVcfHeader I=results/PREP/{wildcards.sample}_NO_INFO.vcf.gz O=results/PREP/{wildcards.sample}_NEW_INFO.vcf.gz"
+        ),
+        # Remove variant types we cant yet analyse:
+        shell(
+            "module load gatk-4.2.2.0; gatk SelectVariants -V results/PREP/{wildcards.sample}_NEW_INFO.vcf.gz --select-type-to-include SNP --select-type-to-include INDEL --select-type-to-exclude MIXED --select-type-to-exclude MNP --select-type-to-exclude SYMBOLIC --exclude-filtered -O results/PREP/{wildcards.sample}_FILTERED.vcf.gz"
+        ),
+        # Subset samples according to user defined list and remove variants that do not pass QC:
+        shell(
+            "module load bcftools-1.7; bcftools view -S input/{wildcards.sample}_samples_subset.txt -f 'PASS' -O z -o results/PREP/{wildcards.sample}_FILTERED2.vcf.gz results/PREP/{wildcards.sample}_FILTERED.vcf.gz"
+        )
+        # Normalise variants - split multiallelic records, left align variants, and ensure variant parsimony
+        shell(
+            "module load bcftools-1.7; bcftools norm -m -any results/PREP/{wildcards.sample}_FILTERED2.vcf.gz -O z -o results/PREP/{wildcards.sample}_NORMALISED.vcf.gz"
+        ),
+        # Ensure consistency of chromosome nomenclature for each dataset and sort by chromosome
+        shell(
+            "module load bcftools-1.7; bcftools annotate --rename-chrs input/rename_chr.txt results/PREP/{wildcards.sample}_NORMALISED.vcf.gz | bcftools sort -m 1G -T results/PREP -O z -o results/PREP/{wildcards.sample}.vcf.gz"
+        )
+        shell(
+            "module load samtools-1.7; tabix -p vcf results/PREP/{wildcards.sample}.vcf.gz"
+        )       
+
+
+rule LIFTOVER:
+    """
+    Lift Variants onto same Reference build. Otherwise we cant merge them or analyse them in context of each other.
+    """
+    log:
+        "logs/LIFTOVER/{sample}.log",
+    input:
+        "results/PREP/{sample}.vcf.gz",
+    output:
+        "results/LIFTOVER/{sample}.vcf.gz",
+    params:
+        prefix=lambda wildcards: "results/LIFTOVER/{sample}_LIFTED".format(
+            sample=wildcards.sample
+        ),
+        exclusionList=(
+            lambda wildcards: "results/LIFTOVER/{sample}_EXCLUDE.dat".format(
+                sample=wildcards.sample
+            )
+        ),
+        chainFile=join("resources", "hg19ToHg38.over.chain"),
+        LiftOver=join("resources", "liftOverPlink.py"),
+        rmBadLifts=join("resources", "rmBadLifts.py"),
+        ref=join(
+            *next(
+                i["file_path"]
+                for i in config["reference-genomes"]
+            if i["version"] == "GRCh38"
+                ),
+        ),
+        mem=f'-Xmx{search("memory", "LIFTOVER")} ',
+    resources:
+        cpus=search("cores", "LIFTOVER"),
+        nodes=search("nodes", "LIFTOVER"),
+        queue=search("queue", "LIFTOVER"),
+        walltime=search("walltime", "LIFTOVER"),
+    conda:
+        join("envs", "snakemake.yml")
+    script:
+        join("scripts", "00 - LIFTOVER.py")
+
 
 rule ALL_COLLATE:
     """
@@ -197,18 +280,15 @@ rule FILTER:
         # Filter out samples with >= 100% missingness
         shell(
             "module load plink-2; plink2 --chr 1-22 --allow-extra-chr --vcf results/FILTER/ALL_FILTERED1.vcf.gz --mind 1.0 --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_FILTERED2"
-            # TODO
-            # Remove variants with reference alleles not matching that of reference genome
-            # "module load bcftools-1.7; bcftools norm --check-ref x results/FILTER/ALL_FILTERED1.vcf.gz --fasta-ref {params.ref} -o results/FILTER/ALL_FILTERED2.vcf.gz -O z"
         ),
         # Replace underscores in sample IDs with hyphens. Plink 1.9 recognises underscores as a divisor of sample ID and family ID, which may not be true in our use case. Keeping the underscores interferes with IBD pruning steps.
         shell(
-            "module load bcftools-1.7; bcftools query -l results/FILTER/ALL_FILTERED2.vcf.gz | sed 's/_/-/g' > results/FILTER/new_sample_names.txt; bcftools reheader -s new_sample_names.txt results/FILTER/ALL_FILTERED2.vcf.gz -o results/FILTER/ALL_RENAMED.vcf.gz"
+            "module load bcftools-1.7; bcftools query -l results/FILTER/ALL_FILTERED2.vcf.gz | sed 's/_/-/g' > results/FILTER/new_sample_names.txt; bcftools reheader -s results/FILTER/new_sample_names.txt results/FILTER/ALL_FILTERED2.vcf.gz -o results/FILTER/ALL_RENAMED.vcf.gz"
         )
         # Filter out first- and second-degree related individuals and duplicate samples
         ## Create a linkage disequilibrium-pruned subset of the data and perform IBD calculations on this data subset. 
         shell(
-            "module load plink-2; plink2 --chr 1-22 --set-all-var-ids @:#\$r-\$a --new-id-max-allele-len 400 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_RENAMED.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --output-chr chr26 --out results/FILTER/ALL_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_RENAMED.vcf.gz --extract results/FILTER/ALL_LD.prune.in --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_PRUNED; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_PRUNED.vcf.gz --genome --min 0.2 --recode vcf bgz --output-chr chr26 --out results/FILTER/ALL_UNRELATED"
+            "module load plink-2; plink2 --chr 1-22 --set-all-var-ids @:#\$r-\$a --new-id-max-allele-len 1033 --rm-dup exclude-mismatch --vcf results/FILTER/ALL_RENAMED.vcf.gz --indep-pairwise 50 5 0.5 --bad-ld --output-chr chr26 --out results/FILTER/ALL_LD; plink2 --allow-extra-chr --vcf results/FILTER/ALL_RENAMED.vcf.gz --extract results/FILTER/ALL_LD.prune.in --output-chr chr26 --export vcf-4.2 bgz --out results/FILTER/ALL_PRUNED; module load plink-1.9; plink --allow-extra-chr --vcf results/FILTER/ALL_PRUNED.vcf.gz --genome --min 0.2 --recode vcf-iid bgz --output-chr chr26 --out results/FILTER/ALL_UNRELATED"
         ),
         ## Extract the sample IDs of all unrelated individuals and subset the filtered data by these individuals
         shell(
