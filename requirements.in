@@ -1,4 +1,4 @@
-snakemake>=7.25.0
+snakemake==8.5.3
 snakefmt
 pandas # Data Science
 pygments # Snakemake Reports

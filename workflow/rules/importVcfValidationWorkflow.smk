@@ -1,5 +1,5 @@
 module VCFValidation:
-    snakefile: github("Tuks-ICMM/Vcf-Validation-Workflow", path="workflow/Snakefile", branch="main")
+    snakefile: github("Tuks-ICMM/VCF-Validation-Workflow", path="workflow/Snakefile", branch="main")
     config: config
 
 use rule * from VCFValidation as VCF_Validation_*

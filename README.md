@@ -258,28 +258,6 @@ Many thanks to the following individuals who have been instrumental to the succe
         </italic>
       </h6>
     </td>
-    <td style="text-align:center;">
-      <div>
-        <img src="https://avatars.githubusercontent.com/u/80751008?s=96&v=4" width="100"
-          alt="PMegan Ryder" />
-      </div>
-      <h4>Tester</h4>
-      <hr />
-      <h4>
-        <strong>
-          <a href="https://www.linkedin.com/in/megan-ryder-b312b0159/" target="_blank">
-            Sarah Turner
-          </a>
-        </strong>
-      </h4>
-      <h6>
-        <italic>
-          <a href="https://github.com/orgs/Tuks-ICMM/people/sarahsaraht" target="_blank">
-            sarahsaraht
-          </a>
-        </italic>
-      </h6>
-    </td>
   </tr>
 </table>
 

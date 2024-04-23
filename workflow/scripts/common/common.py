@@ -15,6 +15,10 @@ from pandas import DataFrame, ExcelWriter, Series, read_csv
 
 # %%
 
+#########################################################
+############ DEFINE GENRAL-PURPOSE VARIABLES ############
+#########################################################
+MULTIINDEX = ["CHROM", "POS", "ID", "REF", "ALT"]
 
 ############################################################
 ############ DEFINE GENRAL-PURPOSE CALCULATIONS ############
@@ -36,7 +40,7 @@ def merge(input_row: set) -> str:
 def chunk(input_data: DataFrame, size: int) -> Generator:
     """Renders a generator to yield chunks of data from the original file.
     Args:
-        dataset (pd.DataFrame): The dataset to divide into chunks.
+        input_data (DataFrame): The dataset to divide into chunks.
         size (int): The maximum size of the resulting chunks.
     Returns:
         [type]: [description]
@@ -103,11 +107,11 @@ def calculate_frequency(alternate_allele_count: int, total_count: int) -> int:
     if alternate_allele_count != 0 and total_count == 0:
         raise Exception("The total_count cannot be zero.")
     if alternate_allele_count == 0 and total_count == 0:
-        return nan
+        return 0
     return alternate_allele_count / total_count
 
 
-def generate_params(transcription_ids: list, canonical=False) -> dict:
+def generate_params(transcription_ids: list = None, canonical=False) -> dict:
     """
     Returns generated parameters suitable for the E! Ensembl VEP tool API.
 
@@ -121,84 +125,86 @@ def generate_params(transcription_ids: list, canonical=False) -> dict:
     params = {
         # https://www.ensembl.org/info/genome/compara/epo_anchors_info.html
         # Retrive the ancestral allele at this locus as per the EPO pipeline
-        "AncestralAllele": True,
+        # "AncestralAllele": True,
         # Amino Acid conservation score (Blosum62 method)
         "Blosum62": True,
         # Request a CADD score for this variant
         "CADD": True,
         # Retrive a conservation score from teh E! Ensembl Compara database
-        "Conservation": True,
+        # "Conservation": True,
         # https://raw.githubusercontent.com/ensembl-variation/VEP_plugins/master/DisGeNET.pm
         # Retrieves a list of variant-disease PMID associations for meta-analysis
-        "DisGeNET": True,
+        # "DisGeNET": True,
         # Retrieve variant classification using evolutionary sequences
-        "EVE": True,
+        # "EVE": True,
         # Retrive Gene-Ontology terms associated with the variant
-        "GO": True,
+        # "GO": True,
         # Retrive splice sites associated with this variant
-        "GeneSplicer": True,
+        # "GeneSplicer": True,
         # Retrive phenotypic profiles for a variant sequence defined using human phenotype ontology terms
-        "Geno2MP": True,
+        # "Geno2MP": True,
         # https://www.ebi.ac.uk/intact/home
         # Retrive a list of molecular interactions involving this variant asper the IntAct database
-        "IntAct": True,
+        # "IntAct": True,
         # Retrive an indicator for Loss-of-function for the given variant.
         "LoF": True,
         # https://www.genomenon.com/mastermind/
         # Retrive a list of associated literature which cites the variant using the MasterMind database
         "Mastermind": True,
         # Retrive a score from the MaveDB database based on multiplex assay datasets
-        "MaveDB": True,
+        # "MaveDB": True,
         # Retrive splice-site consensus predictions based on maximum entropy
-        "MaxEntScan": True,
+        # "MaxEntScan": True,
         # Predict if a variant allows nonsense-mediated mRNA decay
-        "NMD": True,
+        # "NMD": True,
         # Retrives phenotype records that overlap
-        "Phenotypes": True,
+        # "Phenotypes": True,
         # Retrives pre-calculated SpliceAI to predict splice junctions. I have selected 2 to pull MANE annotations.
-        "SpliceAI": 2,
+        # "SpliceAI": 2,
         # Predicts impact of 5' UTR variants (New ORFs, etc)
-        "UTRAnnotator": True,
+        # "UTRAnnotator": True,
         # Retrive APRIS isoform information for the given variant.
-        "appris": True,
+        # "appris": True,
         # Request that canonical transcripts be flagged
         "canonical": canonical,
         # Retrive a list of CCDS identifiers for recognized protein-coding regions
-        "ccds": True,
+        # "ccds": True,
         # Retrive pathogenicity predictions for the variant from dbNSFP
         "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred,transcript_match=1",
         # Retrive rpedictions for splice variants
-        "dbscSNV": True,
+        # "dbscSNV": True,
         # Request a list of overlapping protein domain names
-        "domains": True,
+        # "domains": True,
         # Outputs only the most severe consequence per gene, using the criteria set by 'pick_order'
         "per_gene": True,
         # Selects single consequence record based on variant allele and gene combination
         "pick_allele_gene": True,
+        # Pick one line or block of consequence data per variant, including transcript-specific columns.
+        "pick": True,
         # Select the criteria order to use when selecting a single consequence using the 'pick' flag
-        "pick_order": "mane_plus_clinical,mane_select,canonical,appris,tsl,biotype,ccds,rank,length",
+        "pick_order": "canonical,mane_plus_clinical,mane_select,appris,tsl,biotype,ccds,rank,length",
         # Requests GA4GH Variation Representation Specification annotations
-        "ga4gh_vrs": True,
+        # "ga4gh_vrs": True,
         # Request HGVS nomenclature
         "hgvs": True,
         # Request MANE Select annotations
-        "mane": True,
+        # "mane": True,
         # Retrive miRNA secondary structure annotations for this variant
-        "mirna": True,
+        # "mirna": True,
         # Retrive predictions for destabilization effect of variant
-        "mutfunc": True,
+        # "mutfunc": True,
         # Retrive number fo affected intron and exon regions in transcript
         "numbers": True,
         # Retrive E! Ensembl protein identifiers
-        "protein": True,
+        # "protein": True,
         # Shift all variants that overlap ith transcripts as far possible in a 3' direction before predicting consequences
-        "shift_3prime": True,
+        # "shift_3prime": True,
         # Retrive transcript version numbers as well
-        "transcript_version": True,
+        # "transcript_version": True,
         # Retrive transcript support level annotations regarding how well mRNA aligns across splice sites
-        "tsl": True,
+        # "tsl": True,
         # Retrive accessions for the gene from three protein product databases
-        "uniprot": True,
+        # "uniprot": True,
         # Retrive variant class annotations based on sequence ontology
         "variant_class": True,
     }
@@ -218,11 +224,12 @@ def directory_exists(path: str):
 
 # ToDo: Find better way to type hint exists_behaviour
 def save_or_append_to_excel(
+    path: list,
     data_to_save: DataFrame,
     cluster: str,
     gene: str,
     sheet_name: str,
-    exists_behaviour: str,
+    exists_behavior: str,
 ):
     """
     A small function that writes or appends to an Excel file depending on if it exists or not.
@@ -233,10 +240,8 @@ def save_or_append_to_excel(
         gene (str): The gene being saved.
     """
     path = join(
-        "..",
-        "..",
-        "results",
-        "FINAL",
+        *path,
+        "Excel",
         f"{cluster}-{gene}.xlsx",
     )
     if exists(path):
@@ -244,8 +249,8 @@ def save_or_append_to_excel(
     else:
         mode = "w"
     kwargs = {"engine": "openpyxl", "mode": mode}
-    if exists_behaviour and mode == "a":
-        kwargs["if_sheet_exists"] = exists_behaviour
+    if exists_behavior and mode == "a":
+        kwargs["if_sheet_exists"] = exists_behavior
     with ExcelWriter(  # pylint: disable=abstract-class-instantiated
         path, **kwargs
     ) as writer:

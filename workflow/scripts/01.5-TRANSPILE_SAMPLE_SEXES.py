@@ -19,8 +19,8 @@ from pandas import read_csv
 samples = read_csv(snakemake.input.sample_annotations).rename(
     columns={"sample_name": "#IID"}
 )
-samples[["#IID", "sex"]].to_csv(
-    snakemake.output.sample_sex_annotations,
+samples.to_csv(
+    snakemake.output.sample_metadata,
     sep="\t",
     index=False,
 )
