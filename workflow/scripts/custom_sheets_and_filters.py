@@ -18,7 +18,7 @@ __author__ = "Graeme Ford"
 __credits__ = [
     "Graeme Ford",
     "Prof. Michael S. Pepper",
-    "Prof. Fourie Joubert",wd
+    "Prof. Fourie Joubert",
     "Fatima Barmania",
     "Megan Ryder",
 ]

@@ -13,13 +13,9 @@ A Python script designed to generate a ternary plot for a given Plink-2 hardy-we
 
 
 import logging
-from json import loads
-from re import search
-from statistics import mean
 
 import plotly.express as px
-import plotly.graph_objects as go
-from pandas import read_csv
+from pandas import read_csv, merge
 
 __author__ = "Graeme Ford"
 __credits__ = [
@@ -78,50 +74,53 @@ try:
     MULTIINDEX = ["CHROM", "POS", "ID", "REF", "ALT"]
 
     _logger.debug("BEGIN")
-    # for HARDY_WEINBERG_REPORT in snakemake.input.hardy_weinberg_report:
-    POPULATION = search(
-        "hardy_weinberg.([a-zA-Z]+).hardy", snakemake.input.hardy_weinberg_report[0]
-    ).group(1)
 
     # [IMPORT] the frequency data:
     POPULATION_SUBSET = read_csv(
-        snakemake.input.freq_report, on_bad_lines="warn", sep=",", header=0
+        snakemake.input.freq_report, on_bad_lines="warn", sep=","
+    )
+    POPULATION_SUBSET.set_index(MULTIINDEX, inplace=True)
+
+    CONSOLIDATED_DATA = read_csv(
+        snakemake.input.consolidated_data,
+        on_bad_lines="warn",
     )
     _logger.debug(
         "Frequency results for subgroup %s -> %s -> %s  has been imported. Available keys are: [%s]",
         snakemake.wildcards.cluster,
         snakemake.wildcards.location,
         snakemake.wildcards.population,
-        ", ".join(POPULATION_SUBSET.keys().to_list()),
+        ", ".join(CONSOLIDATED_DATA.keys().to_list()),
     )
 
-    POPULATION_SUBSET.set_index(MULTIINDEX, inplace=True)
-    _logger.info("Multiindex has been set.")
-    _logger.debug(POPULATION_SUBSET)
+    CONSOLIDATED_DATA.set_index(MULTIINDEX, inplace=True)
+    _logger.info("Multi-index has been set.")
+    _logger.debug(CONSOLIDATED_DATA)
 
-    HWE_DATA = read_csv(
-        snakemake.input.hardy_weinberg_report[0],
-        sep="\t",
-    )
-    _logger.info("HWE report has been imported")
-    _logger.debug(HWE_DATA)
+    # HWE_DATA = read_csv(
+    #     snakemake.input.hardy_weinberg_report[0],
+    #     sep="\t",
+    # )
+    # _logger.info("HWE report has been imported")
+    # _logger.debug(HWE_DATA)
 
-    HWE_DATA.rename(columns={"#CHROM": "CHROM"}, inplace=True)
-    _logger.info("Column names have been cleaned up.")
+    # HWE_DATA.rename(columns={"#CHROM": "CHROM"}, inplace=True)
+    # _logger.info("Column names have been cleaned up.")
 
-    HWE_DATA.set_index(MULTIINDEX, inplace=True)
-    _logger.info("Multiindex has been set.")
-    _logger.debug(HWE_DATA)
+    # HWE_DATA.set_index(MULTIINDEX, inplace=True)
+    # _logger.info("Multiindex has been set.")
+    # _logger.debug(HWE_DATA)
 
-    POPULATION_SUBSET = POPULATION_SUBSET.merge(
-        HWE_DATA,
+    POPULATION_SUBSET = merge(
+        POPULATION_SUBSET,
+        CONSOLIDATED_DATA,
         how="left",
         left_index=True,
         right_index=True,
-        suffixes=("", "_hwe"),
+        suffixes=("", "_consolidated"),
     )
     _logger.info(
-        "HWE report has been consolidated against register of variants for the %s population.",
+        "Consolidated data/results have been merged against register of variants for the %s population.",
         snakemake.wildcards.population,
     )
 
@@ -160,7 +159,8 @@ try:
     #     "The VEP outputs have been successfully converted from JSON to in-memory python dict."
     # )
 
-    POPULATION_SUBSET = POPULATION_SUBSET.merge(
+    POPULATION_SUBSET = merge(
+        POPULATION_SUBSET,
         VEP_RESULTS,
         how="left",
         left_index=True,
@@ -202,6 +202,8 @@ try:
     # )
 
     # [CONVERT] genotype-counts into genotype-frequencies:
+    for population in snakemake.params.populations:
+        pass
     POPULATION_SUBSET["Hetrozygous Freq."] = (
         POPULATION_SUBSET["HET_A1_CT"]
         / (
@@ -236,9 +238,7 @@ try:
         "Non-Significant"
     )
     POPULATION_SUBSET.loc[POPULATION_SUBSET["MIDP"] <= 0.05, "HWE Test"] = (
-        POPULATION_SUBSET.loc[
-            POPULATION_SUBSET["MIDP"] <= 0.05, "Consequence_type"
-        ]
+        POPULATION_SUBSET.loc[POPULATION_SUBSET["MIDP"] <= 0.05, "Consequence_type"]
     )
 
     # POPULATION_SUBSET.loc[
@@ -260,6 +260,7 @@ try:
         a="Hetrozygous Freq.",
         b="Homozygous Alt Freq.",
         c="Homozygous Ref Freq.",
+        text="query",
         color="HWE Test",
         # symbol="Significantly different frequency",
         # size=f"{snakemake.params.reference_population}_OR_{snakemake.wildcards.population}",
@@ -268,7 +269,7 @@ try:
         width=1280,
         height=960,
         color_discrete_map={"Non-Significant": "grey"},
-        title=f"{snakemake.wildcards.location}  | {snakemake.wildcards.cluster} -> {POPULATION} Hardy-Weinberg Test",
+        title=f"{snakemake.wildcards.location}  | {snakemake.wildcards.cluster} -> {population} Hardy-Weinberg Test",
     )
     _logger.debug("The graph figure has been created.")
     # TERNARY_PLOT.update_layout(

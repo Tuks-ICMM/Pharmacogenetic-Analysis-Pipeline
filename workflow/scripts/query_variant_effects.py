@@ -13,6 +13,7 @@ and API calls as well as save the results to file.
 import logging
 from json import dumps
 from typing import Generator
+from time import sleep
 
 import pandas as pd
 from common.common import chunk, generate_notation, generate_params
@@ -60,7 +61,7 @@ def generate_notation(index: Series, gene_strand: str) -> str:
     CHROM, POS, ID, REF, ALT = index
     if (len(REF) > len(ALT)) | (len(REF) == len(ALT)):
         stop_coordinates = int(POS) + (len(REF) - 1)
-        return f"{CHROM}:{POS}-{stop_coordinates}:1/{ALT}" # TODO: Check strand formatting here. Appears to be incorectly hard-coded
+        return f"{CHROM}:{POS}-{stop_coordinates}:1/{ALT}"  # TODO: Check strand formatting here. Appears to be incorectly hard-coded
     elif len(REF) < len(ALT):
         stop_coordinates = int(POS) + len(REF)
         return f"{CHROM}:{POS}-{stop_coordinates}:{gene_strand}/{ALT}"
@@ -140,6 +141,7 @@ try:
             LOGGER.debug("API batch has completed successfully")
         else:
             LOGGER.warn(f"API call did not come back as ok: {response}")
+        sleep(2)
     DATA.to_csv(snakemake.output[0], sep="\t")
 
 # %%
