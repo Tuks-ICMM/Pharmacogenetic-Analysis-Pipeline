@@ -16,10 +16,8 @@ A Python script designed to collect the count data from the Plink-2.0 reports. S
 
 import logging
 from re import search
-from os.path import join
 
-from pandas import merge, read_csv
-import dask.dataframe as dd
+from pandas import read_csv
 
 __author__ = "Graeme Ford"
 __credits__ = [

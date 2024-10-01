@@ -16,12 +16,10 @@ A Python script designed to collect the count data from the Plink-2.0 reports. S
 
 import logging
 import traceback
-from re import search
 
-from pandas import merge, read_csv
+from pandas import read_csv
 from scipy.stats import fisher_exact
 from statsmodels.stats.multitest import multipletests
-from zstandard import ZstdDecompressor
 
 __author__ = "Graeme Ford"
 __credits__ = [

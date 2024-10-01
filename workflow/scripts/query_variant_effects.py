@@ -142,7 +142,7 @@ try:
         else:
             LOGGER.warn(f"API call did not come back as ok: {response}")
         sleep(2)
-    DATA.to_csv(snakemake.output[0], sep="\t")
+    DATA.to_csv(snakemake.output[0])
 
 # %%
 

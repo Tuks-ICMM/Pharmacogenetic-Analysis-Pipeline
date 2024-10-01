@@ -59,7 +59,10 @@ try:
         names=["CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER"],
     )
     DATA.rename(columns={"#CHROM": "CHROM"})
-    _logger.info("Variant index data has been imported. Keys available are: %s", ", ".join(DATA.keys().to_list()))
+    _logger.info(
+        "Variant index data has been imported. Keys available are: %s",
+        ", ".join(DATA.keys().to_list()),
+    )
     DATA.set_index(MULTIINDEX, inplace=True)
     _logger.info("Variant index data has been imported.")
 
@@ -67,9 +70,14 @@ try:
     for data in snakemake.input.analyses:
         # [IMPORT] dataset to be merged
         DATASET = read_csv(data, on_bad_lines="warn")
-        _logger.info("Dataset successfully imported. Keys available are: %s", ", ".join(DATASET.keys().to_list())) 
+        _logger.info(
+            "Dataset %s successfully imported. Keys available are: %s",
+            data,
+            ", ".join(DATASET.keys().to_list()),
+        )
+        _logger.debug(DATASET.keys())
         DATASET.set_index(MULTIINDEX, inplace=True)
-        _logger.info("Multi-index is set.") 
+        _logger.info("Multi-index is set.")
 
         _logger.info("Attempting to merge keys together: '%s'", DATA)
         DATA = DATA.merge(DATASET, how="left", left_index=True, right_index=True)

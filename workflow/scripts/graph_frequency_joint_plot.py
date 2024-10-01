@@ -10,10 +10,9 @@ import pandas as pd
 ############ IMPORT DEPENDANCIES ############
 #############################################
 import plotly.graph_objects as go
-from matplotlib.pyplot import rcParams, savefig, suptitle
-from numpy import nan
+from matplotlib.pyplot import rcParams
 from pandas import read_excel
-from seaborn import jointplot, set_style
+from seaborn import set_style
 
 set_style("whitegrid")
 rcParams.update({"font.size": 7})

@@ -6,16 +6,10 @@ A Python script designed to generate an UpSet plot and save the resultq.
 ############ IMPORT DEPENDANCIES ############
 #############################################
 
-import json
-import re
-from itertools import cycle, islice
 from os.path import join
 
-import myvariant as mv
-import numpy as np
 import pandas as pd
 from matplotlib.pyplot import rcParams, savefig, suptitle
-from numpy import nan
 from pandas import read_excel
 from seaborn import set_style
 from upsetplot import UpSet

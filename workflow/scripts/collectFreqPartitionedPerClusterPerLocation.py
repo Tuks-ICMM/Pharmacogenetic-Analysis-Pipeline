@@ -9,10 +9,8 @@ A Python script designed to run Frequency calculations and save the results to a
 #############################################
 
 import logging
-from json import load
-from os.path import join
 
-from common.common import calculate_frequency, read_vcf
+from common.common import calculate_frequency
 from pandas import read_csv, cut
 
 __author__ = "Graeme Ford"
@@ -182,7 +180,7 @@ try:
     ############ SAVE TO OUTPUT ############
     ########################################
     _logger.info("Writing results to file.")
-    ALLELE_FREQUENCIES.to_csv(snakemake.output[0], index=False)
+    ALLELE_FREQUENCIES.to_csv(snakemake.output["file"], index=False)
     _logger.info("Results written to file.")
 
 except Exception as E:

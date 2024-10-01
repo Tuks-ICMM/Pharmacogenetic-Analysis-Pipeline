@@ -7,13 +7,12 @@ A Python script designed to Combine all sheets in an Excel file into an '_all' s
 #############################################
 
 from functools import reduce
-from os import getcwd
 from os.path import join
 from typing import List
 
 import pandas as pd
 from common.common import directory_exists, save_or_append_to_excel
-from pandas import merge, read_excel
+from pandas import merge
 
 __author__ = "Graeme Ford"
 __credits__ = [

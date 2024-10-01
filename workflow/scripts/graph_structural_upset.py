@@ -6,16 +6,10 @@ A Python script designed to generate an UpSet plot and save the resultq.
 ############ IMPORT DEPENDANCIES ############
 #############################################
 
-import json
-import re
-from itertools import cycle, islice
 from os.path import join
 
-import myvariant as mv
-import numpy as np
 import pandas as pd
 from matplotlib.pyplot import rcParams, savefig, suptitle
-from numpy import nan
 from pandas import read_excel
 from seaborn import set_style
 from upsetplot import UpSet
@@ -128,18 +122,10 @@ for cluster in CLUSTERS:
             totals_plot_elements=4,
             min_degree=0.1,
         )
-        upset.add_catplot(
-            value="transcript_consequences.spliceai.DS_AL", kind="violin"
-        )
-        upset.add_catplot(
-            value="transcript_consequences.spliceai.DS_DG", kind="violin"
-        )
-        upset.add_catplot(
-            value="transcript_consequences.spliceai.DS_DL", kind="violin"
-        )
-        upset.add_catplot(
-            value="transcript_consequences.spliceai.DS_AG", kind="violin"
-        )
+        upset.add_catplot(value="transcript_consequences.spliceai.DS_AL", kind="violin")
+        upset.add_catplot(value="transcript_consequences.spliceai.DS_DG", kind="violin")
+        upset.add_catplot(value="transcript_consequences.spliceai.DS_DL", kind="violin")
+        upset.add_catplot(value="transcript_consequences.spliceai.DS_AG", kind="violin")
 
         # [HIGHLIGHT] population specific partitions
         for population in POPULATIONS:

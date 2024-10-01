@@ -63,90 +63,96 @@ include: "rules/checkpoint_connectors.smk"
 # DEFINE CONTAINERIZED ENVIRONMENT:
 container: "docker://graemeford/pipeline-os"
 
-rule mergeDatasets:
-    """
-    This rule merges multiple datasets into one large psudo-dataset that can be worked on more easily.
-    """
-    log: outputDir("tmp/mergeDatasets/All_mergeDatasets.log")
-    benchmark: outputDir("tmp/mergeDatasets/All_mergeDatasets.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"]
+
+rule format_sample_metadata:
+    log: outputDir("tmp/formatted_sample_metadata/All.log")
+    benchmark: outputDir("tmp/formatted_sample_metadata/All.benchmark")
+    conda:
+        join("envs", "snakemake.yml")
     input:
-        vcf=lambda _: vcfValidationWorkflowAdapter(".vcf.gz"),
-        vcfIndex=lambda _: vcfValidationWorkflowAdapter(".vcf.gz.tbi"),
+        sample_annotations="input/samples.csv"
     output:
-         outputDir("tmp/mergeDatasets/All_mergeDatasets.vcf.gz")
+        sample_metadata=outputDir("tmp/formatted_sample_metadata/samples.tsv")
+    script:
+        join("scripts", "01.5-TRANSPILE_SAMPLE_SEXES.py")
+
+
+rule tabix:
+    log: outputDir("tmp/{output}/{operation}.log")
+    benchmark: outputDir("tmp/{output}/{operation}.benchmark")
+    wildcard_constraints:
+        output=r"[a-zA-Z0-9\-]+",
+        operation=r"[a-zA-Z0-9\-\_]+"
+    input:
+        outputDir("tmp/{output}/{operation}.vcf.gz")
+    output:
+        outputDir("tmp/{output}/{operation}.vcf.gz.tbi")
+    shell:
+        """
+        tabix -p vcf {input}
+        """
+
+
+rule merge_datasets:
+    log: outputDir("tmp/{contig}/merged_datasets.log")
+    benchmark: outputDir("tmp/{contig}/merged_datasets.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}",
+    input:
+        # vcf=lambda wildcards: vcfValidationWorkflowAdapter(".vcf.gz", wildcards),
+        vcf=expand(outputDir("tmp/{{contig}}/{dataset}/sorted_variant_records.vcf.gz"), dataset=datasets["dataset_name"].unique().tolist()),
+        # vcfIndex=lambda wildcards: vcfValidationWorkflowAdapter(".vcf.gz.tbi", wildcards),
+        vcfIndex=expand(outputDir("tmp/{{contig}}/{dataset}/sorted_variant_records.vcf.gz.tbi"), dataset=datasets["dataset_name"].unique().tolist()),
+    output:
+         outputDir("tmp/{contig}/merged_datasets.vcf.gz")
     shell:
         """
         bcftools merge -O z -o {output} {input.vcf}
         """
 
-rule normalizeMergedVariants:
-    """
-    This rule merges multiple datasets into one large psudo-dataset that can be worked on more easily.
-    """
-    log: outputDir("tmp/normalizeMergedVariants/All_normalizeMergedVariants.log")
-    benchmark: outputDir("tmp/normalizeMergedVariants/All_normalizeMergedVariants.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"]
+
+rule normalize_merged_datasets:
+    log: outputDir("tmp/{contig}/normalized_merged_datasets.log")
+    benchmark: outputDir("tmp/{contig}/normalized_merged_datasets.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
     input:
-        outputDir("tmp/mergeDatasets/All_mergeDatasets.vcf.gz")
+        outputDir("tmp/{contig}/merged_datasets.vcf.gz")
     output:
-        outputDir("tmp/normalizeMergedVariants/All_normalizeMergedVariants.vcf.gz")
+        outputDir("tmp/{contig}/normalized_merged_datasets.vcf.gz")
     shell:
         """
         bcftools norm --multiallelics -any -Oz -o {output} {input}
         """
 
-rule compileSampleMetadata:
-    """
-    This rule extracts and compiles sex annotations per-sample in a format that Plink-2 can consume.
-    """
-    log: outputDir("tmp/compileSampleMetadata/All.log")
-    benchmark: outputDir("tmp/compileSampleMetadata/All.benchmark")
-    conda:
-        join("envs", "snakemake.yml")
-    envmodules:
-        config["environment"]["envmodules"]["python-3"]
-    input:
-        sample_annotations="input/samples.csv"
-    output:
-        sample_metadata=outputDir("tmp/compileSampleMetadata/samples.tsv")
-    script:
-        join("scripts", "01.5-TRANSPILE_SAMPLE_SEXES.py")
 
-rule convertToPgen:
-    """
-    This rule converts the dataset into Plink-2's binary format for efficient computation.
-    """
-    log: outputDir("tmp/convertToPgen/All_convertToPgen.log")
-    benchmark: outputDir("tmp/convertToPgen/All_convertToPgen.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"]
+rule convert_to_pgen:
+    log: outputDir("tmp/{contig}/converted_to_pgen.log")
+    benchmark: outputDir("tmp/{contig}/converted_to_pgen.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
     params:
         output=lambda wildcards, output: output["pgen"].replace(".pgen", "")
     input: 
-        vcf=lambda wildcards: outputDir("tmp/normalizeMergedVariants/All_normalizeMergedVariants.vcf.gz") if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz"),
-        vcfIndex=lambda wildcards: outputDir("tmp/mergeDatasets/All_mergeDatasets.vcf.gz.tbi") if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz.tbi"),
-        sample_metadata=outputDir("tmp/compileSampleMetadata/samples.tsv")
+        vcf=lambda wildcards: outputDir("tmp/{contig}/normalized_merged_datasets.vcf.gz") if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz"),
+        vcfIndex=lambda wildcards: outputDir("tmp/{contig}/merged_datasets.vcf.gz.tbi") if datasets.shape[0] >1 else vcfValidationWorkflowAdapter(".vcf.gz.tbi"),
+        sample_metadata=outputDir("tmp/formatted_sample_metadata/samples.tsv")
     output: 
-        pgen=outputDir("tmp/convertToPgen/All_convertToPgen.pgen"),
-        pvar=outputDir("tmp/convertToPgen/All_convertToPgen.pvar.zst"),
-        psam=outputDir("tmp/convertToPgen/All_convertToPgen.psam"),
+        pgen=outputDir("tmp/{contig}/converted_to_pgen.pgen"),
+        pvar=outputDir("tmp/{contig}/converted_to_pgen.pvar.zst"),
+        psam=outputDir("tmp/{contig}/converted_to_pgen.psam"),
     threads: workflow.cores * 0.25
     shell:
         """
         plink2 --threads {threads} --vcf {input.vcf} --update-sex {input.sample_metadata} --split-par hg38 --allow-extra-chr --make-pgen vzs --out {params.output} >{log} 2>&1
         """
 
-rule refFromFasta:
-    """
-    This rule verifies that the reference alleles in the provided VCF file match that of the reference genome.
-    """
-    log: outputDir("tmp/refFromFasta/All_refFromFasta.log")
-    benchmark: outputDir("tmp/refFromFasta/All_refFromFasta.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+
+rule verify_records_against_reference_genome:
+    log: outputDir("tmp/{contig}/verified_records_against_reference_genome.log")
+    benchmark: outputDir("tmp/{contig}/verified_records_against_reference_genome.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
         output=lambda wildcards, output: output["pgen"].replace(".pgen", ""),
@@ -158,67 +164,61 @@ rule refFromFasta:
             ),
         )
     input: 
-        pgen=outputDir("tmp/convertToPgen/All_convertToPgen.pgen"),
-        pvar=outputDir("tmp/convertToPgen/All_convertToPgen.pvar.zst"),
-        psam=outputDir("tmp/convertToPgen/All_convertToPgen.psam")
+        pgen=outputDir("tmp/{contig}/converted_to_pgen.pgen"),
+        pvar=outputDir("tmp/{contig}/converted_to_pgen.pvar.zst"),
+        psam=outputDir("tmp/{contig}/converted_to_pgen.psam")
     output: 
-        pgen=outputDir("tmp/refFromFasta/All_refFromFasta.pgen"),
-        pvar=outputDir("tmp/refFromFasta/All_refFromFasta.pvar.zst"),
-        psam=outputDir("tmp/refFromFasta/All_refFromFasta.psam"),
+        pgen=outputDir("tmp/{contig}/verified_records_against_reference_genome.pgen"),
+        pvar=outputDir("tmp/{contig}/verified_records_against_reference_genome.pvar.zst"),
+        psam=outputDir("tmp/{contig}/verified_records_against_reference_genome.psam"),
     threads: workflow.cores * 0.25
     shell:
         """
         plink2 --threads {threads} --pfile {params.input} vzs --fa {params.ref} --ref-from-fa force --allow-extra-chr --make-pgen vzs --out {params.output} >{log} 2>&1
         """
 
-rule chrFilter:
-    """
-    This rule removes any unusual chromosomes.
-    """
-    log: outputDir("tmp/chrFilter/All_chrFilter.log")
-    benchmark: outputDir("tmp/chrFilter/All_chrFilter.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"]
+
+rule remove_non_standard_chromosomes:
+    log: outputDir("tmp/{contig}/removed_non_standard_chromosomes.log")
+    benchmark: outputDir("tmp/{contig}/removed_non_standard_chromosomes.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
         output=lambda wildcards,output: output["pgen"].replace(".pgen", "")
     input:
-        pgen=outputDir("tmp/refFromFasta/All_refFromFasta.pgen"),
-        pvar=outputDir("tmp/refFromFasta/All_refFromFasta.pvar.zst"),
-        psam=outputDir("tmp/refFromFasta/All_refFromFasta.psam"),
-        # vcf=outputDir("tmp/refFromFasta/All_refFromFasta.vcf.gz"),
-        # vcfIndex=outputDir("tmp/refFromFasta/All_refFromFasta.vcf.gz.tbi"),
+        pgen=outputDir("tmp/{contig}/verified_records_against_reference_genome.pgen"),
+        pvar=outputDir("tmp/{contig}/verified_records_against_reference_genome.pvar.zst"),
+        psam=outputDir("tmp/{contig}/verified_records_against_reference_genome.psam"),
     output:
-        pgen=outputDir("tmp/chrFilter/All_chrFilter.pgen"),
-        pvar=outputDir("tmp/chrFilter/All_chrFilter.pvar.zst"),
-        psam=outputDir("tmp/chrFilter/All_chrFilter.psam")
+        pgen=outputDir("tmp/{contig}/removed_non_standard_chromosomes.pgen"),
+        pvar=outputDir("tmp/{contig}/removed_non_standard_chromosomes.pvar.zst"),
+        psam=outputDir("tmp/{contig}/removed_non_standard_chromosomes.psam")
     threads: workflow.cores * 0.25
     shell:
         """
         plink2 --threads {threads} --pfile {params.input} vzs --allow-extra-chr --output-chr chr26 --chr 1-26 --make-pgen vzs --out {params.output} >{log} 2>&1
         """
 
-rule filterRequestedSamples:
-    """
-    This rule subsets samples according to user defined list and remove variants that do not pass QC.
-    """
-    log: outputDir("tmp/filterRequestedSamples/All_filterRequestedSamples.log")
-    benchmark: outputDir("tmp/filterRequestedSamples/All_filterRequestedSamples.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"],
+
+rule remove_unknown_samples:
+    log: outputDir("tmp/{contig}/removed_unknown_samples.log")
+    benchmark: outputDir("tmp/{contig}/removed_unknown_samples.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
         output=lambda wildcards, output: output["pgen"].replace(".pgen", ""),
         samples=lambda wildcards, input: ",".join(samples["sample_name"].tolist())
     input:
-        pgen=outputDir("tmp/chrFilter/All_chrFilter.pgen"),
-        pvar=outputDir("tmp/chrFilter/All_chrFilter.pvar.zst"),
-        psam=outputDir("tmp/chrFilter/All_chrFilter.psam"),
-        sample_metadata=outputDir("tmp/compileSampleMetadata/samples.tsv")
+        pgen=outputDir("tmp/{contig}/removed_non_standard_chromosomes.pgen"),
+        pvar=outputDir("tmp/{contig}/removed_non_standard_chromosomes.pvar.zst"),
+        psam=outputDir("tmp/{contig}/removed_non_standard_chromosomes.psam"),
+        sample_metadata=outputDir("tmp/formatted_sample_metadata/samples.tsv")
     output:
-        pgen=outputDir("tmp/filterRequestedSamples/All_filterRequestedSamples.pgen"),
-        pvar=outputDir("tmp/filterRequestedSamples/All_filterRequestedSamples.pvar.zst"),
-        psam=outputDir("tmp/filterRequestedSamples/All_filterRequestedSamples.psam"),
+        pgen=outputDir("tmp/{contig}/removed_unknown_samples.pgen"),
+        pvar=outputDir("tmp/{contig}/removed_unknown_samples.pvar.zst"),
+        psam=outputDir("tmp/{contig}/removed_unknown_samples.psam"),
     threads: workflow.cores * 0.25
     shell:
         """
@@ -226,52 +226,45 @@ rule filterRequestedSamples:
         """
 
 
-
-rule filterVariantMissingness:
-    """
-    Filter out variants with >= 100% missingness
-    """
-
-    log: outputDir("tmp/filterVariantMissingness/All_filterVariantMissingness.log")
-    benchmark: outputDir("tmp/filterVariantMissingness/All_filterVariantMissingness.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+rule filter_empty_variants:
+    log: outputDir("tmp/{contig}/filtered_empty_variants.log")
+    benchmark: outputDir("tmp/{contig}/filtered_empty_variants.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
         output=lambda wildcards, output: output["pgen"].replace(".pgen", "")
     input: 
-        pgen=outputDir("tmp/filterRequestedSamples/All_filterRequestedSamples.pgen"),
-        pvar=outputDir("tmp/filterRequestedSamples/All_filterRequestedSamples.pvar.zst"),
-        psam=outputDir("tmp/filterRequestedSamples/All_filterRequestedSamples.psam"),
+        pgen=outputDir("tmp/{contig}/removed_unknown_samples.pgen"),
+        pvar=outputDir("tmp/{contig}/removed_unknown_samples.pvar.zst"),
+        psam=outputDir("tmp/{contig}/removed_unknown_samples.psam"),
     output:
-        pgen=outputDir("tmp/filterVariantMissingness/All_filterVariantMissingness.pgen"),
-        pvar=outputDir("tmp/filterVariantMissingness/All_filterVariantMissingness.pvar.zst"),
-        psam=outputDir("tmp/filterVariantMissingness/All_filterVariantMissingness.psam"),
+        pgen=outputDir("tmp/{contig}/filtered_empty_variants.pgen"),
+        pvar=outputDir("tmp/{contig}/filtered_empty_variants.pvar.zst"),
+        psam=outputDir("tmp/{contig}/filtered_empty_variants.psam"),
     threads: workflow.cores * 0.25
     shell: 
         """
         plink2 --threads {threads} --pfile {params.input} vzs  --geno 1.0 --make-pgen vzs --out {params.output} >{log} 2>&1
         """
 
-rule filterSampleMissingness:
-    """
-    Filter out samples with >= 100% missingness
-    """
-    log: outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.log")
-    benchmark: outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+
+rule filter_empty_samples:
+    log: outputDir("tmp/{contig}/filtered_empty_samples.log")
+    benchmark: outputDir("tmp/{contig}/filtered_empty_samples.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
         output=lambda wildcards, output: output["pgen"].replace(".pgen", "")
     input:
-        pgen=outputDir("tmp/filterVariantMissingness/All_filterVariantMissingness.pgen"),
-        pvar=outputDir("tmp/filterVariantMissingness/All_filterVariantMissingness.pvar.zst"),
-        psam=outputDir("tmp/filterVariantMissingness/All_filterVariantMissingness.psam"),
+        pgen=outputDir("tmp/{contig}/filtered_empty_variants.pgen"),
+        pvar=outputDir("tmp/{contig}/filtered_empty_variants.pvar.zst"),
+        psam=outputDir("tmp/{contig}/filtered_empty_variants.psam"),
     output:
-        pgen=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.pgen"),
-        pvar=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.pvar.zst"),
-        psam=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.psam"),
+        pgen=outputDir("tmp/{contig}/filtered_empty_samples.pgen"),
+        pvar=outputDir("tmp/{contig}/filtered_empty_samples.pvar.zst"),
+        psam=outputDir("tmp/{contig}/filtered_empty_samples.psam"),
     threads: workflow.cores * 0.25
     shell: 
         """
@@ -279,24 +272,21 @@ rule filterSampleMissingness:
         """
 
 
-rule calculateSampleRelatedness:
-    """
-    Identify samples which are related to eachother using Identity-By-Descent
-    """
-    log: outputDir("tmp/calculateIdentityByDescent/All_calculateIdentityByDescent.log")
-    benchmark: outputDir("tmp/calculateIdentityByDescent/All_calculateIdentityByDescent.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+rule calculate_sample_relatedness:
+    log: outputDir("tmp/{contig}/calculated_sample_relatedness.log")
+    benchmark: outputDir("tmp/{contig}/calculated_sample_relatedness.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
         output=lambda wildcards, output: output["inclusion_list"].replace(".king.cutoff.in.id", "")
     input:
-        pgen=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.pgen"),
-        pvar=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.pvar.zst"),
-        psam=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.psam"),
+        pgen=outputDir("tmp/{contig}/filtered_empty_samples.pgen"),
+        pvar=outputDir("tmp/{contig}/filtered_empty_samples.pvar.zst"),
+        psam=outputDir("tmp/{contig}/filtered_empty_samples.psam"),
     output:
-        inclusion_list=outputDir("tmp/calculate/calculateIdentityByDescent.king.cutoff.in.id"),
-        exclusion_list=outputDir("tmp/calculate/calculateIdentityByDescent.king.cutoff.out.id")
+        inclusion_list=outputDir("tmp/{contig}/calculated_sample_relatedness.king.cutoff.in.id"),
+        exclusion_list=outputDir("tmp/{contig}/calculated_sample_relatedness.king.cutoff.out.id")
     threads: workflow.cores * 0.25
     shell:
         """
@@ -304,83 +294,100 @@ rule calculateSampleRelatedness:
         """
 
 
-rule filterSampleRelatedness:
-    """
-    Subset the data by these unrelated individuals
-    """
-    log: outputDir("tmp/filterSampleRelatedness/All_SampleRelatedness.log")
-    benchmark: outputDir("tmp/filterSampleRelatedness/All_SampleRelatedness.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"],
+rule remove_related_samples:
+    log: outputDir("tmp/removed_related_samples/{contig}/SampleRelatedness.log")
+    benchmark: outputDir("tmp/removed_related_samples/{contig}/SampleRelatedness.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
         output=lambda wildcards, output: output["pgen"].replace(".pgen", "")
     input:
-        pgen=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.pgen"),
-        pvar=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.pvar.zst"),
-        psam=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.psam"),
-        unrelated_samples=outputDir("tmp/calculate/calculateIdentityByDescent.king.cutoff.in.id"),
+        pgen=outputDir("tmp/{contig}/filtered_empty_samples.pgen"),
+        pvar=outputDir("tmp/{contig}/filtered_empty_samples.pvar.zst"),
+        psam=outputDir("tmp/{contig}/filtered_empty_samples.psam"),
+        unrelated_samples=outputDir("tmp/{contig}/calculated_sample_relatedness.king.cutoff.in.id"),
     output:
-        pgen=outputDir("tmp/filterSampleRelatedness/All_filterSampleRelatedness.pgen"),
-        pvar=outputDir("tmp/filterSampleRelatedness/All_filterSampleRelatedness.pvar.zst"),
-        psam=outputDir("tmp/filterSampleRelatedness/All_filterSampleRelatedness.psam"),
-        # outputDir("tmp/filterSampleRelatedness/All_filterSampleRelatedness.vcf.gz"),
+        pgen=outputDir("tmp/{contig}/removed_related_samples.pgen"),
+        pvar=outputDir("tmp/{contig}/removed_related_samples.pvar.zst"),
+        psam=outputDir("tmp/{contig}/removed_related_samples.psam"),
     threads: workflow.cores * 0.25
     shell:
         """
         plink2 --threads {threads} --pfile {params.input} vzs --keep {input.unrelated_samples} --make-pgen vzs --out {params.output} >{log} 2>&1
         """
 
-rule filterRemoveRare:
-    """
-    Trim the whole-genome psudo-datasets down to several regions of interest for Variant analysis and Variant effect prediction.
-    """
-    log: outputDir("tmp/filterRemoveRare/All_filterRemoveRare.log"),
-    benchmark: outputDir("tmp/filterRemoveRare/All_filterRemoveRare.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+
+rule remove_rare_variants:
+    log: outputDir("tmp/{contig}/removed_rare_variants.log"),
+    benchmark: outputDir("tmp/{contig}/removed_rare_variants.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
     params:
         input=lambda wildcards, input: input["pgen"].replace('.pgen', ""),
         output=lambda wildcards, output: output["pgen"].replace(".pgen", ""),
     input:
-        pgen=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.pgen"),
-        pvar=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.pvar.zst"),
-        psam=outputDir("tmp/filterSampleMissingness/All_filterSampleMissingness.psam"),
-        sample_metadata=outputDir("tmp/compileSampleMetadata/samples.tsv")
+        pgen=outputDir("tmp/{contig}/removed_related_samples.pgen"),
+        pvar=outputDir("tmp/{contig}/removed_related_samples.pvar.zst"),
+        psam=outputDir("tmp/{contig}/removed_related_samples.psam"),
+        sample_metadata=outputDir("tmp/formatted_sample_metadata/samples.tsv")
     output:
-        pgen=outputDir("tmp/filterRemoveRare/All_filterRemoveRare.pgen"),
-        pvar=outputDir("tmp/filterRemoveRare/All_filterRemoveRare.pvar.zst"),
-        psam=outputDir("tmp/filterRemoveRare/All_filterRemoveRare.psam"),
+        pgen=outputDir("tmp/{contig}/removed_rare_variants.pgen"),
+        pvar=outputDir("tmp/{contig}/removed_rare_variants.pvar.zst"),
+        psam=outputDir("tmp/{contig}/removed_rare_variants.psam"),
     threads: workflow.cores * 0.25
     shell:
         """
-        plink2 --threads {threads} --pfile {params.input} vzs --pheno {input.sample_metadata} --maf --make-pgen vzs --out {params.output} >{log} 2>&1
+        plink2 --threads {threads} --pfile {params.input} vzs --pheno {input.sample_metadata} --maf 0.01 --make-pgen vzs --out {params.output} >{log} 2>&1
         """   
 
 
-rule filterLocations:
-    """
-    Trim the whole-genome psudo-datasets down to several regions of interest for Variant analysis and Variant effect prediction.
-    """
-    # group: "FILTER"
-    log: outputDir("tmp/filterLocations/{location}_filterLocations.log"),
-    benchmark: outputDir("tmp/filterLocations/{location}_filterLocations.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+checkpoint calculate_linkage_disequilibrium_per_cluster:
+    log: outputDir("linkage_disequilibrium/{cluster}/{location}/calculated_linkage_disequilibrium_per_cluster.log")
+    benchmark: outputDir("linkage_disequilibrium/{cluster}/{location}/calculated_linkage_disequilibrium_per_cluster.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
+    params:
+        fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "ld_start"].item(),
+        toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "ld_stop"].item(),
+        chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
+        input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
+        output=lambda wildcards: outputDir(f"linkage_disequilibrium/{wildcards.cluster}/{wildcards.location}/calculated_linkage_disequilibrium_per_cluster")
+    wildcard_constraints:
+        cluster=r"[a-zA-Z0-9\-]+",
+        location=r"[a-zA-Z0-9\-]+"
+    input:
+        pgen=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.pgen"),
+        pvar=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.pvar.zst"),
+        psam=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.psam"),
+    output:
+        linkage_report=directory(outputDir("linkage_disequilibrium/{cluster}/{location}/"))
+    threads: workflow.cores * 0.25
+    shell:
+        """
+        plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --r2-unphased yes-really zs cols=chrom,pos,id,ref,alt,provref,maj --out {params.output} >{log} 2>&1
+        """
+
+
+rule extract_provided_coordinates:
+    log: outputDir("tmp/extracted_provided_coordinates/{location}_extracted_provided_coordinates.log"),
+    benchmark: outputDir("tmp/extracted_provided_coordinates/{location}_extracted_provided_coordinates.benchmark")
+    wildcard_constraints:
+        location=r"[a-zA-Z0-9\-]+"
     params:
         fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "start"].item(),
-        input=lambda wildcards, input: input["pgen"].replace('.pgen', ""),
-        output=lambda wildcards, output: output["pgen"].replace(".pgen", ""),
         toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "stop"].item(),
         chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
+        input=lambda wildcards, input: input["pgen"].replace('.pgen', ""),
+        output=lambda wildcards, output: output["pgen"].replace(".pgen", ""),
     input:
-        pgen=outputDir("tmp/filterRemoveRare/All_filterRemoveRare.pgen"),
-        pvar=outputDir("tmp/filterRemoveRare/All_filterRemoveRare.pvar.zst"),
-        psam=outputDir("tmp/filterRemoveRare/All_filterRemoveRare.psam"),
+        pgen=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.pgen"),
+        pvar=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.pvar.zst"),
+        psam=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.psam"),
     output:
-        pgen=outputDir("tmp/filterLocations/{location}_filterLocations.pgen"),
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
+        pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
     threads: workflow.cores * 0.25
     shell:
         """
@@ -388,96 +395,40 @@ rule filterLocations:
         """
 
 
-# TODO: Delete this rule as redundant (See compileSampleMetadata)
-# rule writeSampleMetadata:
-#     """
-#     Convert Cluster information given in the config file into PLINK-2.0 suitable format.
-#     """
-#     # group: "FILTER"
-#     log: outputDir("tmp/writeSampleMetadata/writeSampleMetadata.log"),
-#     benchmark: outputDir("tmp/writeSampleMetadata/writeSampleMetadata.benchmark")
-#     conda:
-#         join("envs", "snakemake.yml")
-#     envmodules:
-#         config["environment"]["envmodules"]["python-3"]
-#     output:
-#         metadata=outputDir("tmp/writeSampleMetadata/sample_metadata.tsv"),
-#     script:
-#         join("scripts", "01-TRANSPILE_CLUSTERS.py")
-
-
-# rule reportPartitionedFreqAllPerLocation:
-#     """
-#     Perform Frequency analysis on super populations.
-#     """
-#     # group: "REPORT"
-#     log: outputDir("reportFreqAllPerLocation/All_{location}.log"),
-#     benchmark: outputDir("reportFreqAllPerLocation/All_{location}.benchmark")
-#     envmodules:
-#         config["environment"]["envmodules"]["plink-2"],
-#     params:
-#         out=lambda wildcards,output: output["allele_count"][:-7],
-#     input:
-#         vcf=outputDir("tmp/filterLocations/{location}_filterLocations.vcf.gz"),
-#         sample_metadata=outputDir("tmp/compileSampleMetadata/samples.tsv")
-#     output:
-#         allele_count=outputDir("reportFreqAllPerLocation/All_{location}.acount"),
-#         hardy=outputDir("reportFreqAllPerLocation/All_{location}.hardy"),
-#         sample_missingness=outputDir("reportFreqAllPerLocation/All_{location}.smiss"),
-#         variant_missingness=outputDir("reportFreqAllPerLocation/All_{location}.vmiss"),
-#     shell:
-#         """
-#         echo -e "\n--- LOG SECTION START | Plink-2 'All freq' ---" 1>&2
-#         plink2 --vcf {input.vcf} --update-sex {input.sample_metadata} --allow-extra-chr --split-par b38 --freq counts --missing --hardy midp --out {params.out}
-#         echo -e "--- LOG SECTION END | Plink-2 'All freq' ---\n" 1>&2
-#         """
-
-
 rule reportFreqAllPerLocation:
-    """
-    Perform Frequency analysis on super populations.
-    """
-    # group: "REPORT"
     log: outputDir("reportFreqAllPerLocation/All_{location}.log"),
     benchmark: outputDir("reportFreqAllPerLocation/All_{location}.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
         out=lambda wildcards,output: output["allele_count"].replace(".acount", ""),
     input:
-        pgen=outputDir("tmp/filterLocations/{location}_filterLocations.pgen"),
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
+        pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
     output:
-        allele_count=outputDir("tmp/reportFreqAllPerLocation/All_{location}.acount"),
+        allele_count=outputDir("tmp/{location}/All.acount"),
     threads: workflow.cores * 0.25
     shell:
         """
         plink2 --threads {threads} --pfile {params.input} vzs --freq counts --out {params.out} >{log} 2>&1
         """
 
-checkpoint reportFreqPartitionedPerClusterPerLocation:
-    """
-    Perform Frequency analysis, partitioned according to cluster-level.
-    """
-    # group: "REPORT"
-    log: outputDir("tmp/reportFreqPartitionedPerClusterPerLocation/{cluster}/{location}/allele_count.log"),
-    benchmark: outputDir("tmp/reportFreqPartitionedPerClusterPerLocation/{cluster}/{location}/allele_count.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+
+checkpoint report_freq_partitioned_per_cluster:
+    log: outputDir("tmp/{cluster}/{location}/freqByCluster/allele_count.log"),
+    benchmark: outputDir("tmp/{cluster}/{location}/freqByCluster/allele_count.benchmark")
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
-        output=lambda wildcards: outputDir(f"tmp/reportFreqPartitionedPerClusterPerLocation/{wildcards.cluster}/{wildcards.location}/allele_count"),
+        output=lambda wildcards: outputDir(f"tmp/{wildcards.cluster}/{wildcards.location}/freqByCluster/allele_count"),
     input:
-        pgen=outputDir("tmp/filterLocations/{location}_filterLocations.pgen"),
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
+        pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam")
     wildcard_constraints:
-        cluster="[\\w-]+",
-        location="[\\w-]+"
+        cluster=r"[a-zA-Z0-9\-]+",
+        location=r"[a-zA-Z0-9\-]+"
     output:
-        directory(outputDir("tmp/reportFreqPartitionedPerClusterPerLocation/{cluster}/{location}"))
+        directory(outputDir("tmp/{cluster}/{location}/freqByCluster/"))
     threads: workflow.cores * 0.25
     shell:
         """
@@ -485,128 +436,81 @@ checkpoint reportFreqPartitionedPerClusterPerLocation:
         """
 
 
-checkpoint reportHardyWeinburgAllPerLocation:
-    """
-    Perform Hardy-Weinburg analysis on all samples.
-    """
-    # group: "REPORT"
-    log: outputDir("tmp/reportHardyWeinburgAllPerLocation/{cluster}/{location}/hardy_weinberg.log"),
-    benchmark: outputDir("tmp/reportHardyWeinburgAllPerLocation/{cluster}/{location}/hardy_weinberg.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+checkpoint reportHardyWeinbergAllPerLocation:
+    log: outputDir("tmp/{cluster}/{location}/hardy_weinberg.log"),
+    benchmark: outputDir("tmp/{cluster}/{location}/hardy_weinberg.benchmark")
     params:
         input= lambda wildcards, input: input["pgen"].replace(".pgen", ""), 
-        output=lambda wildcards,output: outputDir(f"tmp/reportHardyWeinburgAllPerLocation/{wildcards.cluster}/{wildcards.location}/hardy_weinberg"),
+        output=lambda wildcards,output: outputDir(f"tmp/reportHardyWeinbergAllPerLocation/{wildcards.cluster}/{wildcards.location}/hardy_weinberg"),
     wildcard_constraints:
-        cluster="[\\w\\.-]+",
-        location="[\\w\\.-]+"
+        cluster=r"[a-zA-Z0-9\-]+",
+        location=r"[a-zA-Z0-9\-]+"
     input:
-        pgen=outputDir("tmp/filterLocations/{location}_filterLocations.pgen"),
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
+        pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
     output:
-        directory(outputDir("tmp/reportHardyWeinburgAllPerLocation/{cluster}/{location}/")),
+        directory(outputDir("tmp/reportHardyWeinbergAllPerLocation/{cluster}/{location}/")),
     threads: workflow.cores * 0.25
     shell:
         """
         plink2 --threads {threads} --pfile {params.input} vzs --hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p --out {params.output} >{log} 2>&1
         """
 
-checkpoint reportHardyWeinburgAllPerLocationOnChrX:
-    """
-    Perform Hardy-Weinburg analysis on all samples.
-    """
-    # group: "REPORT"
-    log: outputDir("tmp/reportHardyWeinburgAllPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.log"),
-    benchmark: outputDir("tmp/reportHardyWeinburgAllPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+
+checkpoint report_sex_linked_hardy_weinberg_per_cluster:
+    log: outputDir("tmp/reportHardyWeinbergAllPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.log"),
+    benchmark: outputDir("tmp/reportHardyWeinbergAllPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.benchmark")
     params:
         input= lambda wildcards, input: input["pgen"].replace(".pgen", ""), 
-        output=lambda wildcards,output: outputDir(f"tmp/reportHardyWeinburgAllPerLocationOnChrX/{wildcards.cluster}/{wildcards.location}/hardy_weinberg"),
+        output=lambda wildcards,output: outputDir(f"tmp/reportHardyWeinbergAllPerLocationOnChrX/{wildcards.cluster}/{wildcards.location}/hardy_weinberg"),
     input:
-        pgen=outputDir("tmp/filterLocations/{location}_filterLocations.pgen"),
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
+        pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
     output:
-        outputDir("tmp/reportHardyWeinburgAllPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.hardy.x"),
+        outputDir("tmp/reportHardyWeinbergAllPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.hardy.x"),
     threads: workflow.cores * 0.25
     shell:
         """
         plink2 --threads {threads} --pfile {params.input} vzs --hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p --out {params.output} >{log} 2>&1
         """
 
-# # rule reportPartitionedFreqPerClusterPerLocation:
-# #     """
-# #     Perform Frequency analysis on super populations.
-# #     """
-# #     # group: "REPORT"
-# #     log: outputDir("reportFreqPerClusterPerLocation/{cluster}_{location}.log"),
-# #     benchmark: outputDir("reportFreqPerClusterPerLocation/{cluster}_{location}.benchmark")
-# #     envmodules:
-# #         config["environment"]["envmodules"]["plink-2"],
-# #     params:
-# #         out=lambda wildcards,output: output["allele_count"][:-7]
-# #     input:
-# #         vcf=outputDir("tmp/filterLocations/{location}_filterLocations.vcf.gz"),
-# #         cluster_samples=outputDir("tmp/writeSampleMetadata/sample_metadata.tsv"),
-# #         sample_metadata=outputDir("tmp/compileSampleMetadata/samples.tsv")
-# #     output:
-# #         allele_count=outputDir("reportFreqPerClusterPerLocation/{cluster}_{location}.acount"),
-# #         hardy=outputDir("reportFreqPerClusterPerLocation/{cluster}_{location}.hardy"),
-# #         sample_missingness=outputDir("reportFreqPerClusterPerLocation/{cluster}_{location}.smiss"),
-# #         variant_missingness=outputDir("reportFreqPerClusterPerLocation/{cluster}_{location}.vmiss"),
-# #     shell:
-# #         """
-# #         echo -e "\n--- LOG SECTION START | Plink-2 'Subset freq' ---" 1>&2
-# #         plink2 --vcf {input.vcf} --update-sex {input.sample_metadata} --allow-extra-chr --keep {input.cluster_samples} --freq counts --missing --hardy midp --out {params.out}
-# #         echo -e "--- LOG SECTION END | Plink-2 'Subset freq' ---\n" 1>&2
-# #         """
 
-
-checkpoint reportAutosomalHardyWeinbergPartitionedPerClusterPerLocation:
-    """
-    Perform Hardy-Weinburg analysis on a per-cluster level.
-    """
-    log: outputDir("tmp/reportAutosomalHardyWeinbergPartitionedPerClusterPerLocation/{cluster}/{location}/hardy_weinberg.log"),
-    benchmark: outputDir("tmp/reportAutosomalHardyWeinbergPartitionedPerClusterPerLocation/{cluster}/{location}/hardy_weinberg.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+checkpoint report_hardy_weinberg_per_cluster:
+    log: outputDir("tmp/{cluster}/{location}/hardy_weinberg_per_cluster/hardy_weinberg.log"),
+    benchmark: outputDir("tmp/{cluster}/{location}/hardy_weinberg_per_cluster/hardy_weinberg.benchmark")
     params:
         input= lambda wildcards, input: input["pgen"].replace(".pgen", ""),
-        output=lambda wildcards: outputDir(f"tmp/reportAutosomalHardyWeinbergPartitionedPerClusterPerLocation/{wildcards.cluster}/{wildcards.location}/hardy_weinberg")
+        output=lambda wildcards: outputDir(f"tmp/{wildcards.cluster}/{wildcards.location}/hardy_weinberg_per_cluster/hardy_weinberg")
     wildcard_constraints:
-        cluster="[\\w\\.-]+",
-        location="[\\w\\.-]+"
+        cluster=r"[a-zA-Z0-9\-]+",
+        location=r"[a-zA-Z0-9\-]+"
     input:
-        pgen=outputDir("tmp/filterLocations/{location}_filterLocations.pgen"),
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
+        pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
     output:
-        directory(outputDir("tmp/reportAutosomalHardyWeinbergPartitionedPerClusterPerLocation/{cluster}/{location}")),
+        directory=directory(outputDir("tmp/{cluster}/{location}/hardy_weinberg_per_cluster/")),
     threads: workflow.cores * 0.25
     shell:
         """
         plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p --out {params.output} >{log} 2>&1
         """
 
-rule reportHardyWeinburgPartitionedPerClusterPerLocationOnChrX:
-    """
-    Perform Frequency analysis on super populations.
-    """
-    log: outputDir("tmp/reportHardyWeinburgPartitionedPerClusterPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.log"),
-    benchmark: outputDir("tmp/reportHardyWeinburgPartitionedPerClusterPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["plink-2"],
+
+rule reportHardyWeinbergPartitionedPerClusterPerLocationOnChrX:
+    log: outputDir("tmp/{cluster}/{location}/hardy_weinberg_x.log"),
+    benchmark: outputDir("tmp/{cluster}/{location}/hardy_weinberg_x.benchmark")
     params:
-        out=lambda wildcards: outputDir(f"tmp/reportHardyWeinburgPartitionedPerClusterPerLocationOnChrX/{wildcards.cluster}/{wildcards.location}/hardy_weinberg")
+        out=lambda wildcards: outputDir(f"tmp/{wildcards.cluster}/{wildcards.location}/hardy_weinberg_x")
     wildcard_constraints:
-        cluster="[\\w-]+",
-        location="[\\w-]+",
+        cluster=r"[a-zA-Z0-9\-]+",
+        location=r"[a-zA-Z0-9\-]+",
     input:
-        vcf=outputDir("tmp/filterLocations/{location}_filterLocations.vcf.gz")
+        vcf=outputDir("tmp/{location}/extracted_provided_coordinates.vcf.gz")
     output:
-        directory(outputDir("tmp/reportHardyWeinburgPartitionedPerClusterPerLocationOnChrX/{cluster}/{location}/"))
+        directory(outputDir("tmp/{cluster}/{location}/"))
     threads: workflow.cores * 0.25
     shell:
         """
@@ -614,55 +518,21 @@ rule reportHardyWeinburgPartitionedPerClusterPerLocationOnChrX:
         """
 
 
-checkpoint reportLinkageDisequilibriumPartitionedPerClusterPerLocation:
-    """
-    Identify variants in linkage disequilibrium
-    """
-
-    log: outputDir("reportLinkageDisequilibriumPartitionedPerClusterPerLocation/{cluster}/{location}/linkage_disequilibrium.log")
-    benchmark: outputDir("reportLinkageDisequilibriumPartitionedPerClusterPerLocation/{cluster}/{location}/linkage_disequilibrium.benchmark")
-    envmodules: 
-        config["environment"]["envmodules"]["plink-2"],
+checkpoint report_fixation_index_per_cluster:
+    log: outputDir("fixation_index/{cluster}/{location}/fixation_index_per_cluster.log")
+    benchmark: outputDir("fixation_index/{cluster}/{location}/fixation_index_per_cluster.benchmark")
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
-        output=lambda wildcards: outputDir(f"reportLinkageDisequilibriumPartitionedPerClusterPerLocation/{wildcards.cluster}/{wildcards.location}/linkage_disequilibrium")
+        output=lambda wildcards: outputDir(f"fixation_index/{wildcards.cluster}/{wildcards.location}/fixation_index_per_cluster")
     wildcard_constraints:
-        cluster="[\\w\\.-]+",
-        location="[\\w\\.-]+"
+        cluster=r"[a-zA-Z0-9\-]+",
+        location=r"[a-zA-Z0-9\-]+"
     input:
-        pgen=outputDir("tmp/filterLocations/{location}_filterLocations.pgen"),
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
+        pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
     output:
-        linkage_report=directory(outputDir("reportLinkageDisequilibriumPartitionedPerClusterPerLocation/{cluster}/{location}"))
-    threads: workflow.cores * 0.25
-    shell:
-        """
-        plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --ld-window 100 --r2-unphased yes-really zs cols=chrom,pos,id,ref,alt,provref,maj --out {params.output} >{log} 2>&1
-        """
-
-
-checkpoint reportFixationIndexPerClusterPerLocation:
-    """
-    Identify variants in linkage disequilibrium
-    """
-
-    log: outputDir("reportFixationIndexPerClusterPerLocation/{cluster}/{location}/{cluster}_{location}_fixation_index.log")
-    benchmark: outputDir("reportFixationIndexPerClusterPerLocation/{cluster}/{location}/{cluster}_{location}_fixation_index.benchmark")
-    envmodules: 
-        config["environment"]["envmodules"]["plink-2"],
-    params:
-        input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
-        output=lambda wildcards: outputDir(f"reportFixationIndexPerClusterPerLocation/{wildcards.cluster}/{wildcards.location}/{wildcards.cluster}_{wildcards.location}_fixation_index")
-    wildcard_constraints:
-        cluster="[\\w\\.-]+",
-        location="[\\w\\.-]+"
-    input:
-        pgen=outputDir("tmp/filterLocations/{location}_filterLocations.pgen"),
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
-    output:
-        fixation_report=directory(outputDir("reportFixationIndexPerClusterPerLocation/{cluster}/{location}/"))
+        fixation_report=directory(outputDir("fixation_index/{cluster}/{location}/"))
     threads: workflow.cores * 0.25
     shell:
         """
@@ -670,28 +540,21 @@ checkpoint reportFixationIndexPerClusterPerLocation:
         """
 
 
-
-checkpoint reportMissingnessPerClusterPerLocation:
-    """
-    Identify variants in linkage disequilibrium
-    """
-
-    log: outputDir("tmp/reportMissingnessPerClusterPerLocation/{cluster}/{location}/{cluster}_{location}_missingness.log")
-    benchmark: outputDir("tmp/reportMissingnessPerClusterPerLocation/{cluster}/{location}/{cluster}_{location}_missingness.benchmark")
-    envmodules: 
-        config["environment"]["envmodules"]["plink-2"],
+checkpoint report_missingness_per_cluster:
+    log: outputDir("tmp/{cluster}/{location}/missingness_per_cluster/missingness.log")
+    benchmark: outputDir("tmp/{cluster}/{location}/missingness_per_cluster/missingness.benchmark")
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
-        output=lambda wildcards: outputDir(f"tmp/reportMissingnessPerClusterPerLocation/{wildcards.cluster}/{wildcards.location}/{wildcards.cluster}_{wildcards.location}_missingness")
+        output=lambda wildcards: outputDir(f"tmp/{wildcards.cluster}/{wildcards.location}/missingness_per_cluster/missingness")
     wildcard_constraints:
-        cluster="[\\w\\.-]+",
-        location="[\\w\\.-]+"
+        cluster=r"[a-zA-Z0-9\-]+",
+        location=r"[a-zA-Z0-9\-]+"
     input:
-        pgen=outputDir("tmp/filterLocations/{location}_filterLocations.pgen"),
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
+        pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
     output:
-        missingness_reports=directory(outputDir("tmp/reportMissingnessPerClusterPerLocation/{cluster}/{location}/"))
+        missingness_reports=directory(outputDir("tmp/{cluster}/{location}/missingness_per_cluster/"))
     threads: workflow.cores * 0.25
     shell:
         """
@@ -699,374 +562,142 @@ checkpoint reportMissingnessPerClusterPerLocation:
         """
 
 
-# rule reportMissingnessAllPerLocation:
-#     """
-#     Perform missingness analysis on super populations.
-#     """
-#     # group: "REPORT"
-#     log: outputDir("reportMissingnessAllPerLocation/All_{location}.log"),
-#     benchmark: outputDir("reportMissingnessAllPerLocation/All_{location}.benchmark")
-#     envmodules:
-#         config["environment"]["envmodules"]["plink-2"],
-#     params:
-#         out=lambda wildcards,output: output["sample_missingness"].replace(".smiss", ""),
-#     input:
-#         vcf=outputDir("tmp/filterLocations/{location}_filterLocations.vcf.gz"),
-#         sample_metadata=outputDir("tmp/compileSampleMetadata/samples.tsv")
-#     output:aggregate_input populations.
-#     """
-#     # group: "REPORT"
-#     log: outputDir("reportMissingnessPartitionedPerClusterPerLocation/{cluster}_{location}.log"),
-#     benchmark: outputDir("reportMissingnessPartitionedPerClusterPerLocation/{cluster}_{location}.benchmark")
-#     envmodules:
-#         config["environment"]["envmodules"]["plink-2"],
-#     params:
-#         out=lambda wildcards: outputDir(f"reportMissingnessPartitionedPerClusterPerLocation/{wildcards.cluster}_{wildcards.location}")
-#     input:
-#         vcf=outputDir("tmp/filterLocations/{location}_filterLocations.vcf.gz"),
-#         cluster_samples=outputDir("tmp/writeSampleMetadata/sample_metadata.tsv"),
-#         sample_metadata=outputDir("tmp/compileSampleMetadata/samples.tsv")
-#     output:
-#         # sample_missingness=outputDir("reportMissingnessPartitionedPerClusterPerLocation/{cluster}_{location}.smiss"),
-#         # variant_missingness=outputDir("reportMissingnessPartitionedPerClusterPerLocation/{cluster}_{location}.vmiss"),
-#         partitionExpand("reportMissingnessPartitionedPerClusterPerLocation", "{cluster}", "{location}", ".smiss"),
-#         partitionExpand("reportMissingnessPartitionedPerClusterPerLocation", "{cluster}", "{location}", ".vmiss")
-#     threads: workflow.cores * 0.25
-#     shell:
-#         """
-#         echo -e "\n--- LOG SECTION START | Plink-2 'Subset freq' ---" 1>&2
-#         plink2 --threads {threads} --vcf {input.vcf} --update-sex {input.sample_metadata} --allow-extra-chr --keep {input.cluster_samples} --missing --output-chr chr26 --out {params.out} 1>{log}
-#         echo -e "--- LOG SECTION END | Plink-2 'Subset freq' ---\n" 1>&2
-#         """
-
-# group: VALIDATE
-rule tabix:
-    """
-    Generate tabix-index.
-    """
-    log: outputDir("tmp/{operation}/{output}_{operation}.log")
-    benchmark: outputDir("tmp/{operation}/{output}_{operation}.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"]
-    input:
-        outputDir("tmp/{operation}/{output}_{operation}.vcf.gz")
-    output:
-        outputDir("tmp/{operation}/{output}_{operation}.vcf.gz.tbi")
-    shell:
-        """
-        tabix -p vcf {input}
-        """
-
-rule collectCountPartitionedPerClusterPerLocation:
-    """
-    Compile the allele count reports that have been partitioned per population in a given cluster, into a single cluster-level file.
-    """
-    log: outputDir("tmp/collectCountPartitionedPerClusterPerLocation/{cluster}_{location}.log")
-    benchmark: outputDir("tmp/collectCountPartitionedPerClusterPerLocation/{cluster}_{location}.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"],
+rule collect_variant_count:
+    log: outputDir("tmp/{cluster}/{location}/variant_count.log")
+    benchmark: outputDir("tmp/{cluster}/{location}/variant_count.benchmark")
     wildcard_constraints:
-        location="[\\w\\-]+",
-        cluster="[\\w\\-]+",
+        location=r"[a-zA-Z0-9\-]+",
+        cluster=r"[a-zA-Z0-9\-]+",
+    threads: workflow.cores * 0.25
     input:
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        allele_counts=collect_reportFreqPartitionedPerClusterPerLocation,
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        allele_counts=collect_report_freq_partitioned_per_cluster,
     output:
-        outputDir("tmp/collectCountPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst")
+        outputDir("tmp/{cluster}/{location}/variant_count.csv")
     script:
         join("scripts", "collectCountPartitionedPerClusterPerLocation.py")
 
-rule collectFreqPartitionedPerClusterPerLocation:
-    """
-    Compile the allele frequency reports that have been partitioned per population in a given cluster, into a single cluster-level file.
-    """
-    log: outputDir("tmp/collectFreqPartitionedPerClusterPerLocation/{cluster}_{location}.log")
-    benchmark: outputDir("tmp/collectFreqPartitionedPerClusterPerLocation/{cluster}_{location}.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"],
+
+rule collect_variant_frequency:
+    log: outputDir("tmp/{cluster}/{location}/variant_frequency.log")
+    benchmark: outputDir("tmp/{cluster}/{location}/variant_frequency.benchmark")
     wildcard_constraints:
-        location="[\\w\\-]+",
-        cluster="[\\w\\-]+",
+        location=r"[a-zA-Z0-9\-]+",
+        cluster=r"[a-zA-Z0-9\-]+",
+    threads: workflow.cores * 0.25
     input:
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        allele_counts=outputDir("tmp/collectCountPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst"),
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
+        allele_counts=outputDir("tmp/{cluster}/{location}/variant_count.csv"),
     output:
-        outputDir("tmp/collectFreqPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst")
+        file=outputDir("tmp/{cluster}/{location}/variant_frequency.csv")
     script:
         join("scripts", "collectFreqPartitionedPerClusterPerLocation.py")
 
 
-rule calculateFishersExactTestWithCorrection:
-    """
-    Perform a Fishers-Exact test with Bonferonni correction.
-    """
-    log: outputDir("tmp/calculateFichersExactTestWithCorrection/{cluster}/{location}/fishers_exact.log")
-    benchmark: outputDir("tmp/calculateFichersExactTestWithCorrection/{cluster}/{location}/fishers_exact.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["python-3"],
+rule calculate_fishers_exact_with_corrections:
+    log: outputDir("tmp/{cluster}/{location}/fishers_exact.log")
+    benchmark: outputDir("tmp/{cluster}/{location}/fishers_exact.benchmark")
     params:
         reference_population=lambda wildcards: config["fishers-test"][wildcards.cluster],
     wildcard_constraints:
-        location="[\\w\\-]+",
-        cluster="[\\w\\-]+",
+        location=r"[a-zA-Z0-9\-]+",
+        cluster=r"[a-zA-Z0-9\-]+",
+    threads: workflow.cores * 0.25
     input:
-        psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
-        allele_counts=outputDir("tmp/collectCountPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst"),
+        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
+        allele_counts=outputDir("tmp/{cluster}/{location}/variant_count.csv"),
     output:
-        outputDir("tmp/calculateFichersExactTestWithCorrection/{cluster}/{location}/fishers_exact.csv.zst")
+        outputDir("tmp/{cluster}/{location}/fishers_exact_with_corrections.csv")
     script:
         join("scripts", "calculateFishersExactTestWithCorrection.py")
 
 
-# rule graphAllelePartitionPlots:
-#     """
-#     Perform a Fishers-Exact test with Bonferonni correction.
-#     """
-#     log: outputDir("graphAllelePartitionPlots/{cluster}_{location}_allele_partitions.log")
-#     benchmark: outputDir("graphAllelePartitionPlots/{cluster}_{location}_allele_partitions.benchmark")
-#     envmodules:
-#         config["environment"]["envmodules"]["python-3"],
-#     params:
-#         populations=lambda wildcards: samples[wildcards.cluster].unique().tolist(),
-#     wildcard_constraints:
-#         location="[\\w\\-]+",
-#         cluster="[\\w\\-]+",
-#     input:
-#         freq=outputDir("tmp/collectFreqPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst"),
-#         fishers_exact=outputDir("tmp/collectFreqPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst"),
-#         vep_results=outputDir("tmp/compileVariantEffectPrediction/{cluster}/{location}/cleaned_variant_effect_predictions.csv.zst")
-#     output:
-#         report(outputDir("graphAllelePartitionPlots/{cluster}_{location}_allele_partitions.jpeg"), category="{location}", subcategory="{cluster}", labels={"analysis": "Allele Intersection Plot"}, caption="report/intersection_plot.rst")
-#     script:
-#         join("scripts", "intersection_plot_alleles.py")
-
-
-# rule graphRarePartitionPlots:
-#     """
-#     Perform a Fishers-Exact test with Bonferonni correction.
-#     """
-#     log: outputDir("graphRarePartitionPlots/{cluster}_{location}_rare_partitions.log")
-#     benchmark: outputDir("graphRarePartitionPlots/{cluster}_{location}_rare_partitions.benchmark")
-#     envmodules:
-#         config["environment"]["envmodules"]["python-3"],
-#     params:
-#         populations=lambda wildcards: samples[wildcards.cluster].unique().tolist(),
-#     wildcard_constraints:
-#         location="[\\w\\-]+",
-#         cluster="[\\w\\-]+",
-#     input:
-#         freq_report=outputDir("tmp/collectFreqPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst"),
-#         fishers_exact=outputDir("tmp/collectFreqPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst"),
-#     output:
-#         report(outputDir("graphRarePartitionPlots/{cluster}_{location}_rare_partitions.jpeg"), category="{location}", subcategory="{cluster}", labels={"analysis": "Rare Intersection Plot",}, caption="report/intersection_plot.rst")
-#     script:
-#         join("scripts", "intersection_plot_rare_variants.py")
-
-
-
-rule collectAutosomalHardyWeinbergPartitionedPerClusterPerLocation:
-    """
-    Compile the allele count reports that have been partitioned per population in a given cluster, into a single cluster-level file.
-    """
-    log: outputDir("tmp/collectAutosomalHardyWeinbergPartitionedPerClusterPerLocation/{cluster}_{location}.log")
-    benchmark: outputDir("tmp/collectAutosomalHardyWeinbergPartitionedPerClusterPerLocation/{cluster}_{location}.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"],
+rule collect_autosomal_hardy_weinberg:
+    log: outputDir("tmp/{cluster}/{location}/autosomal_hardy_weinberg.log")
+    benchmark: outputDir("tmp/{cluster}/{location}/autosomal_hardy_weinberg.benchmark")
     wildcard_constraints:
-        location="[\\w\\-]+",
-        cluster="[\\w\\-]+",
+        location=r"[a-zA-Z0-9\-]+",
+        cluster=r"[a-zA-Z0-9\-]+",
+    threads: workflow.cores * 0.25
     input:
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        hardy_weinberg=collect_reportAutosomalHardyWeinbergPartitionedPerClusterPerLocation,
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        hardy_weinberg=collect_autosomal_hardy_weinberg_per_cluster,
     output:
-        outputDir("tmp/collectAutosomalHardyWeinbergPartitionedPerClusterPerLocation/{cluster}/{location}/{cluster}_{location}_hardy_weinberg.csv.zst")
+        outputDir("tmp/{cluster}/{location}/autosomal_hardy_weinberg.csv")
     script:
         join("scripts", "collectAutosomalHardyWeinbergPartitionedPerClusterPerLocation.py")
 
 
-rule collectVariantMissingnessPerClusterPerLocation:
-    """
-    Compile the allele count reports that have been partitioned per population in a given cluster, into a single cluster-level file.
-    """
-    log: outputDir("tmp/collectVariantMissingnessPerClusterPerLocation/{cluster}_{location}.log")
-    benchmark: outputDir("tmp/collectVariantMissingnessPerClusterPerLocation/{cluster}_{location}.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["bcftools"],
+rule collect_variant_missingness:
+    log: outputDir("tmp/{cluster}/{location}/missingnessPartitionedPerCluster.log")
+    benchmark: outputDir("tmp/{cluster}/{location}/missingnessPartitionedPerCluster.benchmark")
     wildcard_constraints:
-        location="[\\w\\-]+",
-        cluster="[\\w\\-]+",
+        location=r"[a-zA-Z0-9\-]+",
+        cluster=r"[a-zA-Z0-9\-]+",
+    threads: workflow.cores * 0.25
     input:
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        missingness_reports=collect_reportVariantMissingnessPerClusterPerLocation,
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        missingness_reports=collect_report_missingness_per_cluster,
     output:
-        variant_missingness_report=outputDir("tmp/collectVariantMissingnessPerClusterPerLocation/{cluster}/{location}/{cluster}_{location}_vmiss.csv.zst")
+        variant_missingness_report=outputDir("tmp/{cluster}/{location}/missingness.csv")
     script:
         join("scripts", "collectVariantMissingnessPerClusterPerLocation.py")
 
 
-# rule generateAutosomalTernaryPlotPerClusterPerLocation:
-#     """
-#     Generate a series of ternary plots to illustrate the results of the hardy-weinburg analysis.
-#     """
-#     log: outputDir("generateAutosomalTernaryPlotPerClusterPerLocation/{cluster}/{location}/{population}.log"),
-#     benchmark: outputDir("generateAutosomalTernaryPlotPerClusterPerLocation/{cluster}/{location}/{population}.benchmark")
-#     envmodules:
-#         config["environment"]["envmodules"]["python-3"],
-#     params:
-#         reference_population=lambda wildcards: config["fishers-test"][wildcards.cluster],
-#     input:
-#         freq_report=outputDir("tmp/collectFreqPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst"),
-#         vep_results=outputDir("tmp/compileVariantEffectPrediction/{cluster}/{location}/cleaned_variant_effect_predictions.csv.zst"),
-#         hardy_weinberg_report=collect_reportHardyWeinburgPartitionedPerClusterPerLocation,
-#         # hardy_weinberg_reports=branch(lookup(query="location_name == '{location}' & chromosome != 23", within=locations, cols="chromosome"), then=outputDir("tmp/reportFreqPartitionedAllPerLocation/{cluster}/{location}/allele_count.hardy"), otherwise=outputDir("tmp/reportFreqPartitionedAllPerLocation/{cluster}/{location}/allele_count.hardy.x"))
-#     output:
-#         report(outputDir("generateAutosomalTernaryPlotPerClusterPerLocation/{cluster}/{location}/{population}.jpeg"), category="{location}", subcategory="{cluster}", labels={"population": "{population}", "analysis": "Hardy-Weinberg Equilibrium"}, caption="report/hardy_wenburg_autosomal.rst")
-#     script:
-#         join("scripts", "ternary_plot_autosomal.py")
-
-# rule generateSexLinkedTernaryPlotPerClusterPerLocation:
-#     """
-#     Generate a series of ternary plots to illustrate the results of the hardy-weinburg analysis.
-#     """
-#     log: outputDir("generateSexLinkedTernaryPlotPerClusterPerLocation/{cluster}/{location}/{population}.log"),
-#     benchmark: outputDir("generateSexLinkedTernaryPlotPerClusterPerLocation/{cluster}/{location}/{population}.benchmark")
-#     envmodules:
-#         config["environment"]["envmodules"]["python-3"],
-#     input:
-#         hardy_weinberg_report=collect_reportHardyWeinburgPartitionedPerClusterPerLocationOnChrX
-#         # hardy_weinberg_reports=branch(lookup(query="location_name == '{location}' & chromosome != 23", within=locations, cols="chromosome"), then=outputDir("tmp/reportFreqPartitionedAllPerLocation/{cluster}/{location}/allele_count.hardy"), otherwise=outputDir("tmp/reportFreqPartitionedAllPerLocation/{cluster}/{location}/allele_count.hardy.x"))
-#     output:
-#         report(outputDir("generateSexLinkedTernaryPlotPerClusterPerLocation/{cluster}/{location}/{population}.jpeg"), category="{location}", subcategory="{cluster}", labels={"population": "{population}", "analysis": "Hardy-Weinberg Equilibrium"}, caption="report/hardy_wenburg_sex_linked.rst")
-#     script:
-#         join("scripts", "ternary_plot_autosomal.py")
-
-# rule generateFishersSummary:
-#     """
-#     Generate a series of ternary plots to illustrate the results of the hardy-weinburg analysis.
-#     """
-#     log: outputDir("generateFishersSummary/{cluster}/{location}/generateFishersSummary.log"),
-#     benchmark: outputDir("generateFishersSummary/{cluster}/{location}/generateFishersSummary.benchmark")
-#     envmodules:
-#         config["environment"]["envmodules"]["python-3"],
-#     params:
-#         reference_population=lambda wildcards: config["fishers-test"][wildcards.cluster],
-#     input:
-#         psam=outputDir("tmp/filterLocations/{location}_filterLocations.psam"),
-#         fishers=outputDir("tmp/calculateFichersExactTestWithCorrection/{cluster}/{location}/fishers_exact.csv.zst")
-#         # hardy_weinberg_reports=branch(lookup(query="location_name == '{location}' & chromosome != 23", within=locations, cols="chromosome"), then=outputDir("tmp/reportFreqPartitionedAllPerLocation/{cluster}/{location}/allele_count.hardy"), otherwise=outputDir("tmp/reportFreqPartitionedAllPerLocation/{cluster}/{location}/allele_count.hardy.x"))
-#     output:
-#         report(outputDir("generateFishersSummary/{cluster}/{location}/fishers_exact.jpeg"), category="{location}", subcategory="{cluster}", labels={"analysis": "Fishers Exact"}, caption="report/fishers_exact_graph.rst")
-#     script:
-#         join("scripts", "fishers_exact_graph.py")
-
-rule queryVariantEffectPrediction:
-    """
-    Generate a series of ternary plots to illustrate the results of the hardy-weinburg analysis.
-    """
-    log: outputDir("tmp/queryVariantEffectPrediction/{cluster}/{location}/variant_effect_predictions.log"),
-    benchmark: outputDir("tmp/queryVariantEffectPrediction/{cluster}/{location}/variant_effect_predictions.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["python-3"],
+rule query_variant_effect_predictions:
+    log: outputDir("tmp/{cluster}/{location}/variant_effect_predictions.log"),
+    benchmark: outputDir("tmp/{cluster}/{location}/variant_effect_predictions.benchmark")
     wildcard_constraints:
-        location="[\\w\\-]+",
-        cluster="[\\w\\-]+",
+        location=r"[a-zA-Z0-9\-]+",
+        cluster=r"[a-zA-Z0-9\-]+",
+    threads: workflow.cores * 0.25
     params:
         strand=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "strand"]
     input:
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
     output:
-        outputDir("tmp/queryVariantEffectPrediction/{cluster}/{location}/variant_effect_predictions.csv.zst")
+        outputDir("tmp/{cluster}/{location}/variant_effect_predictions.csv")
     script:
         join("scripts", "query_variant_effects.py")
 
-rule compileVariantEffectPrediction:
-    """
-    Compiles VEP predictions from E! Ensemble extracts all relevant data into a tabular format.
-    """
-    log: outputDir("tmp/compileVariantEffectPrediction/{cluster}/{location}/variant_effect_predictions.log"),
-    benchmark: outputDir("tmp/compileVariantEffectPrediction/{cluster}/{location}/variant_effect_predictions.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["python-3"],
+
+rule compile_variant_effect_predictions:
+    log: outputDir("tmp/{cluster}/{location}/cleaned_variant_effect_predictions.log"),
+    benchmark: outputDir("tmp/{cluster}/{location}/cleaned_variant_effect_predictions.benchmark")
     wildcard_constraints:
-        location="[\\w\\-]+",
-        cluster="[\\w\\-]+",
-    params:
+        location=r"[a-zA-Z0-9\-]+",
+        cluster=r"[a-zA-Z0-9\-]+",
+    threads: workflow.cores * 0.25
     input:
-        vep_results=outputDir("tmp/queryVariantEffectPrediction/{cluster}/{location}/variant_effect_predictions.csv.zst")
+        vep_results=outputDir("tmp/{cluster}/{location}/variant_effect_predictions.csv")
     output:
-        cleaned_vep_results=outputDir("tmp/compileVariantEffectPrediction/{cluster}/{location}/cleaned_variant_effect_predictions.csv.zst")
+        cleaned_vep_results=outputDir("tmp/{cluster}/{location}/cleaned_variant_effect_predictions.csv")
     script:
         join("scripts", "compile_variant_effects.py")
 
-# rule generateVariantConsequenceBreakdown:
-#     """
-#     Generate a series of ternary plots to illustrate the results of the hardy-weinburg analysis.
-#     """
-#     log: outputDir("generateVariantConsequenceBreakdown/{cluster}/{location}/{population}_variant_consequences.log"),
-#     benchmark: outputDir("generateVariantConsequenceBreakdown/{cluster}/{location}/{population}_variant_consequences.benchmark")
-#     envmodules:
-#         config["environment"]["envmodules"]["python-3"],
-#     input:
-#         # allele_count_report=outputDir("tmp/reportFreqPartitionedPerClusterPerLocation/{cluster}/{location}/allele_count.{population}.acount"),
-#         freq=outputDir("tmp/collectFreqPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst"),
-#         vep_results=outputDir("tmp/compileVariantEffectPrediction/{cluster}/{location}/cleaned_variant_effect_predictions.csv.zst")
-#     output:
-#         report(outputDir("generateVariantConsequenceBreakdown/{cluster}/{location}/{population}_variant_consequences.jpeg"), category="{location}", subcategory="{cluster}", labels={"population": "{population}", "analysis": "Variant Consequence Plot"}, caption="report/variant_consequence_plot.rst")
-#     script:
-#         join("scripts", "transcript_consequence_breakdown.py")
 
-
-# rule generateVariantDistributionByImpact:
-#     """
-#     Generate a histogram illustrating the distribution of variants, split by imact.
-#     """
-#     log: outputDir("generateVariantDistributionByImpact/{cluster}/{location}/{population}_variant_consequences.log"),
-#     benchmark: outputDir("generateVariantDistributionByImpact/{cluster}/{location}/{population}_variant_consequences.benchmark")
-#     envmodules:
-#         config["environment"]["envmodules"]["python-3"],
-#     input:
-#         vep_results=outputDir("tmp/compileVariantEffectPrediction/{cluster}/{location}/cleaned_variant_effect_predictions.csv.zst"),
-#         freq=outputDir("tmp/collectFreqPartitionedPerClusterPerLocation/{cluster}_{location}.csv.zst"),
-#     output:
-#         report(outputDir("generateVariantDistributionByImpact/{cluster}/{location}/{population}_variant_distribution.jpeg"), category="{location}", subcategory="{cluster}", labels={"population": "{population}", "analysis": "Variant distribution"}, caption="report/variant_dist_plot.rst")
-#     script:
-#         join("scripts", "variant_dist_plot.py")
-
-
-rule consolidateReports:
-    """
-    Combine analyses outputs to form single consolidated dataset for post-hoc use.
-    """
-    log: outputDir("consolidateReports/{cluster}_{location}.log")
-    benchmark: outputDir("consolidateReports/{cluster}_{location}.benchmark")
-    envmodules:
-        config["environment"]["envmodules"]["python-3"],
+rule consolidate_reports:
+    log: outputDir("consolidated_reports/{cluster}_{location}.log")
+    benchmark: outputDir("consolidated_reports/{cluster}_{location}.benchmark")
     wildcard_constraints:
-        location="[\\w\\-]+",
-        cluster="[\\w\\-]+",
+        location=r"[a-zA-Z0-9\-]+",
+        cluster=r"[a-zA-Z0-9\-]+",
+    threads: workflow.cores * 0.25
     input:
-        pvar=outputDir("tmp/filterLocations/{location}_filterLocations.pvar.zst"),
-        analyses=collect_filesToConsolidate,
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
+        analyses=collect_reports_to_consolidate,
     output:
-        consolidated_data=outputDir("consolidateReports/{cluster}_{location}.csv.zst")
+        consolidated_data=outputDir("consolidated_reports/{cluster}_{location}.csv")
     script:
         join("scripts", "consolidateReports.py")
 
 
 rule all:
-    """
-    Catch-all rule to trigger auto-run of all processes. This process will be fired automatically in absence of explicit process name given by cli-argument.
-    """
     default_target: True
     log:
         "logs/ALL/ALL.log",
     input:
-        VCFValidation.rules.all.input,
-        expand(outputDir("tmp/calculateFichersExactTestWithCorrection/{cluster}/{location}/fishers_exact.csv.zst"), cluster=config["fishers-test"].keys(), location=locations["location_name"]),
-        expand(outputDir("tmp/compileVariantEffectPrediction/{cluster}/{location}/cleaned_variant_effect_predictions.csv.zst"), cluster=clusters, location=locations["location_name"]),
-        expand(outputDir("consolidateReports/{cluster}_{location}.csv.zst"), cluster=clusters, location=locations["location_name"]),
-        expand(outputDir("tmp/collectAutosomalHardyWeinbergPartitionedPerClusterPerLocation/{cluster}/{location}/{cluster}_{location}_hardy_weinberg.csv.zst"), cluster=clusters, location=locations["location_name"]),
-        collect_reportFixationIndexPerClusterPerLocation,
-        collect_reportSampleMissingnessPerClusterPerLocation,
-        collect_reportLinkageDisequilibriumPartitionedPerClusterPerLocation,
+        expand(outputDir("consolidated_reports/{cluster}_{location}.csv"), cluster=clusters, location=locations["location_name"]),
+        collect_calculate_linkage_disequilibrium_per_cluster,
+        collect_report_fixation_index_per_cluster
