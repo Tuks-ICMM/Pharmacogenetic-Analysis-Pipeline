@@ -9,6 +9,7 @@ A Python script designed to run Frequency calculations and save the results to a
 #############################################
 
 import logging
+import traceback
 
 from common.common import calculate_frequency
 from pandas import read_csv, cut
@@ -185,3 +186,5 @@ try:
 
 except Exception as E:
     _logger.error(E)
+    _logger.error(traceback.format_exc())
+    exit(1)

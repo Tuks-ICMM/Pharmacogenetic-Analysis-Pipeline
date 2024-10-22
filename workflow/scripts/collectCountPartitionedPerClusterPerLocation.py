@@ -16,6 +16,7 @@ A Python script designed to collect the count data from the Plink-2.0 reports. S
 
 import logging
 from re import search
+import traceback
 
 from pandas import read_csv
 
@@ -195,7 +196,7 @@ try:
     # for cluster in CLUSTERS:
     #     for gene in GENES:
     _logger.info("Writing results to file.")
-    DATA.to_csv(snakemake.output[0], index=False)
+    DATA.to_csv(snakemake.output["allele_counts"], index=False)
     _logger.info("Results written to file.")
     # save_or_append_to_excel(
     #     CONFIG["output-dir"], DATA[cluster][gene], cluster, gene, "Count", "replace"
@@ -204,3 +205,5 @@ try:
 
 except Exception as E:
     _logger.error(E)
+    _logger.error(traceback.format_exc())
+    exit(1)

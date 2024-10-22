@@ -15,6 +15,7 @@ A Python script designed to collect the count data from the Plink-2.0 reports. S
 
 
 import logging
+import traceback
 
 from pandas import read_csv
 
@@ -89,3 +90,5 @@ try:
 
 except Exception as E:
     _logger.error(E)
+    _logger.error(traceback.format_exc())
+    exit(1)

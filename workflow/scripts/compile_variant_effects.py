@@ -13,6 +13,7 @@ and API calls as well as save the results to file.
 import logging
 from json import loads
 import sys
+import traceback
 from typing import Generator
 
 import pandas as pd
@@ -144,6 +145,128 @@ try:
     )
     _logger.info("Extracted CADD_PHRED.")
 
+
+    _logger.info("Extracting SIFT 4G score.")
+    DATA["SIFT_4G_score"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "sift4g_score", __name__)
+    )
+    _logger.info("Extracted SIFT 4G score.")
+
+
+    _logger.info("Extracting SIFT 4G prediction.")
+    DATA["SIFT_4G_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "sift4g_pred", __name__)
+    )
+    _logger.info("Extracted SIFT 4G prediction")
+
+
+    _logger.info("Extracting SIFT 4G score.")
+    DATA["SIFT_score"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "sift_score", __name__)
+    )
+    _logger.info("Extracted SIFT 4G score.")
+
+
+    _logger.info("Extracting SIFT prediction.")
+    DATA["SIFT_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "sift_pred", __name__)
+    )
+    _logger.info("Extracted SIFT prediction.")
+
+
+    _logger.info("Extracting PolyPhen 4G score.")
+    DATA["PolyPhen_score"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "polyphen_score", __name__)
+    )
+    _logger.info("Extracted PolyPhen 4G score.")
+
+
+    _logger.info("Extracting PolyPhen prediction.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "polyphen_pred", __name__)
+    )
+    _logger.info("Extracted PolyPhen prediction.")
+
+    _logger.info("Extracting FATHMM score.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "fathmm_score", __name__)
+    )
+    _logger.info("Extracted FATHMM score.")
+
+    _logger.info("Extracting FATHMM prediction.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "fathmm_pred", __name__)
+    )
+    _logger.info("Extracted FATHMM prediction.")
+
+    _logger.info("Extracting PROVEAN score.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "provean_score", __name__)
+    )
+    _logger.info("Extracted PROVEAN score.")
+
+    _logger.info("Extracting PROVEAN prediction.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "provean_pred", __name__)
+    )
+    _logger.info("Extracted PROVEAN prediction.")
+
+    _logger.info("Extracting MetaSVM score.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "metasvm_score", __name__)
+    )
+    _logger.info("Extracted MetaSVM score.")
+
+    _logger.info("Extracting MetaSVM prediction.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "metasvm_pred", __name__)
+    )
+    _logger.info("Extracted MetaSVM prediction.")
+
+    _logger.info("Extracting Aloft fraction of transcripts affected.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "aloft_fraction_transcripts_affected", __name__)
+    )
+    _logger.info("Extracted Aloft fraction of transcripts affected.")
+
+
+    _logger.info("Extracting Aloft fraction of transcripts affected.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "aloft_fraction_transcripts_affected", __name__)
+    )
+    _logger.info("Extracted Aloft fraction of transcripts affected.")
+
+
+    _logger.info("Extracting Aloft prob Tolerant.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "aloft_prob_tolerant", __name__)
+    )
+    _logger.info("Extracted Aloft prob Tolerant.")
+
+    _logger.info("Extracting Aloft prob Recessive.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "aloft_prob_recessive", __name__)
+    )
+    _logger.info("Extracted Aloft prob Recessive.")
+
+    _logger.info("Extracting Aloft prob Dominant.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "aloft_prob_dominant", __name__)
+    )
+    _logger.info("Extracted Aloft prob Dominant.")
+
+    _logger.info("Extracting Aloft pred.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "aloft_pred", __name__)
+    )
+    _logger.info("Extracted Aloft pred.")
+
+    _logger.info("Extracting Aloft Confidance.")
+    DATA["PolyPhen_prediction"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "aloft_confidance", __name__)
+    )
+    _logger.info("Extracted Aloft Confidance.")
+
     _logger.info("Extracting Gene_symbol.")
     DATA["Gene_symbol"] = DATA["result"].apply(
         lambda result: extractTranscriptConsequenceValue(
@@ -223,4 +346,5 @@ try:
 
 except Exception as E:
     _logger.error(E)
-    sys.exit()
+    _logger.error(traceback.format_exc())
+    exit(1)

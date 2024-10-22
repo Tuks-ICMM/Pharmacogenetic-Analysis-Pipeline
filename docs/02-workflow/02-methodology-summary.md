@@ -65,6 +65,8 @@ A breakdown of the methodology and softwares used in this workflow.
       filterSampleRelatedness[[filterSampleRelatedness:\nremove a given list of]]
       filterLocations[[filterLocations:\nTrim the dataset to one of\nthe studied regions]]
 
+      convertToPgen[[convertToPgen: \n Convert the VCF fiels into Plink-2 binary format]]
+
 
       subgraph multipleVcfProtocol [Multiple dataset protocol]
         direction LR

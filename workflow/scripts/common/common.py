@@ -170,7 +170,7 @@ def generate_params(transcription_ids: list = None, canonical=False) -> dict:
         # Retrive a list of CCDS identifiers for recognized protein-coding regions
         # "ccds": True,
         # Retrive pathogenicity predictions for the variant from dbNSFP
-        "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred,transcript_match=1",
+        "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred,FATHMM_score,FATHMM_pred,PROVEAN_score,PROVEAN_pred,MetaSVM_score,MetaSVM_pred,Aloft_Fraction_transcripts_affected,transcript_match=1",
         # Retrive rpedictions for splice variants
         # "dbscSNV": True,
         # Request a list of overlapping protein domain names

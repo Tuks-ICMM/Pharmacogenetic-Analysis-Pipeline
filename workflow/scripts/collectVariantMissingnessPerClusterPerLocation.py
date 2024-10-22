@@ -16,6 +16,7 @@ A Python script designed to collect the count data from the Plink-2.0 reports. S
 
 import logging
 from re import search
+import traceback
 
 from pandas import read_csv, merge
 
@@ -121,3 +122,5 @@ try:
     DATA.to_csv(snakemake.output.variant_missingness_report, index=False)
 except Exception as E:
     _logger.error(E)
+    _logger.error(traceback.format_exc())
+    exit(1)

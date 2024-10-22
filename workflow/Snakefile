@@ -295,8 +295,8 @@ rule calculate_sample_relatedness:
 
 
 rule remove_related_samples:
-    log: outputDir("tmp/removed_related_samples/{contig}/SampleRelatedness.log")
-    benchmark: outputDir("tmp/removed_related_samples/{contig}/SampleRelatedness.benchmark")
+    log: outputDir("tmp/{contig}/removed_related_samples.log")
+    benchmark: outputDir("tmp/{contig}/removed_related_samples.benchmark")
     wildcard_constraints: # TODO: Make this configurable
         contig=r"[0-9]{1,2}"
     params:
@@ -365,13 +365,41 @@ checkpoint calculate_linkage_disequilibrium_per_cluster:
     threads: workflow.cores * 0.25
     shell:
         """
-        plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --r2-unphased yes-really zs cols=chrom,pos,id,ref,alt,provref,maj --out {params.output} >{log} 2>&1
+        plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --r2-unphased yes-really zs cols=chrom,pos,id,ref,alt,provref,maj --ld-window 100000 --out {params.output} >{log} 2>&1
+        """
+
+rule pca:
+    log: outputDir("pca/{location}/pca.log")
+    benchmark: outputDir("pca/{location}/pca.benchmark")
+    wildcard_constraints: # TODO: Make this configurable
+        contig=r"[0-9]{1,2}"
+    params:
+        fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "ld_start"].item(),
+        toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "ld_stop"].item(),
+        chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
+        input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
+        output=lambda wildcards: outputDir(f"pca/{wildcards.location}/pca")
+    wildcard_constraints:
+        cluster=r"[a-zA-Z0-9\-]+",
+        location=r"[a-zA-Z0-9\-]+"
+    input:
+        pgen=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.pgen"),
+        pvar=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.pvar.zst"),
+        psam=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.psam"),
+    output:
+        eigenvectors=outputDir("pca/{location}/pca.eigenvec"),
+        eigenvectorsPerAllele=outputDir("pca/{location}/pca.eigenvec.allele"),
+        eigenvalues=outputDir("pca/{location}/pca.eigenval"),
+    threads: workflow.cores * 0.25
+    shell:
+        """
+        plink2 --threads {threads} --pfile {params.input} vzs --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --pca allele-wts --maf 0.1 --out {params.output} >{log} 2>&1
         """
 
 
 rule extract_provided_coordinates:
-    log: outputDir("tmp/extracted_provided_coordinates/{location}_extracted_provided_coordinates.log"),
-    benchmark: outputDir("tmp/extracted_provided_coordinates/{location}_extracted_provided_coordinates.benchmark")
+    log: outputDir("tmp/{location}/extracted_provided_coordinates.log"),
+    benchmark: outputDir("tmp/{location}/extracted_provided_coordinates.benchmark")
     wildcard_constraints:
         location=r"[a-zA-Z0-9\-]+"
     params:
@@ -424,11 +452,11 @@ checkpoint report_freq_partitioned_per_cluster:
         pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
         pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
         psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam")
-    wildcard_constraints:
-        cluster=r"[a-zA-Z0-9\-]+",
-        location=r"[a-zA-Z0-9\-]+"
     output:
-        directory(outputDir("tmp/{cluster}/{location}/freqByCluster/"))
+        files=directory(outputDir("tmp/{cluster}/{location}/freqByCluster/"))
+    wildcard_constraints:
+        location=r"[a-zA-Z0-9\-]+",
+        cluster=r"[a-zA-Z0-9\-]+",
     threads: workflow.cores * 0.25
     shell:
         """
@@ -570,10 +598,10 @@ rule collect_variant_count:
         cluster=r"[a-zA-Z0-9\-]+",
     threads: workflow.cores * 0.25
     input:
-        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
         allele_counts=collect_report_freq_partitioned_per_cluster,
+        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
     output:
-        outputDir("tmp/{cluster}/{location}/variant_count.csv")
+        allele_counts=outputDir("tmp/{cluster}/{location}/variant_count.csv")
     script:
         join("scripts", "collectCountPartitionedPerClusterPerLocation.py")
 
@@ -700,4 +728,7 @@ rule all:
     input:
         expand(outputDir("consolidated_reports/{cluster}_{location}.csv"), cluster=clusters, location=locations["location_name"]),
         collect_calculate_linkage_disequilibrium_per_cluster,
-        collect_report_fixation_index_per_cluster
+        collect_report_fixation_index_per_cluster,
+        expand(outputDir("pca/{location}/pca.eigenvec"), location=locations["location_name"]),
+        expand(outputDir("pca/{location}/pca.eigenvec.allele"), location=locations["location_name"]),
+        expand(outputDir("pca/{location}/pca.eigenval"), location=locations["location_name"]),

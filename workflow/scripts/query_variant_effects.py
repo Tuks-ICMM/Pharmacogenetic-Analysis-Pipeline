@@ -12,6 +12,7 @@ and API calls as well as save the results to file.
 
 import logging
 from json import dumps
+import traceback
 from typing import Generator
 from time import sleep
 
@@ -124,6 +125,7 @@ try:
         LOGGER.debug(
             f"Attempting to query payload: {dumps(dict(variants=payload.tolist()))}"
         )
+        LOGGER.debug(f"Using the following parameters: {generate_params()}")
         # [QUERY] the batch and store the E! Ensemble API response
         response = post(
             ENDPOINT,
@@ -148,3 +150,5 @@ try:
 
 except Exception as E:
     LOGGER.error(E)
+    LOGGER.error(traceback.format_exc())
+    exit(1)

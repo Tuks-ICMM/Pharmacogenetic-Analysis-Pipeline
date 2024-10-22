@@ -1,17 +1,18 @@
+
 def collect_report_freq_partitioned_per_cluster(wildcards):
     checkpoint_output = checkpoints.report_freq_partitioned_per_cluster.get(
-        cluster=wildcards.cluster, location = wildcards.location
-    ).output[0]
-    populations = glob_wildcards(
+        **wildcards
+    ).output["files"]
+    glob_match = glob_wildcards(
         join(checkpoint_output, "allele_count.{populations}.acount")
-    ).populations
+    )
     return expand(
         outputDir(
             "tmp/{cluster}/{location}/freqByCluster/allele_count.{population}.acount"
         ),
         cluster=wildcards.cluster,
         location=wildcards.location,
-        population=populations,
+        population=glob_match.populations,
     )
 
 

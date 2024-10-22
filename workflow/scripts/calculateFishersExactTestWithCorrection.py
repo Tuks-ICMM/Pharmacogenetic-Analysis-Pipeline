@@ -186,3 +186,4 @@ try:
 except Exception as E:
     _logger.error(E)
     _logger.error(traceback.format_exc())
+    exit(1)
