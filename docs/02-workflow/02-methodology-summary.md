@@ -44,66 +44,66 @@ A breakdown of the methodology and softwares used in this workflow.
   {: .text-delta }
 
   ```mermaid
-  ---
-  title: Pharmacogenetics Analysis
-  ---
-  flowchart TD
-  subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
-      direction BT
+---
+title: Pharmacogenetics Analysis
+---
+flowchart TD
+subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
+    direction BT
 
-      classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef admixture stroke:#333,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef tabix stroke:#023020,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef gatk stroke:#007FFF,fill:#D3D3D3,stroke-width:4px,color:black;
+    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+    classDef admixture stroke:#333,fill:#D3D3D3,stroke-width:4px,color:black;
+    classDef tabix stroke:#023020,fill:#D3D3D3,stroke-width:4px,color:black;
+    classDef gatk stroke:#007FFF,fill:#D3D3D3,stroke-width:4px,color:black;
 
-      format_sample_metadata[[format_sample_metadata:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
+    format_sample_metadata[[format_sample_metadata:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
 
-      convert_to_pgen[[**convert_to_pgen**: \n Convert the VCF fields into Plink-2 binary format]]
-      remove_unknown_samples[[**remove_unknown_samples**:\nSubset samples to labeled\nsamples in metadata files]]
-      
-      verify_records_against_reference_genome[[**verify_records_against_reference_genome**:\nCheck reference alleles against\nprovided reference genome]]
-      
-      filter_variant_missingness[[**filter_variant_missingness**:\nFilter variants with 100%\nmissingness]]
-      
-      filter_sample_missingness[[**filter_sample_missingness**:\nFilter samples with 100%\nmissingness]]
+    convert_to_pgen[[**convert_to_pgen**: \n Convert the VCF fields into Plink-2 binary format]]
+    remove_unknown_samples[[**remove_unknown_samples**:\nSubset samples to labeled\nsamples in metadata files]]
+    
+    verify_records_against_reference_genome[[**verify_records_against_reference_genome**:\nCheck reference alleles against\nprovided reference genome]]
+    
+    filter_variant_missingness[[**filter_variant_missingness**:\nFilter variants with 100%\nmissingness]]
+    
+    filter_sample_missingness[[**filter_sample_missingness**:\nFilter samples with 100%\nmissingness]]
 
-      remove_non_standard_chromosomes[[**remove_non_standard_chromosomes**:\nFilter out non-standard\nchromosomes]]
+    remove_non_standard_chromosomes[[**remove_non_standard_chromosomes**:\nFilter out non-standard\nchromosomes]]
 
-      calculate_sample_relatedness[[**calculate_sample_relatedness**:\nCalculate relatedness]]
-  
-      remove_related_samples[[**remove_related_samples**:\nremove a given list of]]
+    calculate_sample_relatedness[[**calculate_sample_relatedness**:\nCalculate relatedness]]
 
-      extract_provided_coordinates[[**extract_provided_coordinates**:\nTrim the dataset to one of\nthe studied regions]]
+    remove_related_samples[[**remove_related_samples**:\nremove a given list of]]
 
-      report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**:\nPerform frequency analysis across each cluster]]
+    extract_provided_coordinates[[**extract_provided_coordinates**:\nTrim the dataset to one of\nthe studied regions]]
 
-      report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**: Perform HWE analysis across each cluster]]
+    report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**:\nPerform frequency analysis across each cluster]]
 
-      report_missingness_per_cluster[[**report_missingness_per_cluster**: Report the missingness rates observed across each cluster]]
+    report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**: Perform HWE analysis across each cluster]]
 
-      collect_variant_frequency[[**collect_variant_frequency**: Collect cluster-level variant frequency reports into one]]
+    report_missingness_per_cluster[[**report_missingness_per_cluster**: Report the missingness rates observed across each cluster]]
 
-      report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**: Perform Fishers-Exact test with Bonferonni correction]]
+    collect_variant_frequency[[**collect_variant_frequency**: Collect cluster-level variant frequency reports into one]]
 
-      collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**: Collect the HWE reports for autosomal locations]]
+    report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**: Perform Fishers-Exact test with Bonferonni correction]]
 
-      collect_variant_missingness[[**collect_variant_missingness**: Collect all per-cluster variant missingness reports into one]]
+    collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**: Collect the HWE reports for autosomal locations]]
 
-      collect_variant_count[[**collect_variant_count**: Collect all per-cluster variant count reports into one]]
+    collect_variant_missingness[[**collect_variant_missingness**: Collect all per-cluster variant missingness reports into one]]
 
-      query_variant_effect_predictions[[**query_variant_effect_predictions**: Perform API calls to E! Ensemble REST API to identify variants]]
+    collect_variant_count[[**collect_variant_count**: Collect all per-cluster variant count reports into one]]
 
-      compile_variant_effect_predictions[[**compile_variant_effect_predictions**: Collect the RAW API payloads and extract relevant metrics]]
+    query_variant_effect_predictions[[**query_variant_effect_predictions**: Perform API calls to E! Ensemble REST API to identify variants]]
 
-      consolidate_reports[[**consolidate_reports**: Consolidate all the generated reports into one]]
+    compile_variant_effect_predictions[[**compile_variant_effect_predictions**: Collect the RAW API payloads and extract relevant metrics]]
 
-      class format_sample_metadata,query_variant_effect_predictions,compile_variant_effect_predictions,collect_autosomal_hardy_weinberg,collect_variant_count,collect_variant_frequency,collect_variant_missingness,report_fishers_exact_with_corrections,consolidate_reports python;
+    consolidate_reports[[**consolidate_reports**: Consolidate all the generated reports into one]]
 
-      class convert_to_pgen,verify_records_against_reference_genome,filter_variant_missingness,filter_sample_missingness,remove_non_standard_chromosomes,remove_unknown_samples,calculate_sample_relatedness,remove_related_samples,extract_provided_coordinates,report_count_partitioned_per_cluster,report_hardy_weinberg_per_cluster,report_missingness_per_cluster plink;
+    class format_sample_metadata,query_variant_effect_predictions,compile_variant_effect_predictions,collect_autosomal_hardy_weinberg,collect_variant_count,collect_variant_frequency,collect_variant_missingness,report_fishers_exact_with_corrections,consolidate_reports python;
 
-      subgraph multipleVcfProtocol [Multiple dataset protocol]
+    class convert_to_pgen,verify_records_against_reference_genome,filter_variant_missingness,filter_sample_missingness,remove_non_standard_chromosomes,remove_unknown_samples,calculate_sample_relatedness,remove_related_samples,extract_provided_coordinates,report_count_partitioned_per_cluster,report_hardy_weinberg_per_cluster,report_missingness_per_cluster plink;
+
+    subgraph multipleVcfProtocol [Multiple dataset protocol]
         direction LR
         multipleVcfProtocolStart(((Start)))
         ifMergeRequired{Is a \nmerge needed?}
@@ -116,55 +116,55 @@ A breakdown of the methodology and softwares used in this workflow.
         multipleVcfProtocolStart --> ifMergeRequired
         ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
         ifMergeRequired --> |No| multipleVcfProtocolEnd
-      end
+    end
 
-      format_sample_metadata --> remove_unknown_samples 
-      format_sample_metadata --> convert_to_pgen
-      
-      multipleVcfProtocol --> convert_to_pgen --> verify_records_against_reference_genome --> remove_non_standard_chromosomes --> remove_unknown_samples --> filter_variant_missingness --> 
-      
+    format_sample_metadata --> remove_unknown_samples 
+    format_sample_metadata --> convert_to_pgen
+    
+    multipleVcfProtocol --> convert_to_pgen --> verify_records_against_reference_genome --> remove_non_standard_chromosomes --> remove_unknown_samples --> filter_variant_missingness --> 
+    
 
-      filter_sample_missingness --> calculate_sample_relatedness --> remove_related_samples
+    filter_sample_missingness --> calculate_sample_relatedness --> remove_related_samples
 
-      remove_related_samples --> extract_provided_coordinates
+    remove_related_samples --> extract_provided_coordinates
 
-      extract_provided_coordinates --> report_count_partitioned_per_cluster & report_hardy_weinberg_per_cluster & report_missingness_per_cluster & report_fishers_exact_with_corrections & query_variant_effect_predictions
+    extract_provided_coordinates --> report_count_partitioned_per_cluster & report_hardy_weinberg_per_cluster & report_missingness_per_cluster & report_fishers_exact_with_corrections & query_variant_effect_predictions
 
-      query_variant_effect_predictions --> compile_variant_effect_predictions
+    query_variant_effect_predictions --> compile_variant_effect_predictions
 
-      extract_provided_coordinates & report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
-      
-      extract_provided_coordinates & report_missingness_per_cluster --> collect_variant_missingness
-      
-      extract_provided_coordinates & report_count_partitioned_per_cluster --> collect_variant_frequency
+    extract_provided_coordinates & report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
+    
+    extract_provided_coordinates & report_missingness_per_cluster --> collect_variant_missingness
+    
+    extract_provided_coordinates & report_count_partitioned_per_cluster --> collect_variant_frequency
 
-      report_count_partitioned_per_cluster --> collect_variant_count
+    report_count_partitioned_per_cluster --> collect_variant_count
 
-      
+    
 
-      extract_provided_coordinates & collect_variant_frequency & collect_variant_count & collect_autosomal_hardy_weinberg & collect_variant_missingness & compile_variant_effect_predictions --> consolidate_reports
+    extract_provided_coordinates & collect_variant_frequency & collect_variant_count & collect_autosomal_hardy_weinberg & collect_variant_missingness & compile_variant_effect_predictions --> consolidate_reports
 
-      report_fishers_exact_with_corrections --> consolidate_reports
-
-
-      
-      
+    report_fishers_exact_with_corrections --> consolidate_reports
 
 
-  end 
-  subgraph ValidateVcfWorkflow [Validate VCF Workflow]
-      wipeInfo[[**wipeInfo**:\nRemove INFO column for\ncomputational processing\n efficiency]]
-      normalize[[**normalize**:\nNormalize all SNPs]]
-      sort[[**sort**:\nEnsure correct variant order]]
-      filter[[**filter**:\nRemove all variants\nexcept SNPs]]
-      annotate[[**annotate**:\nAnnotate VCF against given\nreference VCF such as \n dbSNP, and rename any\nunknown variants.]]
+    
+    
 
-      tabix[[**tabix**: Generate tabix-index for targeted decompression]]
 
-      class tabix tabix;
-      class wipeInfo,normalize,sort,filter,annotate bcftools;
+end 
+subgraph ValidateVcfWorkflow [Validate VCF Workflow]
+    wipeInfo[[**wipeInfo**:\nRemove INFO column for\ncomputational processing\n efficiency]]
+    normalize[[**normalize**:\nNormalize all SNPs]]
+    sort[[**sort**:\nEnsure correct variant order]]
+    filter[[**filter**:\nRemove all variants\nexcept SNPs]]
+    annotate[[**annotate**:\nAnnotate VCF against given\nreference VCF such as \n dbSNP, and rename any\nunknown variants.]]
 
-      subgraph liftoverProtocol [Liftover]
+    tabix[[**tabix**: Generate tabix-index for targeted decompression]]
+
+    class tabix tabix;
+    class wipeInfo,normalize,sort,filter,annotate bcftools;
+
+    subgraph liftoverProtocol [Liftover]
         direction LR
         liftoverProtocolStart(((Start)))
         liftover[[liftover:\nPerform reference genome\nliftover]]
@@ -174,45 +174,45 @@ A breakdown of the methodology and softwares used in this workflow.
         liftoverProtocolStart --> ifLiftoverRequired
         ifLiftoverRequired --> |yes| liftover --> liftoverProtocolEnd
         ifLiftoverRequired --> |no| liftoverProtocolEnd
-      class liftover gatk;
-      end
+        class liftover gatk;
+    end
 
-      tabix --> wipeInfo & normalize & sort & filter & annotate
-      wipeInfo --> normalize --> sort --> filter --> annotate --> liftoverProtocol
-  end
-  subgraph PopulationStructureWorkflow [Population Structure Workflow]
-      remove_rare_variants[[**remove_rare_variants**: Remove all variants which are not good indicators of population structure by nature]]
+    tabix --> wipeInfo & normalize & sort & filter & annotate
+    wipeInfo --> normalize --> sort --> filter --> annotate --> liftoverProtocol
+end
+subgraph PopulationStructureWorkflow [Population Structure Workflow]
+    remove_rare_variants[[**remove_rare_variants**: Remove all variants which are not good indicators of population structure by nature]]
 
-      plinkPca[[**Plink_PCA**:\nPerform a PLINK-2.0 PCA]]
-      
-      plinkPed[[**plinkPed**:\nConvert to PLINK-1.9's PED\n format]]
-      
-      fetchPedLables[[**fetchPedLables**:\nGenerate Ind2Pop sample annotations\n file]]
-      
-      Admixture[[**Admixture**:\nPerform an admixture analysis]]
-      
-      report_fixation_index_per_cluster[[**report_fixation_index_per_cluster**: Report Fixation-index for the provided clusters]]
+    plinkPca[[**Plink_PCA**:\nPerform a PLINK-2.0 PCA]]
+    
+    plinkPed[[**plinkPed**:\nConvert to PLINK-1.9's PED\n format]]
+    
+    fetchPedLables[[**fetchPedLables**:\nGenerate Ind2Pop sample annotations\n file]]
+    
+    Admixture[[**Admixture**:\nPerform an admixture analysis]]
+    
+    report_fixation_index_per_cluster[[**report_fixation_index_per_cluster**: Report Fixation-index for the provided clusters]]
 
-      class remove_rare_variants,plinkPca,plinkPed,report_fixation_index_per_cluster plink;
-      class Admixture admixture;
-      class fetchPedLables python;
+    class remove_rare_variants,plinkPca,plinkPed,report_fixation_index_per_cluster plink;
+    class Admixture admixture;
+    class fetchPedLables python;
 
-      
-      format_sample_metadata --> remove_rare_variants 
+    
+    format_sample_metadata --> remove_rare_variants 
 
-      remove_related_samples --> remove_rare_variants --> plinkPca & plinkPed & report_fixation_index_per_cluster
-      plinkPed --> fetchPedLables --> Admixture
+    remove_related_samples --> remove_rare_variants --> plinkPca & plinkPed & report_fixation_index_per_cluster
+    plinkPed --> fetchPedLables --> Admixture
 
-  end
+end
 
-  liftoverProtocol --> multipleVcfProtocol
+liftoverProtocol --> multipleVcfProtocol
 
-  END((Results))
+END((Results))
 
-  Admixture --> END
-  plinkPca --> END
-  consolidate_reports --> END
-  report_fixation_index_per_cluster --> END
+Admixture --> END
+plinkPca --> END
+report_fixation_index_per_cluster --> END
+consolidate_reports --> END
   ```
 
 </details>
@@ -221,12 +221,16 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>wipeInfo</code>
+    <code>clear_annotations</code>
   </summary>
   
   ```mermaid
   flowchart TD
-    wipeInfo[[wipeInfo:\nRemove INFO column for\ncomputational processing\n efficiency]]
+  
+    clear_annotations[[clear_annotations:\nRemove INFO column for\ncomputational processing\n efficiency]]
+  
+    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+    class clear_annotations bcftools;
   ```
 
   <dl>
@@ -251,12 +255,15 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>normalize</code>
+    <code>normalize_variant_records</code>
   </summary>
   
   ```mermaid
   flowchart TD
-    normalize[[normalize:\nNormalize all SNPs]]
+    normalize_variant_records[[normalize_variant_records:\nNormalize all SNPs]]
+
+    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+    class normalize_variant_records bcftools;
   ```
 
   <dl>
@@ -285,52 +292,18 @@ A breakdown of the methodology and softwares used in this workflow.
   </dl>
 
 </details>
-  
 
 <details markdown="block">
   <summary>
-    <code>sort</code>
+    <code>filter_variant_types</code>
   </summary>
   
   ```mermaid
   flowchart TD
-    sort[[sort:\nEnsure correct variant order]]
-  ```
-
-  This rule is responsible for sorting variants according to position, relative to the provided reference genome. This is important for downstream analysis which assumes ordered variants.
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      To sort variants according to position, relative to the provided reference genome. This is important for downstream analysis which assumes ordered variants.</dd>
-      <dt>Command</dt>
-      <dd><code>bcftools sort -m {params.memory} -T results/PREP/{wildcards.dataset_name} -O z -o {output.vcf} < {input.vcf}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>-m {params.memory} </code></dt>
-          <dd>Provide a RAM memory available to the <code>bcftools sort</code> command.</dd>
-          <dt><code>-T results/PREP/{wildcards.dataset_name}</code></dt>
-          <dd>Provide a RAM memory available to the <code>bcftools sort</code> command.</dd>
-          <dt><code>-Oz</code></dt>
-          <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-          <dt><code>-o {output.vcf}</code></dt>
-          <dd>Output file.</dd>
-        </dl>
-      </dd>
-    </dl>
+    filter_variant_types[[filter_variant_types:\nRemove all variant types\nexcept SNPs]]
     
-</details>
-  
-
-<details markdown="block">
-  <summary>
-    <code>filter</code>
-  </summary>
-  
-  ```mermaid
-  flowchart TD
-    filter[[filter:\nRemove all variant types\nexcept SNPs]]
+    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+    class filter_variant_types bcftools;
   ```
 
   <dl>
@@ -356,7 +329,45 @@ A breakdown of the methodology and softwares used in this workflow.
 
 </details>
   
+<details markdown="block">
+  <summary>
+    <code>sort_variant_records</code>
+  </summary>
+  
+  ```mermaid
+  flowchart TD
+    sort_variant_records[[sort_variant_records:\nEnsure correct variant order]]
+    
+    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+    class sort_variant_records bcftools;
+  ```
 
+  This rule is responsible for sorting variants according to position, relative to the provided reference genome. This is important for downstream analysis which assumes ordered variants.
+
+  <dl>
+      <dt>Function</dt>
+      <dd>
+      To sort variants according to position, relative to the provided reference genome. This is important for downstream analysis which assumes ordered variants.</dd>
+      <dt>Command</dt>
+      <dd><code>bcftools sort -m {params.memory} -T {params.tmp} -O z -o {output.vcf} < {input.vcf}</code></dd>
+      <dt>Parameters</dt>
+      <dd>
+        <dl>
+          <dt><code>-m {params.memory} </code></dt>
+          <dd>Provide a RAM memory available to the <code>bcftools sort</code> command.</dd>
+          <dt><code>-T {params.tmp}</code></dt>
+          <dd>Provide a location where `bcftools` can make a temporary folder to work from.</dd>
+          <dt><code>-Oz</code></dt>
+          <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
+          <dt><code>-o {output.vcf}</code></dt>
+          <dd>Output file.</dd>
+        </dl>
+      </dd>
+    </dl>
+    
+</details>
+  
+<!-- 
 <details markdown="block">
   <summary>
     <code>annotate</code>
@@ -390,8 +401,8 @@ A breakdown of the methodology and softwares used in this workflow.
       </dd>
     </dl>
 
-</details>
-
+</details> -->
+<!-- 
 <details markdown="block">
   <summary>
     <code>annotateUnknown</code>
@@ -423,59 +434,14 @@ A breakdown of the methodology and softwares used in this workflow.
       </dd>
     </dl>
 
-</details>
+</details> -->
   
-
-<details markdown="block">
-  <summary>
-    <code>liftover</code>*
-  </summary>
-  
-  ```mermaid
-  flowchart TD
-    subgraph liftoverProtocol [Liftover]
-      direction LR
-      liftoverProtocolStart(((Start)))
-      liftover[[liftover:\nPerform reference genome\nliftover]]
-      liftoverProtocolEnd(((End)))
-      ifLiftoverRequired{Is a\nliftover\nrequired?}
-
-      liftoverProtocolStart --> ifLiftoverRequired
-      ifLiftoverRequired --> |yes| liftover --> liftoverProtocolEnd
-      ifLiftoverRequired --> |no| liftoverProtocolEnd
-    end
-  ```
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      To perform reference-genome version liftovers.</dd>
-      <dt>Command</dt>
-      <dd><code>java -jar $PICARD LiftoverVcf I={input.vcf} O={output.vcf} R={params.ref} C={params.chainFile} REJECT={output.rejected}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>I={input.vcf}</code></dt>
-          <dd>Provide the input VCF via parameter.</dd>
-          <dt><code>O={output.vcf}</code></dt>
-          <dd>Provide the output VCF to be written to via parameter.</dd>
-          <dt><code>R={params.ref}</code></dt>
-          <dd>Provide the reference genome to be used during LiftOver</dd>
-          <dt><code>C={params.chainFile}</code></dt>
-          <dd>Provide the chain-file describing the nature of the changes between two reference genome versions.</dd>
-          <dt><code>REJECT={params.chainFile}</code></dt>
-          <dd>Creates a file containing records which could not be lifted over.</dd>
-        </dl>
-      </dd>
-    </dl>
-
-</details>
 
 #### Pharmacogenetics Workflow Rules
 
 <details markdown="block">
   <summary>
-    <code>merge_datasets</code>*
+    <code>format_sample_metadata</code>*
   </summary>
   
   ```mermaid
@@ -490,6 +456,33 @@ A breakdown of the methodology and softwares used in this workflow.
       multipleVcfProtocolStart --> ifMergeRequired
       ifMergeRequired --> |yes| merge_datasets --> multipleVcfProtocolEnd
       ifMergeRequired --> |No| multipleVcfProtocolEnd
+    end
+  ```
+
+</details>
+
+<details markdown="block">
+  <summary>
+    <code>merge_datasets</code>*
+  </summary>
+  
+  ```mermaid
+  flowchart TD
+    subgraph multipleVcfProtocol [Multiple dataset protocol]
+      direction LR
+      
+        classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+        multipleVcfProtocolStart(((Start)))
+        ifMergeRequired{Is a \nmerge needed?}
+        merge_datasets[[**merge_datasets**: \nMerge multiple incoming \ndatasets]]
+
+        normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
+        multipleVcfProtocolEnd(((End)))
+
+        class merge_datasets,normalize_merged_datasets bcftools;
+        multipleVcfProtocolStart --> ifMergeRequired
+        ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
+        ifMergeRequired --> |No| multipleVcfProtocolEnd
     end
   ```
   {: .normal }
@@ -515,13 +508,59 @@ A breakdown of the methodology and softwares used in this workflow.
 
 
 <details markdown="block">
+    <summary>
+        <code>convert_to_pgen</code>
+    </summary>
+
+```mermaid
+flowchart TD
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+
+    convert_to_pgen[[**convert_to_pgen**: \n Convert the VCF fields into Plink-2 binary format]]
+    class convert_to_pgen plink;
+```
+
+<dl>
+    <dt>Function</dt>
+    <dd>To convert text-based VCF files into binary Plink-2 PGEN format which is much more performant.</dd>
+    <dt>command</dt>
+    <dd><code>plink2 --threads {threads} --vcf {input.vcf} --update-sex {input.sample_metadata} --split-par hg38 --allow-extra-chr --make-pgen vzs --out {params.output}</code></dd>
+    <dt>Parameters</dt>
+    <dd>
+        <dl>
+            <dt><code>--threads {threads}</code></dt>
+            <dd>Used to set the number of CPU threads used during this calculation</dd>
+            <dt><code>--vcf {input.vcf}</code></dt>
+            <dd>Used to provide the location of the input file plink needs to work on.</dd>
+            <dt><code>--update-sex {input.sample_metadata}</code></dt>
+            <dd>Used to provide plink with sample annotations for downstream processing and use.</dd>
+            <dt><code>--split-par hg38</code></dt>
+            <dd>Used to indicate to plink to use standard coordinates for build hg38 when trimming off the PAR regions on chromosome X.</dd>
+            <dt><code>--allow-extra-chr</code></dt>
+            <dd>Used to indicate to Plink to expect non-standard chromosomes.</dd>
+            <dt><code>--make-pgen vzs</code></dt>
+            <dd>Used to indicate that output should be compiled in Plink-2 binary format (.pvar, .pgen and .psam files).</dd>
+            <dt><code>--out {params.output}</code></dt>
+            <dd>Used to declare the output location that should be used to create the file. File is specified without extension, which is added by Plink.</dd>
+        </dl>
+    </dd>
+</dl>
+
+</details>
+
+
+<details markdown="block">
   <summary>
     <code>verify_records_against_reference_genome</code>
   </summary>
   
   ```mermaid
   flowchart TD
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+
     verify_records_against_reference_genome[[verify_records_against_reference_genome:\nCheck reference alleles against\nprovided reference genome]]
+
+    class verify_records_against_reference_genome plink;
   ```
 
  <dl>
@@ -529,21 +568,23 @@ A breakdown of the methodology and softwares used in this workflow.
       <dd>
       To check each loci and comparing its listed reference to that provided in the reference genome.</dd>
       <dt>Command</dt>
-      <dd><code>plink2 --vcf {input.vcf} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/verify_records_against_reference_genome</code></dd>
+      <dd><code>plink2 --threads {threads} --pfile {params.input} vzs --fa {params.ref} --ref-from-fa force --allow-extra-chr --make-pgen vzs --out {params.output}</code></dd>
       <dt>Parameters</dt>
       <dd>
         <dl>
-          <dt><code>--vcf {input.vcf}</code></dt>
-          <dd>File path to the input VCF file via parameter.</dd>
+          <dt><code>--threads {threads}</code></dt>
+          <dd>Used to set the number of CPU threads used during this calculation</dd>
+          <dt><code>--pfile {params.input} vzs</code></dt>
+          <dd>Used to provide plink with the location of a plink-2 binary file set (.psam, .pvar and .pgen files), and to expect z-compressed files.</dd>
           <dt><code>--fa {params.ref}</code></dt>
           <dd>File path to reference genome to be used for comparison.</dd>
           <dt><code>--ref-from-fa force</code></dt>
           <dd>Sets REF allele to provided reference FASTA when possible unambiguously (Does not apply to some INDELS)</dd>
           <dt><code>--allow-extra-chr</code></dt>
           <dd>Permits non-standard chromosome codes in input data</dd>
-          <dt><code>--export vcf-4.2 bgz</code></dt>
-          <dd>Save output to a BG-Zipped VCF file using the VCF-4.2 specification.</dd>
-          <dt><code>--out results/COLLATE/refFromFasta</code></dt>
+          <dt><code>--make-pgen zs</code></dt>
+          <dd>Save output to a BG-Zipped pgen binary fileset.</dd>
+          <dt><code>--out {params.output}</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
         </dl>
       </dd>
@@ -558,7 +599,10 @@ A breakdown of the methodology and softwares used in this workflow.
 
   ```mermaid
   flowchart TD
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+
     remove_non_standard_chromosomes[[remove_non_standard_chromosomes:\nFilter out non-standard\nchromosomes]]
+    class remove_non_standard_chromosomes plink;
   ```
 
  <dl>
@@ -619,7 +663,6 @@ A breakdown of the methodology and softwares used in this workflow.
     </dl>
 
 </details>
-
 
 <details markdown="block">
   <summary>
@@ -701,80 +744,6 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>calculateLinkageDisequilibrium</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    calculateLinkageDisequilibrium[[calculateLinkageDisequilibrium:\nCalculate LD associations]]
-  ```
-  
- <dl>
-      <dt>Function</dt>
-      <dd>
-      To calculate and compile a Linkage-Disequilibrium report.</dd>
-      <dt>Command</dt>
-      <dd><code>plink2 --vcf {input} --chr 1-26 --new-id-max-allele-len 1000 --rm-dup exclude-mismatch --indep-pairwise 50 5 0.5 --bad-ld --out {params.output}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>--vcf {input.vcf}</code></dt>
-          <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--chr 1-26</code></dt>
-          <dd>Request a subset of chromosomes to be included in the output file.</dd>
-          <dt><code>--new-id-max-allele-len 1000</code></dt>
-          <dd>Sets a new internal maximum length for variant IDs.</dd>
-          <dt><code>--rm-dup exclude-mismatch</code></dt>
-          <dd>When duplicate IDs are found, remove all entries.</dd>
-          <dt><code>--indep-pairwise 50 5 0.5</code></dt>
-          <dd>Only include variants in approximate linkage equilibrium, using a <code>50</code>-variant window which moves <code>5</code> variants per step and removes variants with an r<sub>2</sub> value greater than <code>0.5</code>.</dd>
-          <dt><code>--bad-ld</code></dt>
-          <dd>Overrides warning for less than 50 sample datasets where LD is not accurate.</dd>
-          <dt><code>--out {params.output}</code></dt>
-          <dd>Provide the file name and path for output creation.</dd>
-        </dl>
-      </dd>
-    </dl>
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>filterLinkageDisequilibrium</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    filterLinkageDisequilibrium[[filterLinkageDisequilibrium:\nRemove variants in LD]]
-  ```
-
- <dl>
-      <dt>Function</dt>
-      <dd>
-      To calculate and compile a Linkage-Disequilibrium report.</dd>
-      <dt>Command</dt>
-      <dd><code>plink2 --allow-extra-chr --vcf {input.vcf} --extract {input.inclusion_list} --export vcf-4.2 bgz --out {params.output}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>--allow-extra-chr</code></dt>
-          <dd>Permits non-standard chromosome codes in input data.</dd>
-          <dt><code>--vcf {input.vcf}</code></dt>
-          <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--extract {input.inclusion_list}</code></dt>
-          <dd>Extracts only the listed samples.</dd>
-          <dt><code>--export vcf-4.2 bgz</code></dt>
-          <dd>Save output to a BG-Zipped VCF file using the VCF-4.2 specification.</dd>
-          <dt><code>--out {params.output}</code></dt>
-          <dd>Provide the file name and path for output creation.</dd>
-        </dl>
-      </dd>
-    </dl>
-
-</details>
-
-<details markdown="block">
-  <summary>
     <code>calculate_sample_relatedness</code>
   </summary>
 
@@ -786,7 +755,7 @@ A breakdown of the methodology and softwares used in this workflow.
  <dl>
       <dt>Function</dt>
       <dd>
-      To calculate and compile am Identity-By-Descent report.</dd>
+      To calculate sample relatedness using a kingship estimator provided by Plink-2.</dd>
       <dt>Command</dt>
       <dd><code>plink --vcf {input} --allow-extra-chr --keep-allele-order --genome --min 0.2 --recode vcf-iid bgz --out {params.output}</code></dd>
       <dt>Parameters</dt>
@@ -806,33 +775,6 @@ A breakdown of the methodology and softwares used in this workflow.
           <dd>Sets output format to a BG-ZIpped VCF with individual-identifiers.</dd>
           <dt><code>--out {params.output}</code></dt>
           <dd>Provide the file name and path for output creation.</dd>
-        </dl>
-      </dd>
-    </dl>
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>calculateSampleIds</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    calculateSampleIds[[calculateSampleIds:\nQuery a list of sample IDs\nfrom the input VCF]]
-  ```
-
- <dl>
-      <dt>Function</dt>
-      <dd>
-      To generate a list of sample IDs.</dd>
-      <dt>Command</dt>
-      <dd><code>bcftools query -l {input} > {output}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>-l {input}</code></dt>
-          <dd>A file containing a list of Sample IDs to keep.</dd>
         </dl>
       </dd>
     </dl>
@@ -1031,4 +973,3 @@ A breakdown of the methodology and softwares used in this workflow.
   ```
 
 </details>
-
