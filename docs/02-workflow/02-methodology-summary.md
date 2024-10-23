@@ -51,57 +51,118 @@ A breakdown of the methodology and softwares used in this workflow.
   subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
       direction BT
 
-      reportFreq[[reportFreq:\nPerform frequency analysis]]
-      filterRequestedSamples[[filterRequestedSamples:\nSubset samples to labeled\nsamples in metadata files]]
-      filterVariantMissingness[[filterVariantMissingness:\nFilter variants with 100%\nmissingness]]
-      filterSampleMissingness[[filterSampleMissingness:\nFilter samples with 100%\nmissingness]]
-      refFromFasta[[refFromfasta:\nCheck reference alleles against\nprovided reference genome]]
-      chrFilter[[chrFilter:\nFilter out non-standard\nchromosomes]]
-      writeSampleMetadata[[writeSampleMetadata:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
-      calculateLinkageDisequilibrium[[calculateLinkageDisequilibrium:\nCalculate LD associations]]
-      filterLinkageDisequilibrium[[filterLinkageDisequilibrium:\nRemove variants in LD]]
-      calculateIdentityByDescent[[calculateIdentityByDescent:\nCalculate Identity-By-Descent]]
-      calculateSampleIds[[calculateSampleIds:\nQuery a list of sample IDs\nfrom the input VCF]]
-      filterSampleRelatedness[[filterSampleRelatedness:\nremove a given list of]]
-      filterLocations[[filterLocations:\nTrim the dataset to one of\nthe studied regions]]
+      classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef admixture stroke:#333,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef tabix stroke:#023020,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef gatk stroke:#007FFF,fill:#D3D3D3,stroke-width:4px,color:black;
 
-      convertToPgen[[convertToPgen: \n Convert the VCF fiels into Plink-2 binary format]]
+      format_sample_metadata[[format_sample_metadata:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
 
+      convert_to_pgen[[**convert_to_pgen**: \n Convert the VCF fields into Plink-2 binary format]]
+      remove_unknown_samples[[**remove_unknown_samples**:\nSubset samples to labeled\nsamples in metadata files]]
+      
+      verify_records_against_reference_genome[[**verify_records_against_reference_genome**:\nCheck reference alleles against\nprovided reference genome]]
+      
+      filter_variant_missingness[[**filter_variant_missingness**:\nFilter variants with 100%\nmissingness]]
+      
+      filter_sample_missingness[[**filter_sample_missingness**:\nFilter samples with 100%\nmissingness]]
+
+      remove_non_standard_chromosomes[[**remove_non_standard_chromosomes**:\nFilter out non-standard\nchromosomes]]
+
+      calculate_sample_relatedness[[**calculate_sample_relatedness**:\nCalculate relatedness]]
+  
+      remove_related_samples[[**remove_related_samples**:\nremove a given list of]]
+
+      extract_provided_coordinates[[**extract_provided_coordinates**:\nTrim the dataset to one of\nthe studied regions]]
+
+      report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**:\nPerform frequency analysis across each cluster]]
+
+      report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**: Perform HWE analysis across each cluster]]
+
+      report_missingness_per_cluster[[**report_missingness_per_cluster**: Report the missingness rates observed across each cluster]]
+
+      collect_variant_frequency[[**collect_variant_frequency**: Collect cluster-level variant frequency reports into one]]
+
+      report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**: Perform Fishers-Exact test with Bonferonni correction]]
+
+      collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**: Collect the HWE reports for autosomal locations]]
+
+      collect_variant_missingness[[**collect_variant_missingness**: Collect all per-cluster variant missingness reports into one]]
+
+      collect_variant_count[[**collect_variant_count**: Collect all per-cluster variant count reports into one]]
+
+      query_variant_effect_predictions[[**query_variant_effect_predictions**: Perform API calls to E! Ensemble REST API to identify variants]]
+
+      compile_variant_effect_predictions[[**compile_variant_effect_predictions**: Collect the RAW API payloads and extract relevant metrics]]
+
+      consolidate_reports[[**consolidate_reports**: Consolidate all the generated reports into one]]
+
+      class format_sample_metadata,query_variant_effect_predictions,compile_variant_effect_predictions,collect_autosomal_hardy_weinberg,collect_variant_count,collect_variant_frequency,collect_variant_missingness,report_fishers_exact_with_corrections,consolidate_reports python;
+
+      class convert_to_pgen,verify_records_against_reference_genome,filter_variant_missingness,filter_sample_missingness,remove_non_standard_chromosomes,remove_unknown_samples,calculate_sample_relatedness,remove_related_samples,extract_provided_coordinates,report_count_partitioned_per_cluster,report_hardy_weinberg_per_cluster,report_missingness_per_cluster plink;
 
       subgraph multipleVcfProtocol [Multiple dataset protocol]
         direction LR
         multipleVcfProtocolStart(((Start)))
         ifMergeRequired{Is a \nmerge needed?}
-        mergeDatasets[[mergeDatasets:\nMerge multiple incoming\ndatasets]]
+        merge_datasets[[**merge_datasets**: \nMerge multiple incoming \ndatasets]]
+
+        normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
         multipleVcfProtocolEnd(((End)))
 
+        class merge_datasets,normalize_merged_datasets bcftools;
         multipleVcfProtocolStart --> ifMergeRequired
-        ifMergeRequired --> |yes| mergeDatasets --> multipleVcfProtocolEnd
+        ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
         ifMergeRequired --> |No| multipleVcfProtocolEnd
       end
 
+      format_sample_metadata --> remove_unknown_samples 
+      format_sample_metadata --> convert_to_pgen
       
-      multipleVcfProtocol --> refFromFasta --> chrFilter --> filterRequestedSamples --> filterVariantMissingness --> filterSampleMissingness --> calculateLinkageDisequilibrium
-      
-      filterSampleMissingness & calculateLinkageDisequilibrium --> filterLinkageDisequilibrium
-
-      filterLinkageDisequilibrium --> calculateIdentityByDescent --> calculateSampleIds
-
-      filterLinkageDisequilibrium & calculateSampleIds --> filterSampleRelatedness
-
-      filterSampleRelatedness --> filterLocations --> reportFreq
-      
+      multipleVcfProtocol --> convert_to_pgen --> verify_records_against_reference_genome --> remove_non_standard_chromosomes --> remove_unknown_samples --> filter_variant_missingness --> 
       
 
-      writeSampleMetadata --> reportFreq
+      filter_sample_missingness --> calculate_sample_relatedness --> remove_related_samples
+
+      remove_related_samples --> extract_provided_coordinates
+
+      extract_provided_coordinates --> report_count_partitioned_per_cluster & report_hardy_weinberg_per_cluster & report_missingness_per_cluster & report_fishers_exact_with_corrections & query_variant_effect_predictions
+
+      query_variant_effect_predictions --> compile_variant_effect_predictions
+
+      extract_provided_coordinates & report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
+      
+      extract_provided_coordinates & report_missingness_per_cluster --> collect_variant_missingness
+      
+      extract_provided_coordinates & report_count_partitioned_per_cluster --> collect_variant_frequency
+
+      report_count_partitioned_per_cluster --> collect_variant_count
+
+      
+
+      extract_provided_coordinates & collect_variant_frequency & collect_variant_count & collect_autosomal_hardy_weinberg & collect_variant_missingness & compile_variant_effect_predictions --> consolidate_reports
+
+      report_fishers_exact_with_corrections --> consolidate_reports
+
+
+      
+      
+
 
   end 
   subgraph ValidateVcfWorkflow [Validate VCF Workflow]
-      wipeInfo[[wipeInfo:\nRemove INFO column for\ncomputational processing\n efficiency]]
-      normalize[[normalize:\nNormalize all SNPs]]
-      sort[[sort:\nEnsure correct variant order]]
-      filter[[filter:\nRemove all variants\nexcept SNPs]]
-      annotate[[annotate:\nAnnotate VCF against given\nreference VCF such as \n dbSNP, and rename any\nunknown variants.]]
+      wipeInfo[[**wipeInfo**:\nRemove INFO column for\ncomputational processing\n efficiency]]
+      normalize[[**normalize**:\nNormalize all SNPs]]
+      sort[[**sort**:\nEnsure correct variant order]]
+      filter[[**filter**:\nRemove all variants\nexcept SNPs]]
+      annotate[[**annotate**:\nAnnotate VCF against given\nreference VCF such as \n dbSNP, and rename any\nunknown variants.]]
+
+      tabix[[**tabix**: Generate tabix-index for targeted decompression]]
+
+      class tabix tabix;
+      class wipeInfo,normalize,sort,filter,annotate bcftools;
 
       subgraph liftoverProtocol [Liftover]
         direction LR
@@ -113,18 +174,34 @@ A breakdown of the methodology and softwares used in this workflow.
         liftoverProtocolStart --> ifLiftoverRequired
         ifLiftoverRequired --> |yes| liftover --> liftoverProtocolEnd
         ifLiftoverRequired --> |no| liftoverProtocolEnd
+      class liftover gatk;
       end
 
+      tabix --> wipeInfo & normalize & sort & filter & annotate
       wipeInfo --> normalize --> sort --> filter --> annotate --> liftoverProtocol
   end
   subgraph PopulationStructureWorkflow [Population Structure Workflow]
-      plinkPca[[Plink_PCA:\nPerform a PLINK-2.0 PCA]]
-      plinkPed[[plinkPed:\nConvert to PLINK-1.9's PED\n format]]
-      fetchPedLables[[fetchPedLables:\nGenerate Ind2Pop sample annotations\n file]]
-      Admixture[[Admixture:\nPerform an admixture analysis]]
+      remove_rare_variants[[**remove_rare_variants**: Remove all variants which are not good indicators of population structure by nature]]
 
+      plinkPca[[**Plink_PCA**:\nPerform a PLINK-2.0 PCA]]
+      
+      plinkPed[[**plinkPed**:\nConvert to PLINK-1.9's PED\n format]]
+      
+      fetchPedLables[[**fetchPedLables**:\nGenerate Ind2Pop sample annotations\n file]]
+      
+      Admixture[[**Admixture**:\nPerform an admixture analysis]]
+      
+      report_fixation_index_per_cluster[[**report_fixation_index_per_cluster**: Report Fixation-index for the provided clusters]]
+
+      class remove_rare_variants,plinkPca,plinkPed,report_fixation_index_per_cluster plink;
+      class Admixture admixture;
+      class fetchPedLables python;
+
+      
+      format_sample_metadata --> remove_rare_variants 
+
+      remove_related_samples --> remove_rare_variants --> plinkPca & plinkPed & report_fixation_index_per_cluster
       plinkPed --> fetchPedLables --> Admixture
-      filterSampleRelatedness --> plinkPca & plinkPed
 
   end
 
@@ -134,9 +211,8 @@ A breakdown of the methodology and softwares used in this workflow.
 
   Admixture --> END
   plinkPca --> END
-  reportFreq --> END
-  calculateIdentityByDescent --> END
-  calculateLinkageDisequilibrium --> END
+  consolidate_reports --> END
+  report_fixation_index_per_cluster --> END
   ```
 
 </details>
@@ -399,7 +475,7 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>mergeDatasets</code>*
+    <code>merge_datasets</code>*
   </summary>
   
   ```mermaid
@@ -408,11 +484,11 @@ A breakdown of the methodology and softwares used in this workflow.
       direction LR
       multipleVcfProtocolStart(((Start)))
       ifMergeRequired{Is a \nmerge needed?}
-      mergeDatasets[[mergeDatasets:\nMerge multiple incoming\ndatasets]]
+      merge_datasets[[merge_datasets:\nMerge multiple incoming\ndatasets]]
       multipleVcfProtocolEnd(((End)))
 
       multipleVcfProtocolStart --> ifMergeRequired
-      ifMergeRequired --> |yes| mergeDatasets --> multipleVcfProtocolEnd
+      ifMergeRequired --> |yes| merge_datasets --> multipleVcfProtocolEnd
       ifMergeRequired --> |No| multipleVcfProtocolEnd
     end
   ```
@@ -440,12 +516,12 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>refFromFasta</code>
+    <code>verify_records_against_reference_genome</code>
   </summary>
   
   ```mermaid
   flowchart TD
-    refFromFasta[[refFromfasta:\nCheck reference alleles against\nprovided reference genome]]
+    verify_records_against_reference_genome[[verify_records_against_reference_genome:\nCheck reference alleles against\nprovided reference genome]]
   ```
 
  <dl>
@@ -453,7 +529,7 @@ A breakdown of the methodology and softwares used in this workflow.
       <dd>
       To check each loci and comparing its listed reference to that provided in the reference genome.</dd>
       <dt>Command</dt>
-      <dd><code>plink2 --vcf {input.vcf} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/refFromFasta</code></dd>
+      <dd><code>plink2 --vcf {input.vcf} --fa {params.ref} --ref-from-fa force --allow-extra-chr --export vcf-4.2 bgz --out results/COLLATE/verify_records_against_reference_genome</code></dd>
       <dt>Parameters</dt>
       <dd>
         <dl>
@@ -477,12 +553,12 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>chrFilter</code>
+    <code>remove_non_standard_chromosomes</code>
   </summary>
 
   ```mermaid
   flowchart TD
-    chrFilter[[chrFilter:\nFilter out non-standard\nchromosomes]]
+    remove_non_standard_chromosomes[[remove_non_standard_chromosomes:\nFilter out non-standard\nchromosomes]]
   ```
 
  <dl>
@@ -515,12 +591,12 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>filterRequestedSamples</code>
+    <code>remove_unknown_samples</code>
   </summary>
 
   ```mermaid
   flowchart TD
-    filterRequestedSamples[[filterRequestedSamples:\nSubset samples to labeled\nsamples in metadata files]]
+    remove_unknown_samples[[remove_unknown_samples:\nSubset samples to labeled\nsamples in metadata files]]
   ```
 
  <dl>
@@ -547,12 +623,12 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>filterVariantMissingness</code>
+    <code>filter_variant_missingness</code>
   </summary>
 
   ```mermaid
   flowchart TD
-    filterVariantMissingness[[filterVariantMissingness:\nFilter variants with 100%\nmissingness]]
+    filter_variant_missingness[[filter_variant_missingness:\nFilter variants with 100%\nmissingness]]
   ```
 
  <dl>
@@ -586,12 +662,12 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>filterSampleMissingness</code>
+    <code>filter_sample_missingness</code>
   </summary>
 
   ```mermaid
   flowchart TD
-    filterSampleMissingness[[filterSampleMissingness:\nFilter samples with 100%\nmissingness]]
+    filter_sample_missingness[[filter_sample_missingness:\nFilter samples with 100%\nmissingness]]
   ```
 
  <dl>
@@ -699,12 +775,12 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>calculateIdentityByDescent</code>
+    <code>calculate_sample_relatedness</code>
   </summary>
 
   ```mermaid
   flowchart TD
-    calculateIdentityByDescent[[calculateIdentityByDescent:\nCalculate Identity-By-Descent]]
+    calculate_sample_relatedness[[calculate_sample_relatedness:\nCalculate Identity-By-Descent]]
   ```
 
  <dl>
@@ -765,12 +841,12 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>filterSampleRelatedness</code>
+    <code>remove_related_samples</code>
   </summary>
 
   ```mermaid
   flowchart TD
-    filterSampleRelatedness[[filterSampleRelatedness:\nremove a given list of samples\nbased on IBD results]]
+    remove_related_samples[[remove_related_samples:\nremove a given list of samples\nbased on IBD results]]
   ```
 
  <dl>
@@ -796,12 +872,12 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>filterLocations</code>
+    <code>extract_provided_coordinates</code>
   </summary>
 
   ```mermaid
   flowchart TD
-    filterLocations[[filterLocations:\nTrim the dataset to one of\nthe studied regions]]
+    extract_provided_coordinates[[extract_provided_coordinates:\nTrim the dataset to one of\nthe studied regions]]
   ```
 
  <dl>
@@ -837,12 +913,12 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>writeSampleMetadata</code>
+    <code>format_sample_metadata</code>
   </summary>
 
   ```mermaid
   flowchart TD
-    writeSampleMetadata[[writeSampleMetadata:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
+    format_sample_metadata[[format_sample_metadata:\nTranspile cluster ownership from\nsample cluster assignment into\ninput format]]
   ```
   
  <dl>
@@ -864,12 +940,12 @@ A breakdown of the methodology and softwares used in this workflow.
 
 <details markdown="block">
   <summary>
-    <code>reportFreq</code>
+    <code>report_count_partitioned_per_cluster</code>
   </summary>
 
   ```mermaid
   flowchart TD
-    reportFreq[[reportFreq:\nPerform frequency analysis]]
+    report_count_partitioned_per_cluster[[report_count_partitioned_per_cluster:\nPerform frequency analysis]]
   ```
 
   <dl>

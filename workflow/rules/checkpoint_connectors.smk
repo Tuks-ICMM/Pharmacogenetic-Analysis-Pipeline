@@ -1,6 +1,6 @@
 
-def collect_report_freq_partitioned_per_cluster(wildcards):
-    checkpoint_output = checkpoints.report_freq_partitioned_per_cluster.get(
+def collect_report_count_partitioned_per_cluster(wildcards):
+    checkpoint_output = checkpoints.report_count_partitioned_per_cluster.get(
         **wildcards
     ).output["files"]
     glob_match = glob_wildcards(
@@ -8,7 +8,7 @@ def collect_report_freq_partitioned_per_cluster(wildcards):
     )
     return expand(
         outputDir(
-            "tmp/{cluster}/{location}/freqByCluster/allele_count.{population}.acount"
+            "tmp/{cluster}/{location}/reported_frequency_per_cluster/allele_count.{population}.acount"
         ),
         cluster=wildcards.cluster,
         location=wildcards.location,
@@ -27,12 +27,12 @@ def collect_calculate_linkage_disequilibrium_per_cluster(wildcards) -> list[str]
 
 
 # def collect_reportFreqPartitionedPerClusterPerMyLocation(wildcards):
-#     checkpoint_output = checkpoints.report_freq_partitioned_per_cluster.get(
+#     checkpoint_output = checkpoints.report_count_partitioned_per_cluster.get(
 #         **wildcards
 #     ).output[0]
 #     return expand(
 #         outputDir(
-#             "tmp/report_freq_partitioned_per_cluster/{cluster}/{location}/allele_count.{population}.acount"
+#             "tmp/report_count_partitioned_per_cluster/{cluster}/{location}/allele_count.{population}.acount"
 #         ),
 #         cluster=wildcards.cluster,
 #         location=wildcards.location,
@@ -49,7 +49,7 @@ def collect_sex_linked_hardy_weinberg_per_cluster(wildcards):
     ).extensions
     return expand(
         outputDir(
-            "tmp/report_freq_partitioned_per_cluster/{cluster}/{location}/allele_count.{population}.hardy.x"
+            "tmp/report_count_partitioned_per_cluster/{cluster}/{location}/allele_count.{population}.hardy.x"
         ),
         cluster=wildcards.cluster,
         location=wildcards.location,
