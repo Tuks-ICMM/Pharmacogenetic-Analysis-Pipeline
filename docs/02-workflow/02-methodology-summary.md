@@ -45,213 +45,155 @@ Piccard
 title: Pharmacogenetics Analysis
 ---
 flowchart TD
-subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
-    direction BT
+  subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
+      direction BT
 
-    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
-    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
-    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-    classDef admixture stroke:#333,fill:#D3D3D3,stroke-width:4px,color:black;
-    classDef tabix stroke:#023020,fill:#D3D3D3,stroke-width:4px,color:black;
-    classDef gatk stroke:#007FFF,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef admixture stroke:#333,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef tabix stroke:#023020,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef gatk stroke:#007FFF,fill:#D3D3D3,stroke-width:4px,color:black;
+      classDef workflow stroke:#fff,fill:#000000,stroke-width:4px,color:white;
 
-    format_sample_metadata[[format_sample_metadata:
-Transpile cluster ownership from
-sample cluster assignment into
-input format]]
+      format_sample_metadata[[format_sample_metadata:
+  Transpile cluster ownership from
+  sample cluster assignment into
+  input format]]
 
-    convert_to_pgen[[**convert_to_pgen**: 
- Convert the VCF fields into Plink-2 binary format]]
-    remove_unknown_samples[[**remove_unknown_samples**:
-Subset samples to labeled
-samples in metadata files]]
-    
-    verify_records_against_reference_genome[[**verify_records_against_reference_genome**:
-Check reference alleles against
-provided reference genome]]
-    
-    filter_variant_missingness[[**filter_variant_missingness**:
-Filter variants with 100%
-missingness]]
-    
-    filter_sample_missingness[[**filter_sample_missingness**:
-Filter samples with 100%
-missingness]]
+      convert_to_pgen[[**convert_to_pgen**: 
+  Convert the VCF fields into Plink-2 binary format]]
+      remove_unknown_samples[[**remove_unknown_samples**:
+  Subset samples to labeled
+  samples in metadata files]]
+      
+      verify_records_against_reference_genome[[**verify_records_against_reference_genome**:
+  Check reference alleles against
+  provided reference genome]]
+      
+      filter_variant_missingness[[**filter_variant_missingness**:
+  Filter variants with 100%
+  missingness]]
+      
+      filter_sample_missingness[[**filter_sample_missingness**:
+  Filter samples with 100%
+  missingness]]
 
-    remove_non_standard_chromosomes[[**remove_non_standard_chromosomes**:
-Filter out non-standard
-chromosomes]]
+      remove_non_standard_chromosomes[[**remove_non_standard_chromosomes**:
+  Filter out non-standard
+  chromosomes]]
 
-    calculate_sample_relatedness[[**calculate_sample_relatedness**:
-Calculate relatedness]]
+      calculate_sample_relatedness[[**calculate_sample_relatedness**:
+  Calculate relatedness]]
 
-    remove_related_samples[[**remove_related_samples**:
-remove a given list of]]
+      remove_related_samples[[**remove_related_samples**:
+  remove a given list of]]
 
-    extract_provided_coordinates[[**extract_provided_coordinates**:
-Trim the dataset to one of
-the studied regions]]
+      extract_provided_coordinates[[**extract_provided_coordinates**:
+  Trim the dataset to one of
+  the studied regions]]
 
-    report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**:
-Perform frequency analysis across each cluster]]
+      report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**:
+  Perform frequency analysis across each cluster]]
 
-    report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**: Perform HWE analysis across each cluster]]
+      report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**: Perform HWE analysis across each cluster]]
 
-    report_missingness_per_cluster[[**report_missingness_per_cluster**: Report the missingness rates observed across each cluster]]
+      report_missingness_per_cluster[[**report_missingness_per_cluster**: Report the missingness rates observed across each cluster]]
 
-    collect_variant_frequency[[**collect_variant_frequency**: Collect cluster-level variant frequency reports into one]]
+      collect_variant_frequency[[**collect_variant_frequency**: Collect cluster-level variant frequency reports into one]]
 
-    report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**: Perform Fishers-Exact test with Bonferonni correction]]
+      report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**: Perform Fishers-Exact test with Bonferonni correction]]
 
-    collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**: Collect the HWE reports for autosomal locations]]
+      collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**: Collect the HWE reports for autosomal locations]]
 
-    collect_variant_missingness[[**collect_variant_missingness**: Collect all per-cluster variant missingness reports into one]]
+      collect_variant_missingness[[**collect_variant_missingness**: Collect all per-cluster variant missingness reports into one]]
 
-    collect_variant_count[[**collect_variant_count**: Collect all per-cluster variant count reports into one]]
+      collect_variant_count[[**collect_variant_count**: Collect all per-cluster variant count reports into one]]
 
-    query_variant_effect_predictions[[**query_variant_effect_predictions**: Perform API calls to E! Ensemble REST API to identify variants]]
+      query_variant_effect_predictions[[**query_variant_effect_predictions**: Perform API calls to E! Ensemble REST API to identify variants]]
 
-    compile_variant_effect_predictions[[**compile_variant_effect_predictions**: Collect the RAW API payloads and extract relevant metrics]]
+      compile_variant_effect_predictions[[**compile_variant_effect_predictions**: Collect the RAW API payloads and extract relevant metrics]]
 
-    consolidate_reports[[**consolidate_reports**: Consolidate all the generated reports into one]]
+      consolidate_reports[[**consolidate_reports**: Consolidate all the generated reports into one]]
 
-    class format_sample_metadata,query_variant_effect_predictions,compile_variant_effect_predictions,collect_autosomal_hardy_weinberg,collect_variant_count,collect_variant_frequency,collect_variant_missingness,report_fishers_exact_with_corrections,consolidate_reports python;
+      class format_sample_metadata,query_variant_effect_predictions,compile_variant_effect_predictions,collect_autosomal_hardy_weinberg,collect_variant_count,collect_variant_frequency,collect_variant_missingness,report_fishers_exact_with_corrections,consolidate_reports python;
 
-    class convert_to_pgen,verify_records_against_reference_genome,filter_variant_missingness,filter_sample_missingness,remove_non_standard_chromosomes,remove_unknown_samples,calculate_sample_relatedness,remove_related_samples,extract_provided_coordinates,report_count_partitioned_per_cluster,report_hardy_weinberg_per_cluster,report_missingness_per_cluster plink;
+      class convert_to_pgen,verify_records_against_reference_genome,filter_variant_missingness,filter_sample_missingness,remove_non_standard_chromosomes,remove_unknown_samples,calculate_sample_relatedness,remove_related_samples,extract_provided_coordinates,report_count_partitioned_per_cluster,report_hardy_weinberg_per_cluster,report_missingness_per_cluster plink;
 
-    subgraph multipleVcfProtocol [Multiple dataset protocol]
-        direction LR
-        multipleVcfProtocolStart(((Start)))
-        ifMergeRequired{Is a 
-merge needed?}
-        merge_datasets[[**merge_datasets**: 
-Merge multiple incoming datasets]]
+      subgraph multipleVcfProtocol [Multiple dataset protocol]
+          direction LR
+          multipleVcfProtocolStart(((Start)))
+          ifMergeRequired{Is a 
+  merge needed?}
+          merge_datasets[[**merge_datasets**: 
+  Merge multiple incoming datasets]]
 
-        normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
-        multipleVcfProtocolEnd(((End)))
+          normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
+          multipleVcfProtocolEnd(((End)))
 
-        class merge_datasets,normalize_merged_datasets bcftools;
-        multipleVcfProtocolStart --> ifMergeRequired
-        ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
-        ifMergeRequired --> |No| multipleVcfProtocolEnd
-    end
+          class merge_datasets,normalize_merged_datasets bcftools;
+          multipleVcfProtocolStart --> ifMergeRequired
+          ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
+          ifMergeRequired --> |No| multipleVcfProtocolEnd
+      end
 
-    format_sample_metadata --> remove_unknown_samples 
-    format_sample_metadata --> convert_to_pgen
-    
-    multipleVcfProtocol --> convert_to_pgen --> verify_records_against_reference_genome --> remove_non_standard_chromosomes --> remove_unknown_samples --> filter_variant_missingness --> 
-    
+      remove_related_samples --> extract_provided_coordinates
+      format_sample_metadata --> extract_provided_coordinates 
+      
+      
+      multipleVcfProtocol --> convert_to_pgen
+      format_sample_metadata --> convert_to_pgen
+      convert_to_pgen --> verify_records_against_reference_genome
+      verify_records_against_reference_genome --> remove_non_standard_chromosomes
+      remove_non_standard_chromosomes --> remove_unknown_samples
+      remove_unknown_samples --> filter_variant_missingness
+      filter_variant_missingness --> filter_sample_missingness
+      
 
-    filter_sample_missingness --> calculate_sample_relatedness --> remove_related_samples
-
-    remove_related_samples --> extract_provided_coordinates
-
-    extract_provided_coordinates --> report_count_partitioned_per_cluster & report_hardy_weinberg_per_cluster & report_missingness_per_cluster & report_fishers_exact_with_corrections & query_variant_effect_predictions
-
-    query_variant_effect_predictions --> compile_variant_effect_predictions
-
-    extract_provided_coordinates & report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
-    
-    extract_provided_coordinates & report_missingness_per_cluster --> collect_variant_missingness
-    
-    extract_provided_coordinates & report_count_partitioned_per_cluster --> collect_variant_frequency
-
-    report_count_partitioned_per_cluster --> collect_variant_count
-
-    
-
-    extract_provided_coordinates & collect_variant_frequency & collect_variant_count & collect_autosomal_hardy_weinberg & collect_variant_missingness & compile_variant_effect_predictions --> consolidate_reports
-
-    report_fishers_exact_with_corrections --> consolidate_reports
+      filter_sample_missingness --> calculate_sample_relatedness --> remove_related_samples
+      filter_sample_missingness --> remove_related_samples
 
 
-    
-    
+
+      extract_provided_coordinates --> report_count_partitioned_per_cluster & report_hardy_weinberg_per_cluster & report_missingness_per_cluster & report_fishers_exact_with_corrections & query_variant_effect_predictions
+
+      query_variant_effect_predictions --> compile_variant_effect_predictions
+
+      extract_provided_coordinates & report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
+      
+      extract_provided_coordinates & report_missingness_per_cluster --> collect_variant_missingness
+      
+      extract_provided_coordinates & report_count_partitioned_per_cluster --> collect_variant_frequency
+
+      report_count_partitioned_per_cluster --> collect_variant_count
+
+      
+
+      extract_provided_coordinates & collect_variant_frequency & collect_variant_count & collect_autosomal_hardy_weinberg & collect_variant_missingness & compile_variant_effect_predictions --> consolidate_reports
+
+      report_fishers_exact_with_corrections --> consolidate_reports
 
 
-end 
-subgraph ValidateVcfWorkflow [Validate VCF Workflow]
-    wipeInfo[[**wipeInfo**:
-Remove INFO column for
-computational processing
- efficiency]]
-    normalize[[**normalize**:
-Normalize all SNPs]]
-    sort[[**sort**:
-Ensure correct variant order]]
-    filter[[**filter**:
-Remove all variants
-except SNPs]]
-    annotate[[**annotate**:
-Annotate VCF against given
-reference VCF such as 
- dbSNP, and rename any
-unknown variants.]]
+      
+      
 
-    tabix[[**tabix**: Generate tabix-index for targeted decompression]]
 
-    class tabix tabix;
-    class wipeInfo,normalize,sort,filter,annotate bcftools;
+  end
 
-    subgraph liftoverProtocol [Liftover]
-        direction LR
-        liftoverProtocolStart(((Start)))
-        liftover[[liftover:
-Perform reference genome
-liftover]]
-        liftoverProtocolEnd(((End)))
-        ifLiftoverRequired{Is a
-liftover
-required?}
+  ValidateVcfWorkflow[\Validate VCF Workflow/]
 
-        liftoverProtocolStart --> ifLiftoverRequired
-        ifLiftoverRequired --> |yes| liftover --> liftoverProtocolEnd
-        ifLiftoverRequired --> |no| liftoverProtocolEnd
-        class liftover gatk;
-    end
+  PopulationStructureWorkflow[\Population Structure Workflow/]
+  class PopulationStructureWorkflow,ValidateVcfWorkflow workflow;
 
-    tabix --> wipeInfo & normalize & sort & filter & annotate
-    wipeInfo --> normalize --> sort --> filter --> annotate --> liftoverProtocol
-end
-subgraph PopulationStructureWorkflow [Population Structure Workflow]
-    remove_rare_variants[[**remove_rare_variants**: Remove all variants which are not good indicators of population structure by nature]]
+  remove_related_samples --> PopulationStructureWorkflow
 
-    plinkPca[[**Plink_PCA**:
-Perform a PLINK-2.0 PCA]]
-    
-    plinkPed[[**plinkPed**:
-Convert to PLINK-1.9's PED
- format]]
-    
-    fetchPedLables[[**fetchPedLables**:
-Generate Ind2Pop sample annotations
- file]]
-    
-    Admixture[[**Admixture**:
-Perform an admixture analysis]]
-    
-    report_fixation_index_per_cluster[[**report_fixation_index_per_cluster**: Report Fixation-index for the provided clusters]]
+  ValidateVcfWorkflow --> multipleVcfProtocol
 
-    class remove_rare_variants,plinkPca,plinkPed,report_fixation_index_per_cluster plink;
-    class Admixture admixture;
-    class fetchPedLables python;
+  END((Results))
 
-    
-    format_sample_metadata --> remove_rare_variants 
+  consolidate_reports --> END
 
-    remove_related_samples --> remove_rare_variants --> plinkPca & plinkPed & report_fixation_index_per_cluster
-    plinkPed --> fetchPedLables --> Admixture
-
-end
-
-liftoverProtocol --> multipleVcfProtocol
-
-END((Results))
-
-Admixture --> END
-plinkPca --> END
-report_fixation_index_per_cluster --> END
-consolidate_reports --> END
+  PopulationStructureWorkflow --> END
   ```
 
 </details>
