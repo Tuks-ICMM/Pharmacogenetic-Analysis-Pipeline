@@ -1,5 +1,5 @@
 module VCFValidation:
-    snakefile: github("Tuks-ICMM/VCF-Validation-Workflow", path="workflow/Snakefile", branch="Parallelize-Contig-processing")
+    snakefile: github("Tuks-ICMM/VCF-Validation-Workflow", path="workflow/Snakefile", branch="main")
     config: config
 
 use rule * from VCFValidation as VCF_Validation_*
@@ -21,8 +21,6 @@ def vcfValidationWorkflowAdapter(extension: str, wildcards) -> list:
     """
     An adapter to generate the correct input list from `VCF Validation Pipeline`. This is required as liftover is optional, making the output files variable.
     """
-
-    print("TYPE: ", type(wildcards))
     merge_list = list()
     merge_list.extend(expand(outputDir("tmp/sort/{contig}/{dataset_name}_sort{extension}"), dataset_name=dataset_name, extension=extension, contig=wildcards.contig))
 

@@ -53,6 +53,9 @@ include: "rules/common.smk"
 # [IMPORT] VCF-Validation-Workflow and override local rules with non-local input from theVCF-Validation-Workflow
 include: "rules/importVcfValidationWorkflow.smk"
 
+# [IMPORT] Population Structure Workflow
+include: "rules/import_population_structure_workflow.smk"
+
 # [IMPORT] Custom functions to connect checkpoints with variable outputs
 include: "rules/checkpoint_connectors.smk"
 
@@ -318,85 +321,6 @@ rule remove_related_samples:
         """
 
 
-rule remove_rare_variants:
-    log: outputDir("tmp/{contig}/removed_rare_variants.log"),
-    benchmark: outputDir("tmp/{contig}/removed_rare_variants.benchmark")
-    wildcard_constraints: # TODO: Make this configurable
-        contig=r"[0-9]{1,2}"
-    params:
-        input=lambda wildcards, input: input["pgen"].replace('.pgen', ""),
-        output=lambda wildcards, output: output["pgen"].replace(".pgen", ""),
-    input:
-        pgen=outputDir("tmp/{contig}/removed_related_samples.pgen"),
-        pvar=outputDir("tmp/{contig}/removed_related_samples.pvar.zst"),
-        psam=outputDir("tmp/{contig}/removed_related_samples.psam"),
-        sample_metadata=outputDir("tmp/formatted_sample_metadata/samples.tsv")
-    output:
-        pgen=outputDir("tmp/{contig}/removed_rare_variants.pgen"),
-        pvar=outputDir("tmp/{contig}/removed_rare_variants.pvar.zst"),
-        psam=outputDir("tmp/{contig}/removed_rare_variants.psam"),
-    threads: workflow.cores * 0.25
-    shell:
-        """
-        plink2 --threads {threads} --pfile {params.input} vzs --pheno {input.sample_metadata} --maf 0.01 --make-pgen vzs --out {params.output} >{log} 2>&1
-        """   
-
-
-checkpoint calculate_linkage_disequilibrium_per_cluster:
-    log: outputDir("linkage_disequilibrium/{cluster}/{location}/calculated_linkage_disequilibrium_per_cluster.log")
-    benchmark: outputDir("linkage_disequilibrium/{cluster}/{location}/calculated_linkage_disequilibrium_per_cluster.benchmark")
-    wildcard_constraints: # TODO: Make this configurable
-        contig=r"[0-9]{1,2}"
-    params:
-        fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "ld_start"].item(),
-        toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "ld_stop"].item(),
-        chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
-        input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
-        output=lambda wildcards: outputDir(f"linkage_disequilibrium/{wildcards.cluster}/{wildcards.location}/calculated_linkage_disequilibrium_per_cluster")
-    wildcard_constraints:
-        cluster=r"[a-zA-Z0-9\-]+",
-        location=r"[a-zA-Z0-9\-]+"
-    input:
-        pgen=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.pgen"),
-        pvar=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.pvar.zst"),
-        psam=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.psam"),
-    output:
-        linkage_report=directory(outputDir("linkage_disequilibrium/{cluster}/{location}/"))
-    threads: workflow.cores * 0.25
-    shell:
-        """
-        plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --r2-unphased yes-really zs cols=chrom,pos,id,ref,alt,provref,maj --ld-window 100000 --out {params.output} >{log} 2>&1
-        """
-
-rule pca:
-    log: outputDir("pca/{location}/pca.log")
-    benchmark: outputDir("pca/{location}/pca.benchmark")
-    wildcard_constraints: # TODO: Make this configurable
-        contig=r"[0-9]{1,2}"
-    params:
-        fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "ld_start"].item(),
-        toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "ld_stop"].item(),
-        chr=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item(),
-        input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
-        output=lambda wildcards: outputDir(f"pca/{wildcards.location}/pca")
-    wildcard_constraints:
-        cluster=r"[a-zA-Z0-9\-]+",
-        location=r"[a-zA-Z0-9\-]+"
-    input:
-        pgen=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.pgen"),
-        pvar=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.pvar.zst"),
-        psam=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_rare_variants.psam"),
-    output:
-        eigenvectors=outputDir("pca/{location}/pca.eigenvec"),
-        eigenvectorsPerAllele=outputDir("pca/{location}/pca.eigenvec.allele"),
-        eigenvalues=outputDir("pca/{location}/pca.eigenval"),
-    threads: workflow.cores * 0.25
-    shell:
-        """
-        plink2 --threads {threads} --pfile {params.input} vzs --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --pca allele-wts --maf 0.1 --out {params.output} >{log} 2>&1
-        """
-
-
 rule extract_provided_coordinates:
     log: outputDir("tmp/{location}/extracted_provided_coordinates.log"),
     benchmark: outputDir("tmp/{location}/extracted_provided_coordinates.benchmark")
@@ -412,6 +336,7 @@ rule extract_provided_coordinates:
         pgen=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_related_samples.pgen"),
         pvar=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_related_samples.pvar.zst"),
         psam=lambda wildcards: outputDir(f"tmp/{locations.loc[locations["location_name"] == wildcards.location, "chromosome"].item()}/removed_related_samples.psam"),
+        sample_metadata=outputDir("tmp/formatted_sample_metadata/samples.tsv")
     output:
         pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
         pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
@@ -419,35 +344,15 @@ rule extract_provided_coordinates:
     threads: workflow.cores * 0.25
     shell:
         """
-        plink2 --threads {threads} --pfile {params.input} vzs --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --make-pgen vzs --out {params.output} >{log} 2>&1
+        plink2 --threads {threads} --pfile {params.input} vzs --pheno {input.sample_metadata} --from-bp {params.fromBP} --to-bp {params.toBP} --chr {params.chr} --make-pgen vzs --out {params.output} >{log} 2>&1
         """
-
-# Redundant implementation.
-# rule report_variant_frequency_by_region:
-#     log: outputDir("tmp/{location}/extracted_provided_coordinates.log"),
-#     benchmark: outputDir("tmp/{location}/extracted_provided_coordinates.benchmark")
-#     params:
-#         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
-#         out=lambda wildcards,output: output["allele_count"].replace(".acount", ""),
-#     input:
-#         pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
-#         pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
-#         psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
-#     output:
-#         allele_count=outputDir("tmp/{location}/All.acount"),
-#     threads: workflow.cores * 0.25
-#     shell:
-#         """
-#         plink2 --threads {threads} --pfile {params.input} vzs --freq counts --out {params.out} >{log} 2>&1
-#         """
-
 
 checkpoint report_count_partitioned_per_cluster:
     log: outputDir("tmp/{cluster}/{location}/reported_frequency_per_cluster/allele_count.log"),
     benchmark: outputDir("tmp/{cluster}/{location}/reported_frequency_per_cluster/allele_count.benchmark")
     params:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
-        output=lambda wildcards: outputDir(f"tmp/{wildcards.cluster}/{wildcards.location}/freqByCluster/allele_count"),
+        output=lambda wildcards: outputDir(f"tmp/{wildcards.cluster}/{wildcards.location}/reported_frequency_per_cluster/allele_count"),
     input:
         pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
         pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
@@ -462,49 +367,6 @@ checkpoint report_count_partitioned_per_cluster:
         """
         plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --freq counts cols=chrom,pos,ref,alt,reffreq,altfreq,nobs --out {params.output} >{log} 2>&1
         """
-
-
-# Redundant code.
-# checkpoint reportHardyWeinbergAllPerLocation:
-#     log: outputDir("tmp/{cluster}/{location}/hardy_weinberg.log"),
-#     benchmark: outputDir("tmp/{cluster}/{location}/hardy_weinberg.benchmark")
-#     params:
-#         input= lambda wildcards, input: input["pgen"].replace(".pgen", ""), 
-#         output=lambda wildcards,output: outputDir(f"tmp/reportHardyWeinbergAllPerLocation/{wildcards.cluster}/{wildcards.location}/hardy_weinberg"),
-#     wildcard_constraints:
-#         cluster=r"[a-zA-Z0-9\-]+",
-#         location=r"[a-zA-Z0-9\-]+"
-#     input:
-#         pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
-#         pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
-#         psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
-#     output:
-#         directory(outputDir("tmp/reportHardyWeinbergAllPerLocation/{cluster}/{location}/")),
-#     threads: workflow.cores * 0.25
-#     shell:
-#         """
-#         plink2 --threads {threads} --pfile {params.input} vzs --hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p --out {params.output} >{log} 2>&1
-#         """
-
-
-# Redundant code.
-# checkpoint report_sex_linked_hardy_weinberg_per_cluster:
-#     log: outputDir("tmp/reportHardyWeinbergAllPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.log"),
-#     benchmark: outputDir("tmp/reportHardyWeinbergAllPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.benchmark")
-#     params:
-#         input= lambda wildcards, input: input["pgen"].replace(".pgen", ""), 
-#         output=lambda wildcards,output: outputDir(f"tmp/reportHardyWeinbergAllPerLocationOnChrX/{wildcards.cluster}/{wildcards.location}/hardy_weinberg"),
-#     input:
-#         pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
-#         pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
-#         psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
-#     output:
-#         outputDir("tmp/reportHardyWeinbergAllPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.hardy.x"),
-#     threads: workflow.cores * 0.25
-#     shell:
-#         """
-#         plink2 --threads {threads} --pfile {params.input} vzs --hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p --out {params.output} >{log} 2>&1
-#         """
 
 
 checkpoint report_hardy_weinberg_per_cluster:
@@ -526,47 +388,6 @@ checkpoint report_hardy_weinberg_per_cluster:
     shell:
         """
         plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p --out {params.output} >{log} 2>&1
-        """
-
-
-rule reportHardyWeinbergPartitionedPerClusterPerLocationOnChrX:
-    log: outputDir("tmp/{cluster}/{location}/hardy_weinberg_x.log"),
-    benchmark: outputDir("tmp/{cluster}/{location}/hardy_weinberg_x.benchmark")
-    params:
-        out=lambda wildcards: outputDir(f"tmp/{wildcards.cluster}/{wildcards.location}/hardy_weinberg_x")
-    wildcard_constraints:
-        cluster=r"[a-zA-Z0-9\-]+",
-        location=r"[a-zA-Z0-9\-]+",
-    input:
-        vcf=outputDir("tmp/{location}/extracted_provided_coordinates.vcf.gz")
-    output:
-        directory(outputDir("tmp/{cluster}/{location}/"))
-    threads: workflow.cores * 0.25
-    shell:
-        """
-        plink2 --threads {threads} --vcf {input.vcf} --loop-cats {wildcards.cluster} --hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p --out {params.out} >{log} 2>&1
-        """
-
-# Move to Population Structure Workflow
-checkpoint report_fixation_index_per_cluster:
-    log: outputDir("fixation_index/{cluster}/{location}/fixation_index_per_cluster.log")
-    benchmark: outputDir("fixation_index/{cluster}/{location}/fixation_index_per_cluster.benchmark")
-    params:
-        input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
-        output=lambda wildcards: outputDir(f"fixation_index/{wildcards.cluster}/{wildcards.location}/fixation_index_per_cluster")
-    wildcard_constraints:
-        cluster=r"[a-zA-Z0-9\-]+",
-        location=r"[a-zA-Z0-9\-]+"
-    input:
-        pgen=outputDir("tmp/{location}/extracted_provided_coordinates.pgen"),
-        pvar=outputDir("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
-        psam=outputDir("tmp/{location}/extracted_provided_coordinates.psam"),
-    output:
-        fixation_report=directory(outputDir("fixation_index/{cluster}/{location}/"))
-    threads: workflow.cores * 0.25
-    shell:
-        """
-        plink2 --threads {threads} --pfile {params.input} vzs --fst {wildcards.cluster} report-variants zs --out {params.output} >{log} 2>&1
         """
 
 
@@ -729,8 +550,4 @@ rule all:
         "logs/ALL/ALL.log",
     input:
         expand(outputDir("consolidated_reports/{cluster}_{location}.csv"), cluster=clusters, location=locations["location_name"]),
-        collect_calculate_linkage_disequilibrium_per_cluster,
-        collect_report_fixation_index_per_cluster,
-        expand(outputDir("pca/{location}/pca.eigenvec"), location=locations["location_name"]),
-        expand(outputDir("pca/{location}/pca.eigenvec.allele"), location=locations["location_name"]),
-        expand(outputDir("pca/{location}/pca.eigenval"), location=locations["location_name"]),
+        rules.population_structure_all.input
