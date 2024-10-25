@@ -1,5 +1,5 @@
 ---
-title: Workflow configuration
+title: Configuration
 layout: page
 permalink: workflow-configuration
 nav_order: 2

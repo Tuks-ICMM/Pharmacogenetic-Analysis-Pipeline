@@ -18,7 +18,7 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: Pharmacogenetics Analysis Pipeline
+title: Population Structure Workflow
 tagline: A snakemake pipeline for variant analysis
 email: graeme.ford@tuks.co.za
 description: >- # this means to ignore newlines until "domain:"
