@@ -34,7 +34,7 @@ Piccard
 
 ---
 
-<details markdown="block">
+<details open markdown="block">
   <summary>
     Rule Map/Diagram
   </summary>
