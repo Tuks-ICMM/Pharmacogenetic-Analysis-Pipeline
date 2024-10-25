@@ -81,7 +81,7 @@ def condel_weighted_score(sift: int, polyphen: int) -> Tuple[int, str]:
             .values[0]
         )
 
-    # This acocunts for number of VEP teests used. Since we are only using 2, we use 2...
+    # This acocunts for number of VEP tests used. Since we are only using 2, we use 2...
     score = score / 2
 
     if score >= 0.469:

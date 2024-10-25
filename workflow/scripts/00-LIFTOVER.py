@@ -16,7 +16,6 @@ __credits__ = [
     "Prof. Fourie Joubert",
     "Antionette Colic",
     "Fatima Barmania",
-    "Sarah Turner",
     "Megan Ryder",
 ]
 __version__ = "1.0.0"

@@ -151,3 +151,12 @@ figures/
 # Antimatch pattern:
 !README.md
 .run.sh
+
+# Any PDF files generated
+*.pdf
+
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+
+Graphs/

@@ -6,11 +6,10 @@ A Python script designed to run Fishers Exact Test with Bonferonni corrections a
 ############ IMPORT DEPENDANCIES ############
 #############################################
 
-from functools import reduce
 from os.path import join
 
 import pandas as pd
-from pandas import merge, read_excel
+from pandas import read_excel
 
 from common.common import directory_exists, save_or_append_to_excel
 
@@ -19,7 +18,6 @@ __credits__ = [
     "Graeme Ford",
     "Prof. Michael S. Pepper",
     "Prof. Fourie Joubert",
-    "Antionette Colic",
     "Fatima Barmania",
     "Megan Ryder",
 ]
@@ -91,7 +89,12 @@ for cluster in CLUSTERS:
 for cluster in CLUSTERS:
     directory_exists(join("..", "..", "results", "FINAL"))
     for gene in GENES:
-        FISHERS_FILTER = " | ".join([f"{REFERENCE_POPULATION}_P_{population} <= 0.05" for population in COMPARISON_POPULATIONS])
+        FISHERS_FILTER = " | ".join(
+            [
+                f"{REFERENCE_POPULATION}_P_{population} <= 0.05"
+                for population in COMPARISON_POPULATIONS
+            ]
+        )
         data_to_save = DATA[cluster][gene].query(
             " | ".join(
                 [
@@ -100,14 +103,21 @@ for cluster in CLUSTERS:
                 ]
             )
         )
-        save_or_append_to_excel(data_to_save, cluster, gene, "ALLELE_FISHERS", "replace")
+        save_or_append_to_excel(
+            data_to_save, cluster, gene, "ALLELE_FISHERS", "replace"
+        )
 # %%
 ############ VEP,ALLELE AND FISHERS SHEET ############
 #####################################################
 for cluster in CLUSTERS:
     directory_exists(join("..", "..", "results", "FINAL"))
     for gene in GENES:
-        FISHERS_FILTER = " | ".join([f"{REFERENCE_POPULATION}_P_{population} <= 0.05" for population in COMPARISON_POPULATIONS])
+        FISHERS_FILTER = " | ".join(
+            [
+                f"{REFERENCE_POPULATION}_P_{population} <= 0.05"
+                for population in COMPARISON_POPULATIONS
+            ]
+        )
         data_to_save = DATA[cluster][gene].query(
             " | ".join(
                 [
@@ -116,5 +126,7 @@ for cluster in CLUSTERS:
                 ]
             )
         )
-        save_or_append_to_excel(data_to_save, cluster, gene, "VEP_ALLELE_FISHERS", "replace")
+        save_or_append_to_excel(
+            data_to_save, cluster, gene, "VEP_ALLELE_FISHERS", "replace"
+        )
 # %%

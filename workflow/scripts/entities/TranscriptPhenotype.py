@@ -1,0 +1,56 @@
+class TranscriptPhenotype:
+    def __init__(
+        self,
+        seq_region_name: str | None = None,
+        end: int | None = None,
+        external_id: str | None = None,
+        source: str | None = None,
+        type: str | None = None,
+        id: str | None = None,
+        strand: str | None = None,
+        phenotype: str | None = None,
+        start: int | None = None,
+        attrib_type: str | None = None,
+        review_status: str | None = None,
+        datelastevaluated: str | None = None,
+        associated_gene: str | None = None,
+        submitter_name: str | None = None,
+        clinvar_clin_sig: str | None = None,
+        variation_names: str | None = None,
+        risk_allele: str | None = None,
+        beta_coef: str | None = None,
+        p_value: int | None = None,
+        mim: int | None = None,
+        pubmed_id: str | None = None,
+        odds_ratio: float | None = None,
+        so_accession: str | None = None,
+        samples_mutation: int | None = None,
+        mutated_samples: int | None = None,
+        samples_tested: int | None = None
+    ):
+        self.seq_region_name = seq_region_name
+        self.end = end
+        self.external_id = external_id
+        self.source = source
+        self.type = type
+        self.id = id
+        self.strand = strand
+        self.phenotype = phenotype
+        self.start = start
+        self.attrib_type = attrib_type
+        self.review_status = review_status
+        self.datelastevaluated = datelastevaluated
+        self.associated_gene = associated_gene
+        self.submitter_name = submitter_name
+        self.clinvar_clin_sig = clinvar_clin_sig
+        self.variation_names = variation_names
+        self.risk_allele = risk_allele
+        self.beta_coef = beta_coef
+        self.p_value = p_value
+        self.mim = mim
+        self.pubmed_id = pubmed_id
+        self.odds_ratio = odds_ratio
+        self.so_accession = so_accession
+        self.samples_mutation = samples_mutation
+        self.mutated_samples = mutated_samples
+        self.samples_tested = samples_tested
