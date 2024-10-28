@@ -1,10 +1,10 @@
 ---
 title: Data input
 layout: page
-permalink: reference-material/data-input
+permalink: quick-reference/data-input
 nav_order: 2
 has_children: false
-parent: Reference material
+parent: Quick Reference
 ---
 
 # Data input

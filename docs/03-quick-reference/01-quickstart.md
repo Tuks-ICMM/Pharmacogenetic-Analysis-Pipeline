@@ -1,10 +1,10 @@
 ---
 title: Quickstart
 layout: page
-permalink: reference-material/quickstart
+permalink: quick-reference/quickstart
 nav_order: 1
 has_children: false
-parent: Reference material
+parent: Quick Reference
 ---
 
 # Quickstart
