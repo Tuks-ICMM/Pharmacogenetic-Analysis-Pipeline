@@ -1,12 +1,12 @@
 ---
-title: Reference material
+title: Quick Reference
 layout: home
-permalink: reference-material
+permalink: quick-reference
 nav_order: 3
 has_children: true
 ---
 
-# Reference material
+# Quick Reference
 {: .no_toc }
 
 A summary of the workflow itself and its analyses, broken down by topic.

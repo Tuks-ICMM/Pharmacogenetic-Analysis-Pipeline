@@ -1,8 +1,9 @@
 ---
-title: Analysis
-permalink: workflow/analysis
+title: Methodology
+permalink: workflow/methodology
 layout: page
 nav_order: 2
+has_children: false
 parent: Workflow
 ---
 

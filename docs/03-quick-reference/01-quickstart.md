@@ -3,6 +3,7 @@ title: Quickstart
 layout: page
 permalink: reference-material/quickstart
 nav_order: 1
+has_children: false
 parent: Reference material
 ---
 

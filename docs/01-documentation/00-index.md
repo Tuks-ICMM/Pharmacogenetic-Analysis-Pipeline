@@ -11,29 +11,20 @@ has_children: true
 Standardising pharmacogenetics analysis for accurate precision medicine
 {: .fs-6 .fw-300 }
 
-<details markdown="block">
-  <summary>
-    Table of contents
-  </summary>
-  {: .text-delta }
-1. TOC
-{:toc}
-</details>
-
 ---
 
 
 This workflow includes a number of tools and processing steps intended to help researchers rapidly identify variation of medical interest.
 
-### Use-Cases
+## Use-Cases
 
 This workflow is intended to be used to describe population dynamics and structure, in-so-far as their potential effect on medical outcomes.
 
 Provided you have a gene-region, this workflow is intended to be able to give you insight into the mutations found at that gene-region.
 
-### Goals
+## Goals
 
-The underlying goal behind this workflow is to establish and provide a stable platform on which to iterate over pharmacogenetics analysis techniques. Our goal with this research is to begin beinging stability and direction to the development of standardised testing in the field of personalized medicine. For this reason, a workflow/pipeline is best given the requirement to freeze analyses in a set of finite, edscribable, immutable steps which lends itself strongly to reproducible results.
+The underlying goal behind this workflow is to establish and provide a stable platform on which to iterate over pharmacogenetics analysis techniques in an easy-to-reference and easy-to-expand framework. Our goal with this research is to bring stability and direction to the development of standardised testing in the field of personalized medicine. For this reason, a workflow/pipeline is best given the requirement to freeze analyses in a set of finite, edscribable, immutable steps which lends itself strongly to reproducible results.
 
 <!-- 
 ## Reference Genomes

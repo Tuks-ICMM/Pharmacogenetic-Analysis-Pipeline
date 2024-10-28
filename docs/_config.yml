@@ -62,6 +62,9 @@ callouts:
   normal:
     title: Note
     color: purple
+  highlight:
+    title: Warning
+    color: yellow
 
 # Footer "Edit this page on GitHub" link text
 gh_edit_link: true # show or hide edit this page link
