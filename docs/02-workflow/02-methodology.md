@@ -44,6 +44,9 @@ Piccard
   ```mermaid
 ---
 title: Pharmacogenetics Analysis
+config:
+    flowchart:
+        defaultRenderer: elk
 ---
 flowchart TD
   subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
@@ -57,16 +60,32 @@ flowchart TD
       classDef gatk stroke:#007FFF,fill:#D3D3D3,stroke-width:4px,color:black;
       classDef workflow stroke:#fff,fill:#000000,stroke-width:4px,color:white;
 
-      format_sample_metadata[[format_sample_metadata:
-  Transpile cluster ownership from
-  sample cluster assignment into
-  input format]]
+      subgraph multipleVcfProtocol [Multiple dataset protocol]
+          direction LR
+          multipleVcfProtocolStart(((Start)))
+          ifMergeRequired{Is a 
+  merge needed?}
+          merge_datasets[[**merge_datasets**: 
+  Merge multiple incoming datasets]]
+
+          normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
+          multipleVcfProtocolEnd(((End)))
+
+          class merge_datasets,normalize_merged_datasets bcftools;
+          multipleVcfProtocolStart --> ifMergeRequired
+          ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
+          ifMergeRequired --> |No| multipleVcfProtocolEnd
+      end
 
       convert_to_pgen[[**convert_to_pgen**: 
   Convert the VCF fields into Plink-2 binary format]]
       remove_unknown_samples[[**remove_unknown_samples**:
   Subset samples to labeled
   samples in metadata files]]
+
+      format_sample_metadata[[format_sample_metadata:
+  Transpile cluster ownership from sample cluster assignment into input format]]
+
       
       verify_records_against_reference_genome[[**verify_records_against_reference_genome**:
   Check reference alleles against
@@ -120,23 +139,6 @@ flowchart TD
       class format_sample_metadata,query_variant_effect_predictions,compile_variant_effect_predictions,collect_autosomal_hardy_weinberg,collect_variant_count,collect_variant_frequency,collect_variant_missingness,report_fishers_exact_with_corrections,consolidate_reports python;
 
       class convert_to_pgen,verify_records_against_reference_genome,filter_variant_missingness,filter_sample_missingness,remove_non_standard_chromosomes,remove_unknown_samples,calculate_sample_relatedness,remove_related_samples,extract_provided_coordinates,report_count_partitioned_per_cluster,report_hardy_weinberg_per_cluster,report_missingness_per_cluster plink;
-
-      subgraph multipleVcfProtocol [Multiple dataset protocol]
-          direction LR
-          multipleVcfProtocolStart(((Start)))
-          ifMergeRequired{Is a 
-  merge needed?}
-          merge_datasets[[**merge_datasets**: 
-  Merge multiple incoming datasets]]
-
-          normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
-          multipleVcfProtocolEnd(((End)))
-
-          class merge_datasets,normalize_merged_datasets bcftools;
-          multipleVcfProtocolStart --> ifMergeRequired
-          ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
-          ifMergeRequired --> |No| multipleVcfProtocolEnd
-      end
 
       remove_related_samples --> extract_provided_coordinates
       format_sample_metadata --> extract_provided_coordinates 
