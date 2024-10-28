@@ -18,11 +18,11 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: Population Structure Workflow
-tagline: A snakemake pipeline for variant analysis
+title: Pharmacogenetics Analysis Workflow
+tagline: A snakemake workflow for variant analysis
 email: graeme.ford@tuks.co.za
 description: >- # this means to ignore newlines until "domain:"
-  A computational pipeline to analyse human variant-call data and perform variant-effect-prediction
+  A computational workflow designed to analyse human variant-call data and perform variant-effect-prediction
 domain: "tuks-icmm.github.io"
 baseurl: "/Pharmacogenetic-Analysis-Pipeline" # the subpath of your site, e.g. /blog
 url: "https://tuks-icmm.github.io" # the base hostname & protocol for your site, e.g. http://example.com
