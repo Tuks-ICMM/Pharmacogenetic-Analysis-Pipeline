@@ -5,7 +5,7 @@
 layout: home
 title: Welcome
 permalink: /
-nav_order: 1
+nav_order: 0
 ---
 
 <!-- START - Links, Badges and Markdown Variables -->

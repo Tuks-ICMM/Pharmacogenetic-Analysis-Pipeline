@@ -2,7 +2,7 @@
 title: Workflow
 permalink: workflow
 layout: page
-nav_order: 0
+nav_order: 2
 has_children: true
 ---
 
