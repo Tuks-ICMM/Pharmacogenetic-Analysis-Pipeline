@@ -1,6 +1,6 @@
 ---
-title: Methodology Summary
-permalink: workflow/methodology-summary
+title: Analysis
+permalink: workflow/analysis
 layout: page
 nav_order: 2
 parent: Workflow
@@ -9,7 +9,7 @@ parent: Workflow
 # Methodology
 {: .no_toc }
 
-A breakdown of the methodology and softwares used in this workflow.
+An in-depth overview of each step in the workflow.
 {: .fs-6 .fw-300 }
 
 Plink-2

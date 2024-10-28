@@ -1,6 +1,6 @@
 ---
-title: Data Requirements
-permalink: workflow/data-requirements
+title: Data
+permalink: workflow/data
 layout: page
 nav_order: 1
 parent: Workflow
@@ -9,7 +9,7 @@ parent: Workflow
 # Data Requirements
 {: .no_toc}
 
-What files do I need to provide as inputs for this analysis?
+A summary of the required data and input files needed to run an analysis.
 {: .fs-6 .fw-300 }
 
 Datasets

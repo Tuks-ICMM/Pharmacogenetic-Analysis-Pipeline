@@ -24,15 +24,16 @@ nav_order: 1
 <!-- END - Links, Badges and Markdown Variables -->
 <hr />
 
-Welcome to the <i>{{ site.title }}</i>. This is a development repository and documentation containing instruction and technical discussion on the use of {{ site.title }}. This pipeline was created by <a href="https://github.com/G-kodes" target="_blank">{% avatar G-Kodes size=15 %} Graeme Ford</a> to perform the following core functions:
+Welcome to the <i>{{ site.title }}</i>. This is a documentation site containing instruction and technical discussion on the use of the {{ site.title }}. This pipeline was created by <a href="https://github.com/G-kodes" target="_blank">{% avatar G-Kodes size=15 %} Graeme Ford</a> to perform the following bioinformatics functions:
 
-- Perform VCF Spec validation
-- Merge multiple VCF datasets into one psudo-dataset\*
 - Perform variant frequency analysis
 - Perform variant-effect-prediction
 
 {: .normal }
 > This work is licensed under a [Creative Commons Attribution 4.0 International License][cc-by].
+
+{: .highlight }
+> Previous versions of this workflow also incorperated a liftover-facility. This is no-longer supported. Please perform reference-genome liftover operations prior to analysis.
 
 # Publications and Citations
 
