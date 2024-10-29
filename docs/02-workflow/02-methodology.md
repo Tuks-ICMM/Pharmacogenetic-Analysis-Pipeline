@@ -258,7 +258,7 @@ A python script which uses Pandas to convert the provided `samples.csv` into a f
   > The merge rule is protected by a decision tree and only executes when multiple described datasets are detected. This rule is responsible for merging multiple datasets into a single VCF file, suitable for collective analysis.
 
   <details markdown="block">
-    <summary><code>merge_datasets</code</summary>
+    <summary><code>merge_datasets</code></summary>
 
   ```mermaid
   flowchart TD
@@ -286,7 +286,7 @@ A python script which uses Pandas to convert the provided `samples.csv` into a f
   </details>
 
   <details markdown="block">
-    <summary><code>merge_datasets</code</summary>
+    <summary><code>merge_datasets</code></summary>
 
   ```mermaid
   flowchart TD
