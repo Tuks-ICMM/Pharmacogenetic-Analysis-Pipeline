@@ -6,9 +6,9 @@ nav_order: 1
 has_children: true
 ---
 
-# Introduction
+# Documentation
 
-Standardising pharmacogenetics analysis for accurate precision medicine
+Standardizing Pharmacogenetics analysis for accurate precision medicine
 {: .fs-6 .fw-300 }
 
 ---
@@ -24,7 +24,7 @@ Provided you have a gene-region, this workflow is intended to be able to give yo
 
 ## Goals
 
-The underlying goal behind this workflow is to establish and provide a stable platform on which to iterate over pharmacogenetics analysis techniques in an easy-to-reference and easy-to-expand framework. Our goal with this research is to bring stability and direction to the development of standardised testing in the field of personalized medicine. For this reason, a workflow/pipeline is best given the requirement to freeze analyses in a set of finite, edscribable, immutable steps which lends itself strongly to reproducible results.
+The underlying goal behind this workflow is to establish and provide a stable platform on which to iterate over Pharmacogenetics analysis techniques in an easy-to-reference and easy-to-expand framework. Our goal with this research is to bring stability and direction to the development of standardized testing in the field of personalized medicine. For this reason, a workflow/pipeline is best given the requirement to freeze analyses in a set of finite, immutable steps which lends itself strongly to reproducible results.
 
 <!-- 
 ## Reference Genomes

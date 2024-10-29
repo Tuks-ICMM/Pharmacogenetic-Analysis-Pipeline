@@ -49,154 +49,186 @@ config:
         defaultRenderer: elk
 ---
 flowchart TD
-  subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
-      direction BT
+    START(((Start)))
+    ValidateVcfWorkflow[\Validate VCF Workflow/]
+    click ValidateVcfWorkflow href "https://tuks-icmm.github.io/VCF-Validation-Workflow/workflow/methodology" _blank
 
-      classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef admixture stroke:#333,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef tabix stroke:#023020,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef gatk stroke:#007FFF,fill:#D3D3D3,stroke-width:4px,color:black;
-      classDef workflow stroke:#fff,fill:#000000,stroke-width:4px,color:white;
+    START --> ValidateVcfWorkflow
 
-      subgraph multipleVcfProtocol [Multiple dataset protocol]
-          direction LR
-          multipleVcfProtocolStart(((Start)))
-          ifMergeRequired{Is a 
-  merge needed?}
-          merge_datasets[[**merge_datasets**: 
-  Merge multiple incoming datasets]]
+    subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
+        direction BT
 
-          normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
-          multipleVcfProtocolEnd(((End)))
-
-          class merge_datasets,normalize_merged_datasets bcftools;
-          multipleVcfProtocolStart --> ifMergeRequired
-          ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
-          ifMergeRequired --> |No| multipleVcfProtocolEnd
-      end
-
-      convert_to_pgen[[**convert_to_pgen**: 
-  Convert the VCF fields into Plink-2 binary format]]
-      remove_unknown_samples[[**remove_unknown_samples**:
-  Subset samples to labeled
-  samples in metadata files]]
-
-      format_sample_metadata[[format_sample_metadata:
-  Transpile cluster ownership from sample cluster assignment into input format]]
-
-      
-      verify_records_against_reference_genome[[**verify_records_against_reference_genome**:
-  Check reference alleles against
-  provided reference genome]]
-      
-      filter_variant_missingness[[**filter_variant_missingness**:
-  Filter variants with 100%
-  missingness]]
-      
-      filter_sample_missingness[[**filter_sample_missingness**:
-  Filter samples with 100%
-  missingness]]
-
-      remove_non_standard_chromosomes[[**remove_non_standard_chromosomes**:
-  Filter out non-standard
-  chromosomes]]
-
-      calculate_sample_relatedness[[**calculate_sample_relatedness**:
-  Calculate relatedness]]
-
-      remove_related_samples[[**remove_related_samples**:
-  remove a given list of]]
-
-      extract_provided_coordinates[[**extract_provided_coordinates**:
-  Trim the dataset to one of
-  the studied regions]]
-
-      report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**:
-  Perform frequency analysis across each cluster]]
-
-      report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**: Perform HWE analysis across each cluster]]
-
-      report_missingness_per_cluster[[**report_missingness_per_cluster**: Report the missingness rates observed across each cluster]]
-
-      collect_variant_frequency[[**collect_variant_frequency**: Collect cluster-level variant frequency reports into one]]
-
-      report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**: Perform Fishers-Exact test with Bonferonni correction]]
-
-      collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**: Collect the HWE reports for autosomal locations]]
-
-      collect_variant_missingness[[**collect_variant_missingness**: Collect all per-cluster variant missingness reports into one]]
-
-      collect_variant_count[[**collect_variant_count**: Collect all per-cluster variant count reports into one]]
-
-      query_variant_effect_predictions[[**query_variant_effect_predictions**: Perform API calls to E! Ensemble REST API to identify variants]]
-
-      compile_variant_effect_predictions[[**compile_variant_effect_predictions**: Collect the RAW API payloads and extract relevant metrics]]
-
-      consolidate_reports[[**consolidate_reports**: Consolidate all the generated reports into one]]
-
-      class format_sample_metadata,query_variant_effect_predictions,compile_variant_effect_predictions,collect_autosomal_hardy_weinberg,collect_variant_count,collect_variant_frequency,collect_variant_missingness,report_fishers_exact_with_corrections,consolidate_reports python;
-
-      class convert_to_pgen,verify_records_against_reference_genome,filter_variant_missingness,filter_sample_missingness,remove_non_standard_chromosomes,remove_unknown_samples,calculate_sample_relatedness,remove_related_samples,extract_provided_coordinates,report_count_partitioned_per_cluster,report_hardy_weinberg_per_cluster,report_missingness_per_cluster plink;
-
-      remove_related_samples --> extract_provided_coordinates
-      format_sample_metadata --> extract_provided_coordinates 
-      
-      
-      multipleVcfProtocol --> convert_to_pgen
-      format_sample_metadata --> convert_to_pgen
-      convert_to_pgen --> verify_records_against_reference_genome
-      verify_records_against_reference_genome --> remove_non_standard_chromosomes
-      remove_non_standard_chromosomes --> remove_unknown_samples
-      remove_unknown_samples --> filter_variant_missingness
-      filter_variant_missingness --> filter_sample_missingness
-      
-
-      filter_sample_missingness --> calculate_sample_relatedness --> remove_related_samples
-      filter_sample_missingness --> remove_related_samples
+        classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+        classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+        classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+        classDef admixture stroke:#333,fill:#D3D3D3,stroke-width:4px,color:black;
+        classDef tabix stroke:#023020,fill:#D3D3D3,stroke-width:4px,color:black;
+        classDef gatk stroke:#007FFF,fill:#D3D3D3,stroke-width:4px,color:black;
+        classDef workflow stroke:#fff,fill:#000000,stroke-width:4px,color:white;
 
 
+        pharmacogeneticsWorkflow_START(((Start)))
 
-      extract_provided_coordinates --> report_count_partitioned_per_cluster & report_hardy_weinberg_per_cluster & report_missingness_per_cluster & report_fishers_exact_with_corrections & query_variant_effect_predictions
+        subgraph multipleVcfProtocol [Multiple dataset protocol]
+            direction LR
+            multipleVcfProtocolStart(((Start)))
+            ifMergeRequired{Is a 
+    merge needed?}
+            merge_datasets[[**merge_datasets**: 
+    Merge multiple incoming datasets]]
 
-      query_variant_effect_predictions --> compile_variant_effect_predictions
+            normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
+            multipleVcfProtocolEnd(((End)))
 
-      extract_provided_coordinates & report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
-      
-      extract_provided_coordinates & report_missingness_per_cluster --> collect_variant_missingness
-      
-      extract_provided_coordinates & report_count_partitioned_per_cluster --> collect_variant_frequency
+            class merge_datasets,normalize_merged_datasets bcftools;
+            multipleVcfProtocolStart --> ifMergeRequired
+            ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
+            ifMergeRequired --> |No| multipleVcfProtocolEnd
+        end
 
-      report_count_partitioned_per_cluster --> collect_variant_count
+        convert_to_pgen[[**convert_to_pgen**: 
+    Convert the VCF fields into Plink-2 binary format]]
+        remove_unknown_samples[[**remove_unknown_samples**:
+    Subset samples to labeled
+    samples in metadata files]]
 
-      
+        format_sample_metadata[[**format_sample_metadata**:
+    Transpile cluster ownership from sample cluster assignment into input format]]
 
-      extract_provided_coordinates & collect_variant_frequency & collect_variant_count & collect_autosomal_hardy_weinberg & collect_variant_missingness & compile_variant_effect_predictions --> consolidate_reports
+        
+        verify_records_against_reference_genome[[**verify_records_against_reference_genome**:
+    Check reference alleles against
+    provided reference genome]]
+        
+        filter_variant_missingness[[**filter_variant_missingness**:
+    Filter variants with 100%
+    missingness]]
+        
+        filter_sample_missingness[[**filter_sample_missingness**:
+    Filter samples with 100%
+    missingness]]
 
-      report_fishers_exact_with_corrections --> consolidate_reports
+        remove_non_standard_chromosomes[[**remove_non_standard_chromosomes**:
+    Filter out non-standard
+    chromosomes]]
+
+        calculate_sample_relatedness[[**calculate_sample_relatedness**:
+    Calculate relatedness]]
+
+        remove_related_samples[[**remove_related_samples**:
+    remove a given list of]]
+
+        extract_provided_coordinates[[**extract_provided_coordinates**:
+    Trim the dataset to one of the studied regions]]
+
+        subgraph variant_count[Variant Count]
+            variant_count_START(((Start)))
+            variant_count_END(((End)))
+            report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**: 
+            Perform frequency analysis across each cluster]]
+            collect_variant_frequency[[**collect_variant_frequency**: Collect cluster-level variant frequency reports into one]]
+            collect_variant_count[[**collect_variant_count**: Collect all per-cluster variant count reports into one]]
+
+            variant_count_START --> report_count_partitioned_per_cluster & collect_variant_frequency & collect_variant_count
+            report_count_partitioned_per_cluster --> collect_variant_frequency
+            report_count_partitioned_per_cluster --> collect_variant_count
+
+            collect_variant_count & collect_variant_frequency --> variant_count_END
+        end
+
+        subgraph hardy_weinberg[Hardy-Weinberg]
+            hardy_weinberg_START(((Start)))
+            hardy_weinberg_END(((End)))
+            report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**: Perform HWE analysis across each cluster]]
+            collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**: Collect the HWE reports for autosomal locations]]
+
+            hardy_weinberg_START --> report_hardy_weinberg_per_cluster & collect_autosomal_hardy_weinberg
+            report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
+            collect_autosomal_hardy_weinberg --> hardy_weinberg_END
+        end
+
+        subgraph variant_missingness[Variant Missingness]
+            variant_missingness_START(((Start)))
+            variant_missingness_END(((End)))
+            report_missingness_per_cluster[[**report_missingness_per_cluster**: Report the missingness rates observed across each cluster]]
+            collect_variant_missingness[[**collect_variant_missingness**: Collect all per-cluster variant missingness reports into one]]
+
+            variant_missingness_START --> report_missingness_per_cluster & collect_variant_missingness
+            report_missingness_per_cluster --> collect_variant_missingness
+            collect_variant_missingness --> variant_missingness_END
+        end
+
+        subgraph vep[Variant Effect Prediction]
+            vep_START(((Start)))
+            vep_END(((End)))
+            query_variant_effect_predictions[[**query_variant_effect_predictions**: Perform API calls to E! Ensemble REST API to identify variants]]
+            compile_variant_effect_predictions[[**compile_variant_effect_predictions**: Collect the RAW API payloads and extract relevant metrics]]
+            
+            vep_START --> query_variant_effect_predictions & compile_variant_effect_predictions
+            query_variant_effect_predictions --> compile_variant_effect_predictions
+            compile_variant_effect_predictions --> vep_END
+        end
+
+        subgraph fishers_exact[Fishers Exact w/t Bonferoni Correction]
+            fishers_exact_START(((Start)))
+            fishers_exact_END(((End)))
+            report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**: Perform Fishers-Exact test with Bonferonni correction]]
+
+            fishers_exact_START --> report_fishers_exact_with_corrections --> fishers_exact_END
+        end
 
 
-      
-      
 
 
-  end
 
-  ValidateVcfWorkflow[\Validate VCF Workflow/]
 
-  PopulationStructureWorkflow[\Population Structure Workflow/]
-  class PopulationStructureWorkflow,ValidateVcfWorkflow workflow;
+        consolidate_reports[[**consolidate_reports**: Consolidate all the generated reports into one]]
 
-  remove_related_samples --> PopulationStructureWorkflow
+        class format_sample_metadata,query_variant_effect_predictions,compile_variant_effect_predictions,collect_autosomal_hardy_weinberg,collect_variant_count,collect_variant_frequency,collect_variant_missingness,report_fishers_exact_with_corrections,consolidate_reports python;
 
-  ValidateVcfWorkflow --> multipleVcfProtocol
+        class convert_to_pgen,verify_records_against_reference_genome,filter_variant_missingness,filter_sample_missingness,remove_non_standard_chromosomes,remove_unknown_samples,calculate_sample_relatedness,remove_related_samples,extract_provided_coordinates,report_count_partitioned_per_cluster,report_hardy_weinberg_per_cluster,report_missingness_per_cluster plink;
 
-  END((Results))
+        remove_related_samples --> extract_provided_coordinates
+        format_sample_metadata --> extract_provided_coordinates 
+        
+        
+        multipleVcfProtocol --> convert_to_pgen
+        format_sample_metadata --> convert_to_pgen
+        convert_to_pgen --> verify_records_against_reference_genome
+        verify_records_against_reference_genome --> remove_non_standard_chromosomes
+        remove_non_standard_chromosomes --> remove_unknown_samples
+        remove_unknown_samples --> filter_variant_missingness
+        filter_variant_missingness --> filter_sample_missingness
+        
 
-  consolidate_reports --> END
+        filter_sample_missingness --> calculate_sample_relatedness --> remove_related_samples
+        filter_sample_missingness --> remove_related_samples
 
-  PopulationStructureWorkflow --> END
+        query_variant_effect_predictions --> compile_variant_effect_predictions
+
+
+        extract_provided_coordinates --> variant_count & hardy_weinberg & vep & variant_missingness & fishers_exact
+
+        variant_count & hardy_weinberg & vep & variant_missingness & fishers_exact --> consolidate_reports
+    end
+
+
+    PopulationStructureWorkflow[\Population Structure Workflow/]
+    click PopulationStructureWorkflow href "https://tuks-icmm.github.io/Population-Structure-Workflow/workflow/methodology" _blank
+
+    class PopulationStructureWorkflow,ValidateVcfWorkflow workflow;
+
+    remove_related_samples --> PopulationStructureWorkflow
+
+    ValidateVcfWorkflow --> pharmacogeneticsWorkflow
+
+    pharmacogeneticsWorkflow_START --> multipleVcfProtocol & format_sample_metadata
+
+    END((Results))
+
+    consolidate_reports --> END
+
+    PopulationStructureWorkflow --> END
   ```
 
 </details>

@@ -32,7 +32,7 @@ Reference Genome Configuration
 
 ### Plink-2
 
-Plink-2 is used throughout tyhis workflow to conduct various data filtering steps, as wella s in the calculation of results and generation of reports for downstream processing and graphing. Binaries are available which are ready-to-use upon download on the softwares [homepage](https://www.cog-genomics.org/plink/2.0/).
+Plink-2 is used throughout this workflow to conduct various data filtering steps, as well as in the calculation of results and generation of reports for downstream processing and graphing. Binaries are available which are ready-to-use upon download on the softwares [homepage](https://www.cog-genomics.org/plink/2.0/).
 
 {: .highlight }
 > Due to recent changes relating to Hardy-Wienberg calculations, we are currently using commands that are available trhough the Alpha build.
