@@ -214,9 +214,9 @@ flowchart TD
 Below, each rule in the workflow has been broken down and explained for convenience.
 
 <details markdown="block">
-  <summary>
-    <code>format_sample_metadata</code>
-  </summary>
+<summary>
+  <code>format_sample_metadata</code>
+</summary>
   
   ```mermaid
   flowchart TD
@@ -231,7 +231,7 @@ A python script which uses Pandas to convert the provided `samples.csv` into a f
 </details>
 
 <details markdown="block">
-  <summary>merge protocol *</summary>
+<summary>merge protocol *</summary>
   
   ```mermaid
   flowchart TD
@@ -258,7 +258,7 @@ A python script which uses Pandas to convert the provided `samples.csv` into a f
   > The merge rule is protected by a decision tree and only executes when multiple described datasets are detected. This rule is responsible for merging multiple datasets into a single VCF file, suitable for collective analysis.
 
   <details markdown="block">
-    <summary><code>merge_datasets</code></summary>
+  <summary><code>merge_datasets</code></summary>
 
   ```mermaid
   flowchart TD
@@ -270,7 +270,7 @@ A python script which uses Pandas to convert the provided `samples.csv` into a f
 
   <dl>
     <dt>Function</dt>
-    <dd>To perform reference-genome version liftovers.</dd>
+    <dd>Merge multiple incoming VCF files into a single VCF file.</dd>
     <dt>Command</dt>
     <dd><code>bcftools merge -O z -o {output} {input.vcf}</code></dd>
     <dt>Parameters</dt>
@@ -320,9 +320,9 @@ A python script which uses Pandas to convert the provided `samples.csv` into a f
 
 
 <details markdown="block">
-    <summary>
-        <code>convert_to_pgen</code>
-    </summary>
+<summary>
+  <code>convert_to_pgen</code>
+</summary>
 
 ```mermaid
 flowchart TD
