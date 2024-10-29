@@ -35,13 +35,9 @@ Piccard
 
 ---
 
-<details open markdown="block">
-  <summary>
-    Rule Map/Diagram
-  </summary>
-  {: .text-delta }
+## Rule Map/Diagram
 
-  ```mermaid
+```mermaid
 ---
 title: Pharmacogenetics Analysis
 config:
@@ -73,9 +69,9 @@ flowchart TD
             direction LR
             multipleVcfProtocolStart(((Start)))
             ifMergeRequired{Is a <br>merge needed?}
-            merge_datasets[[**merge_datasets**: <br>Merge multiple incoming <br>datasets]]
+            merge_datasets[[<b>merge_datasets</b>: <br>Merge multiple incoming <br>datasets]]
 
-            normalize_merged_datasets[[**normalize_merged_datasets**: <br>normalize any multi-allelic <br>records created by merge]]
+            normalize_merged_datasets[[<b>normalize_merged_datasets</b>: <br>normalize any multi-allelic <br>records created by merge]]
             multipleVcfProtocolEnd(((End)))
 
             class merge_datasets,normalize_merged_datasets bcftools;
@@ -84,32 +80,32 @@ flowchart TD
             ifMergeRequired --> |No| multipleVcfProtocolEnd
         end
 
-        format_sample_metadata[[**format_sample_metadata**: <br>Transpile cluster ownership <br>from sample cluster assignment <br>into input format]]
+        format_sample_metadata[[<b>format_sample_metadata</b>: <br>Transpile cluster ownership <br>from sample cluster assignment <br>into input format]]
 
-        convert_to_pgen[[**convert_to_pgen**: <br>Convert the VCF fields <br>into Plink-2 binary <br>format]]
+        convert_to_pgen[[<b>convert_to_pgen</b>: <br>Convert the VCF fields <br>into Plink-2 binary <br>format]]
 
-        verify_records_against_reference_genome[[**verify_records_against_reference_genome**: <br>Check reference alleles against <br>provided reference genome]]
+        verify_records_against_reference_genome[[<b>verify_records_against_reference_genome</b>: <br>Check reference alleles against <br>provided reference genome]]
 
-        remove_non_standard_chromosomes[[**remove_non_standard_chromosomes**: <br>Filter out non-standard <br>chromosomes]]
+        remove_non_standard_chromosomes[[<b>remove_non_standard_chromosomes</b>: <br>Filter out non-standard <br>chromosomes]]
         
-        remove_unknown_samples[[**remove_unknown_samples**: <br>Subset samples to labeled <br>samples in metadata files]]
+        remove_unknown_samples[[<b>remove_unknown_samples</b>: <br>Subset samples to labeled <br>samples in metadata files]]
         
-        filter_variant_missingness[[**filter_variant_missingness**: <br>Filter variants with 100% <br>missingness]]
+        filter_variant_missingness[[<b>filter_variant_missingness</b>: <br>Filter variants with 100% <br>missingness]]
         
-        filter_sample_missingness[[**filter_sample_missingness**: <br>Filter samples with 100% <br>missingness]]
+        filter_sample_missingness[[<b>filter_sample_missingness</b>: <br>Filter samples with 100% <br>missingness]]
 
-        calculate_sample_relatedness[[**calculate_sample_relatedness**: <br>Calculate relatedness]]
+        calculate_sample_relatedness[[<b>calculate_sample_relatedness</b>: <br>Calculate relatedness]]
 
-        remove_related_samples[[**remove_related_samples**: <br>remove a given list of <br>samples which are too <br>closely related]]
+        remove_related_samples[[<b>remove_related_samples</b>: <br>remove a given list of <br>samples which are too <br>closely related]]
 
-        extract_provided_coordinates[[**extract_provided_coordinates**: <br>Trim the dataset to one <br>of the studied regions]]
+        extract_provided_coordinates[[<b>extract_provided_coordinates</b>: <br>Trim the dataset to one <br>of the studied regions]]
 
         subgraph variant_count[Variant Count]
             variant_count_START(((Start)))
             variant_count_END(((End)))
-            report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**: <br>Perform frequency analysis <br>across each cluster]]
-            collect_variant_frequency[[**collect_variant_frequency**: <br>Collect cluster-level <br>variant frequency reports <br>into one]]
-            collect_variant_count[[**collect_variant_count**: <br>Collect all per-cluster <br>variant count reports <br>into one]]
+            report_count_partitioned_per_cluster[[<b>report_count_partitioned_per_cluster</b>: <br>Perform frequency analysis <br>across each cluster]]
+            collect_variant_frequency[[<b>collect_variant_frequency</b>: <br>Collect cluster-level <br>variant frequency reports <br>into one]]
+            collect_variant_count[[<b>collect_variant_count</b>: <br>Collect all per-cluster <br>variant count reports <br>into one]]
 
             variant_count_START --> report_count_partitioned_per_cluster & collect_variant_frequency & collect_variant_count
             report_count_partitioned_per_cluster --> collect_variant_frequency
@@ -121,8 +117,8 @@ flowchart TD
         subgraph hardy_weinberg[Hardy-Weinberg]
             hardy_weinberg_START(((Start)))
             hardy_weinberg_END(((End)))
-            report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**: <br>Perform HWE analysis <br>across each cluster]]
-            collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**: <br>Collect the HWE reports <br>for autosomal locations]]
+            report_hardy_weinberg_per_cluster[[<b>report_hardy_weinberg_per_cluster</b>: <br>Perform HWE analysis <br>across each cluster]]
+            collect_autosomal_hardy_weinberg[[<b>collect_autosomal_hardy_weinberg</b>: <br>Collect the HWE reports <br>for autosomal locations]]
 
             hardy_weinberg_START --> report_hardy_weinberg_per_cluster & collect_autosomal_hardy_weinberg
             report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
@@ -132,9 +128,9 @@ flowchart TD
         subgraph variant_missingness[Variant Missingness]
             variant_missingness_START(((Start)))
             variant_missingness_END(((End)))
-            report_missingness_per_cluster[[**report_missingness_per_cluster**: <br>Report the missingness rates <br>observed across each cluster]]
-            collect_variant_missingness[[**collect_variant_missingness**: <br>Collect all per-cluster <br>variant missingness reports <br>into one]]
+            report_missingness_per_cluster[[<b>report_missingness_per_cluster</b>: <br>Report the missingness rates <br>observed across each cluster]]
 
+            collect_variant_missingness[[<b>collect_variant_missingness</b>: <br>Collect all per-cluster <br>variant missingness reports <br>into one]]
             variant_missingness_START --> report_missingness_per_cluster & collect_variant_missingness
             report_missingness_per_cluster --> collect_variant_missingness
             collect_variant_missingness --> variant_missingness_END
@@ -143,8 +139,8 @@ flowchart TD
         subgraph vep[Variant Effect Prediction]
             vep_START(((Start)))
             vep_END(((End)))
-            query_variant_effect_predictions[[**query_variant_effect_predictions**: <br>Perform API calls to <br>E! Ensemble REST API to <br>identify variants]]
-            compile_variant_effect_predictions[[**compile_variant_effect_predictions**: <br>Collect the RAW API <br>payloads and extract <br>relevant metrics]]
+            query_variant_effect_predictions[[<b>query_variant_effect_predictions</b>: <br>Perform API calls to <br>E! Ensemble REST API to <br>identify variants]]
+            compile_variant_effect_predictions[[<b>compile_variant_effect_predictions</b>: <br>Collect the RAW API <br>payloads and extract <br>relevant metrics]]
             
             vep_START --> query_variant_effect_predictions & compile_variant_effect_predictions
             query_variant_effect_predictions --> compile_variant_effect_predictions
@@ -154,7 +150,7 @@ flowchart TD
         subgraph fishers_exact[Fishers Exact w/t Bonferoni Correction]
             fishers_exact_START(((Start)))
             fishers_exact_END(((End)))
-            report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**: <br>Perform Fishers-Exact test <br>with Bonferonni correction]]
+            report_fishers_exact_with_corrections[[<b>report_fishers_exact_with_corrections</b>: <br>Perform Fishers-Exact test <br>with Bonferonni correction]]
 
             fishers_exact_START --> report_fishers_exact_with_corrections --> fishers_exact_END
         end
@@ -164,7 +160,7 @@ flowchart TD
 
 
 
-        consolidate_reports[[**consolidate_reports**: <br>Consolidate all the <br>generated reports <br>into one]]
+        consolidate_reports[[<b>consolidate_reports</b>: <br>Consolidate all the <br>generated reports <br>into one]]
 
         class format_sample_metadata,query_variant_effect_predictions,compile_variant_effect_predictions,collect_autosomal_hardy_weinberg,collect_variant_count,collect_variant_frequency,collect_variant_missingness,report_fishers_exact_with_corrections,consolidate_reports python;
 
@@ -211,244 +207,11 @@ flowchart TD
     consolidate_reports --> END
 
     PopulationStructureWorkflow --> END
-  ```
+```
 
-</details>
+## Workflow Rules Explained
 
-#### VCF Validation Workflow Rules
-
-<details markdown="block">
-  <summary>
-    <code>clear_annotations</code>
-  </summary>
-  
-  ```mermaid
-  flowchart TD
-  
-    clear_annotations[["`**clear_annotations**:
-    Remove INFO column for
-    computational processing
-    efficiency`"]]
-  
-    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
-    class clear_annotations bcftools;
-  ```
-
-  <dl>
-    <dt>Function</dt>
-    <dd>To remove the <code>INFO</code> and <code>FORMAT</code> columns on the incoming dataset. This is done to speed up computation time for downstream analysis.</dd>
-    <dt>Command</dt>
-    <dd><code>bcftools annotate -x INFO,FORMAT -Oz -o {output.vcf} {input.vcf}</code></dd>
-    <dt>Parameters</dt>
-    <dd>
-      <dl>
-        <dt><code>-x INFO,FORMAT</code></dt>
-        <dd>Remove the <code>INFO</code> and <code>FORMAT</code> annotations from the input VCF file.</dd>
-        <dt><code>-Oz</code></dt>
-        <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-        <dt><code>-o {output.vcf}</code></dt>
-        <dd>Output file.</dd>
-      </dl>
-    </dd>
-  </dl>
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>normalize_variant_records</code>
-  </summary>
-  
-  ```mermaid
-  flowchart TD
-    normalize_variant_records[["`**normalize_variant_records**:
-    Normalize all SNPs`"]]
-
-    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
-    class normalize_variant_records bcftools;
-  ```
-
-  <dl>
-    <dt>Function</dt>
-    <dd>
-    To normalize variant representations within the dataset provided. This involves the following:
-      <ul>
-      <li>decomposing multi-allelic records</li>
-      <li>left-aligning all variants</li>
-      <li>right-handed trimming to ensure parsimony</li>
-      </ul>
-    </dd>
-    <dt>Command</dt>
-    <dd><code>bcftools norm -m -any -O z -o {output.vcf} < {input.vcf}</code></dd>
-    <dt>Parameters</dt>
-    <dd>
-      <dl>
-        <dt><code>-m -any</code></dt>
-        <dd>Decompose multi-allelic entries to bi-allelic entries (<code>-</code>) and merge both SNPs and INDELS into single records (<code>any</code>)</dd>
-        <dt><code>-Oz</code></dt>
-        <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-        <dt><code>-o {output.vcf}</code></dt>
-        <dd>Output file.</dd>
-      </dl>
-    </dd>
-  </dl>
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>filter_variant_types</code>
-  </summary>
-  
-  ```mermaid
-  flowchart TD
-    filter_variant_types[["`**filter_variant_types**:
-    Remove all variant types
-    except SNPs`"]]
-    
-    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
-    class filter_variant_types bcftools;
-  ```
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      To remove all variant types except SNPs</dd>
-      <dt>Command</dt>
-      <dd><code>bcftools view -v snps -f PASS -O z -o {output.vcf} < {input.vcf}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>-v snps</code></dt>
-          <dd>Only include SNPs</dd>
-          <dt><code>-f PASS</code></dt>
-          <dd>Only select variants with <code>PASS</code> values.</dd>
-          <dt><code>-Oz</code></dt>
-          <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-          <dt><code>-o {output.vcf}</code></dt>
-          <dd>Output file.</dd>
-        </dl>
-      </dd>
-    </dl>
-
-</details>
-  
-<details markdown="block">
-  <summary>
-    <code>sort_variant_records</code>
-  </summary>
-  
-  ```mermaid
-  flowchart TD
-    sort_variant_records[["`**sort_variant_records**:
-    Ensure correct variant order`"]]
-    
-    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
-    class sort_variant_records bcftools;
-  ```
-
-  This rule is responsible for sorting variants according to position, relative to the provided reference genome. This is important for downstream analysis which assumes ordered variants.
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      To sort variants according to position, relative to the provided reference genome. This is important for downstream analysis which assumes ordered variants.</dd>
-      <dt>Command</dt>
-      <dd><code>bcftools sort -m {params.memory} -T {params.tmp} -O z -o {output.vcf} < {input.vcf}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>-m {params.memory} </code></dt>
-          <dd>Provide a RAM memory available to the <code>bcftools sort</code> command.</dd>
-          <dt><code>-T {params.tmp}</code></dt>
-          <dd>Provide a location where `bcftools` can make a temporary folder to work from.</dd>
-          <dt><code>-Oz</code></dt>
-          <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-          <dt><code>-o {output.vcf}</code></dt>
-          <dd>Output file.</dd>
-        </dl>
-      </dd>
-    </dl>
-    
-</details>
-  
-<!-- 
-<details markdown="block">
-  <summary>
-    <code>annotate</code>
-  </summary>
-  
-  ```mermaid
-  flowchart TD
-    annotate[[annotate:
-Annotate VCF against given
-reference VCF such as 
- dbSNP, and rename any unknown
-variants.]]
-  ```
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      To annotate the incoming data with variant IDs from the provided <code>resources/annotations.vcf.gz</code>, and rename any unknown variants.</dd>
-      <dt>Command</dt>
-      <dd><code>bcftools annotate -c ID -a {input.annotations} -O z -o {output.vcf} {input.vcf}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>-a {input.annotations}</code></dt>
-          <dd>The VCF file that contains the desired annotations.</dd>
-          <dt><code>-c ID</code></dt>
-          <dd>Copy the <code>ID</code> column from the provided annotation VCF.</dd>
-          <dt><code>-I +'%CHROM:%POS|%REF-%FIRST_ALT'</code></dt>
-          <dd>Name all variants using the provided formula. The <code>+</code> indicates that this renaming logic should only be applied to variants which have no name, and is applied after retrieving annotations from the provided annotations VCF. <code>%CHROM</code> denotes the chromosome, <code>%POS</code> denotes the base-pair position of this variant, <code>%REF</code> denotes the reference allele at this location, and <code>%FIRST_ALT</code> denotes the first allele. Since this VCF file has been normalized and multi-allelic variants have already been decomposed to bi-allelic records, this will correspond to the only available allele for a loci.</dd>
-          <dt><code>-O z</code></dt>
-          <dd>Output format (<code>-Oz</code> denotes a BG-Zipped VCF output)</dd>
-          <dt><code>-o {output.vcf}</code></dt>
-          <dd>Output file.</dd>
-        </dl>
-      </dd>
-    </dl>
-
-</details> -->
-<!-- 
-<details markdown="block">
-  <summary>
-    <code>annotateUnknown</code>
-  </summary>
-  
-  ```mermaid
-  flowchart TD
-    annotateUnknown[[annotateUnknown:
-Name all un-annotated variants using 
-standardized naming conventions.]]
-  ```
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      To name all un-named variants which did not have a matching annotation ID.</dd>
-      <dt>Command</dt>
-      <dd><code>plink --vcf {input.vcf} --set-missing-var-ids @:#\$1-\$2 --new-id-max-allele-len 200 --out {params.output}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>--vcf {input.vcf}</code></dt>
-          <dd>File path to the input VCF file via parameter.</dd>
-          <dt><code>--set-missing-var-ids @:#\$1-\$2</code></dt>
-          <dd>A string which describes a naming scheme to be used when setting all un-named variants <code>@</code> denotes the chromosome code, <code>#</code> denotes the base-pair coordinates, <code>$1</code> denotes the reference allele and <code>$2</code> denotes the alternate allele.</dd>
-          <dt><code>--new-id-max-allele-len 200</code></dt>
-          <dd>Sets a maximum allowed variant ID length.</dd>
-          <dt><code>--out {params.output}</code></dt>
-          <dd>Provide the file name and path for output creation.</dd>
-        </dl>
-      </dd>
-    </dl>
-
-</details> -->
-  
-
-#### Pharmacogenetics Workflow Rules
+Below, each rule in the workflow has been broken down and explained for convenience.
 
 <details markdown="block">
   <summary>
@@ -457,8 +220,8 @@ standardized naming conventions.]]
   
   ```mermaid
   flowchart TD
-    format_sample_metadata[["`**format_sample_metadata**:
-    `"]]
+    format_sample_metadata[[<b>format_sample_metadata</b>: <br>Transpile cluster ownership <br>from sample cluster assignment <br>into input format]]
+
     classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
     class format_sample_metadata python;
   ```
@@ -468,49 +231,44 @@ A python script which uses Pandas to convert the provided `samples.csv` into a f
 </details>
 
 <details markdown="block">
-  <summary>
-    <code>merge_datasets</code>*
-  </summary>
+  <summary>merge protocol *</summary>
   
   ```mermaid
   flowchart TD
     subgraph multipleVcfProtocol [Multiple dataset protocol]
-      direction LR
-      
-        classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
-        multipleVcfProtocolStart(((Start)))
-        ifMergeRequired{Is a 
-merge needed?}
-        merge_datasets[[**merge_datasets**: 
-        Merge multiple incoming datasets]]
+            direction LR
+            multipleVcfProtocolStart(((Start)))
+            ifMergeRequired{Is a <br>merge needed?}
+            merge_datasets[[<b>merge_datasets</b>: <br>Merge multiple incoming <br>datasets]]
 
-        normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
-        multipleVcfProtocolEnd(((End)))
+            normalize_merged_datasets[[<b>normalize_merged_datasets</b>: <br>normalize any multi-allelic <br>records created by merge]]
+            multipleVcfProtocolEnd(((End)))
 
-        class merge_datasets,normalize_merged_datasets bcftools;
-        multipleVcfProtocolStart --> ifMergeRequired
-        ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
-        ifMergeRequired --> |No| multipleVcfProtocolEnd
-    end
+            class merge_datasets,normalize_merged_datasets bcftools;
+            multipleVcfProtocolStart --> ifMergeRequired
+            ifMergeRequired --> |yes| merge_datasets --> normalize_merged_datasets --> multipleVcfProtocolEnd
+            ifMergeRequired --> |No| multipleVcfProtocolEnd
+
+            classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px, color:black;
+            class merge_datasets,normalize_merged_datasets bcftools;
+        end
   ```
 
   {: .normal }
   > The merge rule is protected by a decision tree and only executes when multiple described datasets are detected. This rule is responsible for merging multiple datasets into a single VCF file, suitable for collective analysis.
 
-
   <details markdown="block">
     <summary><code>merge_datasets</code</summary>
 
-```mermaid
-flowchart TD
-    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+  ```mermaid
+  flowchart TD
+      merge_datasets[[<b>merge_datasets</b>: <br>Merge multiple incoming <br>datasets]]
+      
+      classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+      class merge_datasets bcftools;
+  ```
 
-    merge_datasets[[**merge_datasets**: 
-        Merge multiple incoming datasets]]
-        class merge_datasets bcftools;
-```
-
-<dl>
+  <dl>
     <dt>Function</dt>
     <dd>To perform reference-genome version liftovers.</dd>
     <dt>Command</dt>
@@ -524,22 +282,23 @@ flowchart TD
         <dd>Output file.</dd>
         </dl>
     </dd>
-</dl>
+  </dl>
   </details>
 
-    <details markdown="block">
+  <details markdown="block">
     <summary><code>merge_datasets</code</summary>
 
-```mermaid
-flowchart TD
-    classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
-    
-    normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
+  ```mermaid
+  flowchart TD
+      normalize_merged_datasets[[<b>normalize_merged_datasets</b>: <br>normalize any multi-allelic <br>records created by merge]]
+              
+      normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
 
-    class normalize_merged_datasets bcftools;
-```
+      classDef bcftools stroke:#FF5733,fill:#D3D3D3,stroke-width:4px,color:black;
+      class normalize_merged_datasets bcftools;
+  ```
 
-<dl>
+  <dl>
     <dt>Function</dt>
     <dd>To normalize any multi-allelic records which may arise as a result of the merge.</dd>
     <dt>Command</dt>
@@ -555,7 +314,7 @@ flowchart TD
         <dd>Output file.</dd>
         </dl>
     </dd>
-</dl>
+  </dl>
   </details>
 </details>
 
@@ -567,10 +326,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+    convert_to_pgen[[<b>convert_to_pgen</b>: <br>Convert the VCF fields <br>into Plink-2 binary <br>format]]
 
-    convert_to_pgen[[**convert_to_pgen**: 
-    Convert the VCF fields into Plink-2 binary format]]
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
     class convert_to_pgen plink;
 ```
 
@@ -610,12 +368,9 @@ flowchart TD
   
   ```mermaid
   flowchart TD
+    verify_records_against_reference_genome[[<b>verify_records_against_reference_genome</b>: <br>Check reference alleles against <br>provided reference genome]]
+
     classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    verify_records_against_reference_genome[[verify_records_against_reference_genome:
-Check reference alleles against
-provided reference genome]]
-
     class verify_records_against_reference_genome plink;
   ```
 
@@ -657,11 +412,9 @@ provided reference genome]]
 
   ```mermaid
   flowchart TD
-    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+    remove_non_standard_chromosomes[[<b>remove_non_standard_chromosomes</b>: <br>Filter out non-standard <br>chromosomes]]
 
-    remove_non_standard_chromosomes[[remove_non_standard_chromosomes:
-Filter out non-standard
-chromosomes]]
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
     class remove_non_standard_chromosomes plink;
   ```
 
@@ -702,11 +455,9 @@ chromosomes]]
 
   ```mermaid
   flowchart TD
+    remove_unknown_samples[[<b>remove_unknown_samples</b>: <br>Subset samples to labeled <br>samples in metadata files]]
+
     classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    remove_unknown_samples[[**remove_unknown_samples**:
-Subset samples to labeled samples in metadata files]]
-
     class remove_unknown_samples plink;
   ```
 
@@ -743,11 +494,10 @@ Subset samples to labeled samples in metadata files]]
 
   ```mermaid
   flowchart TD
-    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+    filter_variant_missingness[[<b>filter_variant_missingness</b>: <br>Filter variants with 100% <br>missingness]]
 
-    filter_variant_missingness[[filter_variant_missingness:
-Filter variants with 100% missingness]]
-class filter_variant_missingness plink;
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+    class filter_variant_missingness plink;
   ```
 
  <dl>
@@ -782,10 +532,9 @@ class filter_variant_missingness plink;
 
   ```mermaid
   flowchart TD
-    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+    filter_sample_missingness[[<b>filter_sample_missingness</b>: <br>Filter samples with 100% <br>missingness]]
 
-    filter_sample_missingness[[filter_sample_missingness:
-Filter samples with 100% missingness]]
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
     class filter_sample_missingness plink;
   ```
 
@@ -821,10 +570,9 @@ Filter samples with 100% missingness]]
 
   ```mermaid
   flowchart TD
-    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+    calculate_sample_relatedness[[<b>calculate_sample_relatedness</b>: <br>Calculate relatedness]]
 
-    calculate_sample_relatedness[[calculate_sample_relatedness:
-Calculate Identity-By-Descent]]
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
     class calculate_sample_relatedness plink;
   ```
 
@@ -858,11 +606,9 @@ Calculate Identity-By-Descent]]
 
   ```mermaid
   flowchart TD
-    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+    calculate_sample_relatedness[[<b>calculate_sample_relatedness</b>: <br>Calculate relatedness]]
 
-    remove_related_samples[[remove_related_samples:
-remove a given list of samples
-based on IBD results]]
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
     class remove_related_samples plink;
   ```
 
@@ -898,12 +644,9 @@ based on IBD results]]
 
   ```mermaid
   flowchart TD
+    extract_provided_coordinates[[<b>extract_provided_coordinates</b>: <br>Trim the dataset to one <br>of the studied regions]]
+
     classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    extract_provided_coordinates[[extract_provided_coordinates:
-Trim the dataset to one of
-the studied regions]]
-
     class extract_provided_coordinates plink;
   ```
 
@@ -936,21 +679,53 @@ the studied regions]]
 
 </details>
 
-
 <details markdown="block">
-  <summary>
-    <code>report_count_partitioned_per_cluster</code>
-  </summary>
+  <summary>Allele Count and Frequency protocol</summary>
 
   ```mermaid
+  ---
+  config:
+      flowchart:
+          defaultRenderer: elk
+  ---
   flowchart TD
-    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
-    
-    report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**:
-Perform frequency analysis]]
-    class report_count_partitioned_per_cluster plink;
+    subgraph variant_count[Variant Count]
+      variant_count_START(((Start)))
+      variant_count_END(((End)))
+      report_count_partitioned_per_cluster[[<b>report_count_partitioned_per_cluster</b>: <br>Perform frequency analysis <br>across each cluster]]
+      collect_variant_frequency[[<b>collect_variant_frequency</b>: <br>Collect cluster-level <br>variant frequency reports <br>into one]]
+      collect_variant_count[[<b>collect_variant_count</b>: <br>Collect all per-cluster <br>variant count reports <br>into one]]
+
+      variant_count_START --> report_count_partitioned_per_cluster & collect_variant_frequency & collect_variant_count
+      report_count_partitioned_per_cluster --> collect_variant_frequency
+      report_count_partitioned_per_cluster --> collect_variant_count
+
+      collect_variant_count & collect_variant_frequency --> variant_count_END
+
+
+      classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+      class report_count_partitioned_per_cluster plink;
+
+      classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+      class collect_variant_frequency,collect_variant_count python;
+    end
   ```
 
+  This protocol is responsible for performing clustered variant count and frequency analysis. Two python scripts are used to collect the results of each clusters counts and frequencies respectively, and convert these into named columns for the final output.
+
+  <details markdown="block">
+    <summary>
+      <code>report_count_partitioned_per_cluster</code>
+    </summary>
+
+  ```mermaid
+  flowchart TD    
+    report_count_partitioned_per_cluster[[<b>report_count_partitioned_per_cluster</b>: <br>Perform frequency analysis <br>across each cluster]]
+
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+    class report_count_partitioned_per_cluster plink;
+  ```
+  
   <dl>
       <dt>Function</dt>
       <dd>
@@ -984,20 +759,82 @@ Perform frequency analysis]]
       </dd>
     </dl>
 
+  </details>
+  
+  <details markdown="block">
+    <summary>
+      <code>collect_variant_frequency</code>
+    </summary>
+
+  ```mermaid
+  flowchart TD
+    collect_variant_frequency[[<b>collect_variant_frequency</b>: <br>Collect cluster-level <br>variant frequency reports <br>into one]]
+
+    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+    class collect_variant_frequency python;
+  ```
+
+  <dl>
+    <dt>Function</dt>
+    <dd>
+    A python script to compile multiple cluster-level variant-frequency results into a single report.</dd>
+  </dl>
 </details>
 
 <details markdown="block">
   <summary>
-    <code>report_hardy_weinberg_per_cluster</code>
+    <code>collect_variant_count</code>
   </summary>
 
   ```mermaid
   flowchart TD
+    collect_variant_count[[<b>collect_variant_count</b>: <br>Collect all per-cluster <br>variant count reports <br>into one]]
+
+    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+    class collect_variant_count python;
+  ```
+
+  <dl>
+    <dt>Function</dt>
+    <dd>
+    A python script to compile multiple cluster-level variant-count results into a single report.</dd>
+  </dl>
+  </details>
+</details>
+
+<details markdown="block">
+  <summary>Hardy-Weinberg Protocol</summary>
+
+  ```mermaid
+  flowchart TD
+  subgraph hardy_weinberg[Hardy-Weinberg]
+    hardy_weinberg_START(((Start)))
+    hardy_weinberg_END(((End)))
+    report_hardy_weinberg_per_cluster[[<b>report_hardy_weinberg_per_cluster</b>: <br>Perform HWE analysis <br>across each cluster]]
+    collect_autosomal_hardy_weinberg[[<b>collect_autosomal_hardy_weinberg</b>: <br>Collect the HWE reports <br>for autosomal locations]]
+
+    hardy_weinberg_START --> report_hardy_weinberg_per_cluster & collect_autosomal_hardy_weinberg
+    report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
+    collect_autosomal_hardy_weinberg --> hardy_weinberg_END
+
     classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+    class report_hardy_weinberg_per_cluster plink;
 
-    report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**:
-Perform Hardy-Weinberg analysis]]
+    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+    class collect_autosomal_hardy_weinberg python;
+  end
+  ```
 
+  <details markdown="block">
+    <summary>
+      <code>report_hardy_weinberg_per_cluster</code>
+    </summary>
+
+  ```mermaid
+  flowchart TD
+    report_hardy_weinberg_per_cluster[[<b>report_hardy_weinberg_per_cluster</b>: <br>Perform HWE analysis <br>across each cluster]]
+
+    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
     class report_hardy_weinberg_per_cluster plink;
   ```
 
@@ -1034,14 +871,36 @@ Perform Hardy-Weinberg analysis]]
       </dd>
     </dl>
 
-</details>
+  </details>
 
-<details markdown="block">
-  <summary>
-    <code>report_fixation_index_per_cluster</code>
-  </summary>
+  <details markdown="block">
+    <summary>
+      <code>collect_autosomal_hardy_weinberg</code>
+    </summary>
 
   ```mermaid
+  flowchart TD
+    collect_autosomal_hardy_weinberg[[<b>collect_autosomal_hardy_weinberg</b>: <br>Collect the HWE reports <br>for autosomal locations]]
+
+    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+    class collect_autosomal_hardy_weinberg python;
+  ```
+
+  <dl>
+      <dt>Function</dt>
+      <dd>
+      A python script to compile multiple cluster-level autosomal hardy-weinberg results into a single report.</dd>
+    </dl>
+
+</details>
+</details>
+
+<!-- <details markdown="block">
+  <summary>
+    <code>report_fixation_index_per_cluster</code>
+  </summary> -->
+
+  <!-- ```mermaid
   flowchart TD
     classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
 
@@ -1049,8 +908,8 @@ Perform Hardy-Weinberg analysis]]
 Perform Fixation index calculations]]
 
     class report_fixation_index_per_cluster plink;
-  ```
-
+  ``` -->
+<!-- 
   <dl>
       <dt>Function</dt>
       <dd>
@@ -1072,150 +931,78 @@ Perform Fixation index calculations]]
       </dd>
     </dl>
 
-</details>
+</details> -->
 
 <details markdown="block">
-  <summary>
-    <code>report_missingness_per_cluster</code>
-  </summary>
+  <summary>Missingness Protocol</summary>
 
   ```mermaid
   flowchart TD
+    subgraph variant_missingness[Variant Missingness]
+      variant_missingness_START(((Start)))
+      variant_missingness_END(((End)))
+      report_missingness_per_cluster[[<b>report_missingness_per_cluster</b>: <br>Report the missingness rates <br>observed across each cluster]]
+
+      collect_variant_missingness[[<b>collect_variant_missingness</b>: <br>Collect all per-cluster <br>variant missingness reports <br>into one]]
+      variant_missingness_START --> report_missingness_per_cluster & collect_variant_missingness
+      report_missingness_per_cluster --> collect_variant_missingness
+      collect_variant_missingness --> variant_missingness_END
+
+      classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+      class report_missingness_per_cluster plink;
+
+      classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+      class collect_variant_missingness python;
+    end
+  ```
+
+  <details markdown="block">
+    <summary>
+      <code>report_missingness_per_cluster</code>
+    </summary>
+
+  ```mermaid
+  flowchart TD
+    report_missingness_per_cluster[[<b>report_missingness_per_cluster</b>: <br>Report the missingness rates <br>observed across each cluster]]
+
     classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    report_missingness_per_cluster[[**report_missingness_per_cluster**:
-Perform missingness calculations]]
-
     class report_missingness_per_cluster plink;
   ```
 
   <dl>
-      <dt>Function</dt>
-      <dd>
-      To generate a missingness report.</dd>
-      <dt>Command</dt>
-      <dd><code>plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --missing zs vcols=chrom,pos,ref,alt,provref,nmiss,nobs,fmiss --out {params.output}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>--threads {threads}</code></dt>
-          <dd>Used to set the number of CPU threads used during this calculation</dd>
-          <dt><code>--pfile {params.input} vzs</code></dt>
-          <dd>Used to provide plink with the location of a plink-2 binary file set (.psam, .pvar and .pgen files), and to expect z-compressed files.</dd>
-          <dt><code>--loop-cats {wildcards.cluster}</code></dt>
-          <dd>Perform the requested computation repeAtedly, sampeling across the provided clusters, as assigned via the provided <code>samples.csv</code></dd>
-          <dt><code>--missing zs vcols=chrom,pos,ref,alt,provref,nmiss,nobs,fmiss</code></dt>
-          <dd>Perform missingness calculations on each variant record. Include the following columns:
-            <ul>
-                <li>Chromosome</li>
-                <li>Position</li>
-                <li>Reference Allele</li>
-                <li>Alternate allele</li>
-                <li>Provisional Reference</li>
-                <li>Number of missing</li>
-                <li>Number of observations</li>
-                <li>Frequency of missingness</li>
-            </ul>
-          </dd>
-          <dt><code>--out {params.output}</code></dt>
-          <dd>Provide the file name and path for output creation.</dd>  
-        </dl>
-      </dd>
-    </dl>
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>collect_variant_count</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    collect_variant_count[[**collect_variant_count**:
-Collect cluster-level variant count results]]
-
-    class collect_variant_count python;
-  ```
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      A python script to compile multiple cluster-level variant-count results into a single report.</dd>
-    </dl>
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>collect_variant_frequency</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    collect_variant_frequency[[**collect_variant_frequency**:
-Collect cluster-level variant frequency results]]
-
-    class collect_variant_frequency python;
-  ```
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      A python script to compile multiple cluster-level variant-frequency results into a single report.</dd>
-    </dl>
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>report_fishers_exact_with_corrections</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**:
-Perform Fishers-Exact tests With Bonferonni-correction]]
-
-    class report_fishers_exact_with_corrections python;
-  ```
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      A python script to perform corrected Fishers-Exact test (Bonferoni method) to identify significant differences in variant frequency between clusters.</dd>
-    </dl>
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>collect_autosomal_hardy_weinberg</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**:
-Collect cluster-level variant count results]]
-
-    class collect_autosomal_hardy_weinberg python;
-  ```
-
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      A python script to compile multiple cluster-level autosomal hardy-weinberg results into a single report.</dd>
-    </dl>
-
-</details>
+    <dt>Function</dt>
+    <dd>
+    To generate a missingness report.</dd>
+    <dt>Command</dt>
+    <dd><code>plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --missing zs vcols=chrom,pos,ref,alt,provref,nmiss,nobs,fmiss --out {params.output}</code></dd>
+    <dt>Parameters</dt>
+    <dd>
+      <dl>
+        <dt><code>--threads {threads}</code></dt>
+        <dd>Used to set the number of CPU threads used during this calculation</dd>
+        <dt><code>--pfile {params.input} vzs</code></dt>
+        <dd>Used to provide plink with the location of a plink-2 binary file set (.psam, .pvar and .pgen files), and to expect z-compressed files.</dd>
+        <dt><code>--loop-cats {wildcards.cluster}</code></dt>
+        <dd>Perform the requested computation repeAtedly, sampeling across the provided clusters, as assigned via the provided <code>samples.csv</code></dd>
+        <dt><code>--missing zs vcols=chrom,pos,ref,alt,provref,nmiss,nobs,fmiss</code></dt>
+        <dd>Perform missingness calculations on each variant record. Include the following columns:
+          <ul>
+              <li>Chromosome</li>
+              <li>Position</li>
+              <li>Reference Allele</li>
+              <li>Alternate allele</li>
+              <li>Provisional Reference</li>
+              <li>Number of missing</li>
+              <li>Number of observations</li>
+              <li>Frequency of missingness</li>
+          </ul>
+        </dd>
+        <dt><code>--out {params.output}</code></dt>
+        <dd>Provide the file name and path for output creation.</dd>  
+      </dl>
+    </dd>
+  </dl>
+  </details>
 
 <details markdown="block">
   <summary>
@@ -1224,11 +1011,9 @@ Collect cluster-level variant count results]]
 
   ```mermaid
   flowchart TD
+    collect_variant_missingness[[<b>collect_variant_missingness</b>: <br>Collect all per-cluster <br>variant missingness reports <br>into one]]
+
     classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    collect_variant_missingness[[**collect_variant_missingness**:
-Collect cluster-level variant missingness results]]
-
     class collect_variant_missingness python;
   ```
 
@@ -1239,51 +1024,108 @@ Collect cluster-level variant missingness results]]
     </dl>
 
 </details>
+</details>
 
 <details markdown="block">
-  <summary>
-    <code>query_variant_effect_predictions</code>
-  </summary>
+  <summary>Fishers Exact Protocol</summary>
 
   ```mermaid
   flowchart TD
+    subgraph fishers_exact[Fishers Exact w/t Bonferoni Correction]
+      fishers_exact_START(((Start)))
+      fishers_exact_END(((End)))
+      report_fishers_exact_with_corrections[[<b>report_fishers_exact_with_corrections</b>: <br>Perform Fishers-Exact test <br>with Bonferonni correction]]
+
+      fishers_exact_START --> report_fishers_exact_with_corrections --> fishers_exact_END
+
+      classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+      class report_fishers_exact_with_corrections python;
+    end
+  ```
+
+  <details markdown="block">
+    <summary>
+      <code>report_fishers_exact_with_corrections</code>
+    </summary>
+
+  ```mermaid
+  flowchart TD
+    report_fishers_exact_with_corrections[[<b>report_fishers_exact_with_corrections</b>: <br>Perform Fishers-Exact test <br>with Bonferonni correction]]
+
     classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+    class report_fishers_exact_with_corrections python;
+  ```
 
-    query_variant_effect_predictions[[**query_variant_effect_predictions**:
-Perform network calls to retrieve variant annotations]]
+  <dl>
+    <dt>Function</dt>
+    <dd>
+    A python script to perform corrected Fishers-Exact test (Bonferoni method) to identify significant differences in variant frequency between clusters.</dd>
+  </dl>
 
+  </details>
+</details>
+
+<details markdown="block">
+  <summary>Variant Effect Prediction Protocol</summary>
+
+  ```mermaid
+  flowchart TD
+    subgraph vep[Variant Effect Prediction]
+      vep_START(((Start)))
+      vep_END(((End)))
+      query_variant_effect_predictions[[<b>query_variant_effect_predictions</b>: <br>Perform API calls to <br>E! Ensemble REST API to <br>identify variants]]
+      compile_variant_effect_predictions[[<b>compile_variant_effect_predictions</b>: <br>Collect the RAW API <br>payloads and extract <br>relevant metrics]]
+      
+      vep_START --> query_variant_effect_predictions & compile_variant_effect_predictions
+      query_variant_effect_predictions --> compile_variant_effect_predictions
+      compile_variant_effect_predictions --> vep_END
+
+      classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+      class query_variant_effect_predictions,compile_variant_effect_predictions python;
+    end
+  
+  ```
+
+  <details markdown="block">
+    <summary>
+      <code>query_variant_effect_predictions</code>
+    </summary>
+
+  ```mermaid
+  flowchart TD
+    query_variant_effect_predictions[[<b>query_variant_effect_predictions</b>: <br>Perform API calls to <br>E! Ensemble REST API to <br>identify variants]]
+
+    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
     class query_variant_effect_predictions python;
   ```
 
   <dl>
-      <dt>Function</dt>
-      <dd>
-      A python script to perform batched API calls to the <a href="https://rest.ensembl.org/#VEP">E! Ensembl REST APIs VEP tool</a> to retrieve and store cached variant annotations.</dd>
-    </dl>
+    <dt>Function</dt>
+    <dd>
+    A python script to perform batched API calls to the <a href="https://rest.ensembl.org/#VEP">E! Ensembl REST APIs VEP tool</a> to retrieve and store cached variant annotations.</dd>
+  </dl>
 
-</details>
+  </details>
 
-<details markdown="block">
-  <summary>
-    <code>compile_variant_effect_predictions</code>
-  </summary>
+  <details markdown="block">
+    <summary>
+      <code>compile_variant_effect_predictions</code>
+    </summary>
 
   ```mermaid
   flowchart TD
+    compile_variant_effect_predictions[[<b>compile_variant_effect_predictions</b>: <br>Collect the RAW API <br>payloads and extract <br>relevant metrics]]
+
     classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    compile_variant_effect_predictions[[**compile_variant_effect_predictions**:
-Extract relevant metrics from raw annotation responses.]]
-
     class compile_variant_effect_predictions python;
   ```
 
   <dl>
-      <dt>Function</dt>
-      <dd>
-      A python script to extract relevant metrics from the returned annotations.</dd>
-    </dl>
+    <dt>Function</dt>
+    <dd>A python script to extract relevant metrics from the returned annotations.</dd>
+  </dl>
 
+  </details>
 </details>
 
 <details markdown="block">
@@ -1293,11 +1135,9 @@ Extract relevant metrics from raw annotation responses.]]
 
   ```mermaid
   flowchart TD
+    consolidate_reports[[<b>consolidate_reports</b>: <br>Consolidate all the <br>generated reports <br>into one]]
+
     classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    consolidate_reports[[**consolidate_reports**:
-Compile reports into a single file]]
-
     class consolidate_reports python;
   ```
 
@@ -1306,61 +1146,5 @@ Compile reports into a single file]]
       <dd>
       A python script to collect and compile all output reports into a single output file for review.</dd>
     </dl>
-
-</details>
-
-#### Population Structure Workflow Rules
-
-<details markdown="block">
-  <summary>
-    <code>plinkPed</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    plinkPed[[plinkPed:
-Convert to PLINK-1.9's PED
- format]]
-  ```
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>fetchPedLables</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    fetchPedLables[[fetchPedLables:
-Generate Ind2Pop sample annotations
- file]]
-  ```
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>Admixture</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    Admixture[[Admixture:
-Perform an admixture analysis]]
-  ```
-
-</details>
-
-<details markdown="block">
-  <summary>
-    <code>plinkPca</code>
-  </summary>
-
-  ```mermaid
-  flowchart TD
-    plinkPca[[Plink_PCA:
-Perform a PLINK-2.0 PCA]]
-  ```
 
 </details>
