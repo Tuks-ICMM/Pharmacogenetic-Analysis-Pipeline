@@ -72,12 +72,10 @@ flowchart TD
         subgraph multipleVcfProtocol [Multiple dataset protocol]
             direction LR
             multipleVcfProtocolStart(((Start)))
-            ifMergeRequired{Is a 
-    merge needed?}
-            merge_datasets[[**merge_datasets**: 
-    Merge multiple incoming datasets]]
+            ifMergeRequired{Is a <br>merge needed?}
+            merge_datasets[[**merge_datasets**: <br>Merge multiple incoming <br>datasets]]
 
-            normalize_merged_datasets[[**normalize_merged_datasets**: normalize any multi-allelic records created by merge]]
+            normalize_merged_datasets[[**normalize_merged_datasets**: <br>normalize any multi-allelic <br>records created by merge]]
             multipleVcfProtocolEnd(((End)))
 
             class merge_datasets,normalize_merged_datasets bcftools;
@@ -86,48 +84,32 @@ flowchart TD
             ifMergeRequired --> |No| multipleVcfProtocolEnd
         end
 
-        convert_to_pgen[[**convert_to_pgen**: 
-    Convert the VCF fields into Plink-2 binary format]]
-        remove_unknown_samples[[**remove_unknown_samples**:
-    Subset samples to labeled
-    samples in metadata files]]
+        format_sample_metadata[[**format_sample_metadata**: <br>Transpile cluster ownership <br>from sample cluster assignment <br>into input format]]
 
-        format_sample_metadata[[**format_sample_metadata**:
-    Transpile cluster ownership from sample cluster assignment into input format]]
+        convert_to_pgen[[**convert_to_pgen**: <br>Convert the VCF fields <br>into Plink-2 binary <br>format]]
 
+        verify_records_against_reference_genome[[**verify_records_against_reference_genome**: <br>Check reference alleles against <br>provided reference genome]]
+
+        remove_non_standard_chromosomes[[**remove_non_standard_chromosomes**: <br>Filter out non-standard <br>chromosomes]]
         
-        verify_records_against_reference_genome[[**verify_records_against_reference_genome**:
-    Check reference alleles against
-    provided reference genome]]
+        remove_unknown_samples[[**remove_unknown_samples**: <br>Subset samples to labeled <br>samples in metadata files]]
         
-        filter_variant_missingness[[**filter_variant_missingness**:
-    Filter variants with 100%
-    missingness]]
+        filter_variant_missingness[[**filter_variant_missingness**: <br>Filter variants with 100% <br>missingness]]
         
-        filter_sample_missingness[[**filter_sample_missingness**:
-    Filter samples with 100%
-    missingness]]
+        filter_sample_missingness[[**filter_sample_missingness**: <br>Filter samples with 100% <br>missingness]]
 
-        remove_non_standard_chromosomes[[**remove_non_standard_chromosomes**:
-    Filter out non-standard
-    chromosomes]]
+        calculate_sample_relatedness[[**calculate_sample_relatedness**: <br>Calculate relatedness]]
 
-        calculate_sample_relatedness[[**calculate_sample_relatedness**:
-    Calculate relatedness]]
+        remove_related_samples[[**remove_related_samples**: <br>remove a given list of <br>samples which are too <br>closely related]]
 
-        remove_related_samples[[**remove_related_samples**:
-    remove a given list of]]
-
-        extract_provided_coordinates[[**extract_provided_coordinates**:
-    Trim the dataset to one of the studied regions]]
+        extract_provided_coordinates[[**extract_provided_coordinates**: <br>Trim the dataset to one <br>of the studied regions]]
 
         subgraph variant_count[Variant Count]
             variant_count_START(((Start)))
             variant_count_END(((End)))
-            report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**: 
-            Perform frequency analysis across each cluster]]
-            collect_variant_frequency[[**collect_variant_frequency**: Collect cluster-level variant frequency reports into one]]
-            collect_variant_count[[**collect_variant_count**: Collect all per-cluster variant count reports into one]]
+            report_count_partitioned_per_cluster[[**report_count_partitioned_per_cluster**: <br>Perform frequency analysis <br>across each cluster]]
+            collect_variant_frequency[[**collect_variant_frequency**: <br>Collect cluster-level <br>variant frequency reports <br>into one]]
+            collect_variant_count[[**collect_variant_count**: <br>Collect all per-cluster <br>variant count reports <br>into one]]
 
             variant_count_START --> report_count_partitioned_per_cluster & collect_variant_frequency & collect_variant_count
             report_count_partitioned_per_cluster --> collect_variant_frequency
@@ -139,8 +121,8 @@ flowchart TD
         subgraph hardy_weinberg[Hardy-Weinberg]
             hardy_weinberg_START(((Start)))
             hardy_weinberg_END(((End)))
-            report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**: Perform HWE analysis across each cluster]]
-            collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**: Collect the HWE reports for autosomal locations]]
+            report_hardy_weinberg_per_cluster[[**report_hardy_weinberg_per_cluster**: <br>Perform HWE analysis <br>across each cluster]]
+            collect_autosomal_hardy_weinberg[[**collect_autosomal_hardy_weinberg**: <br>Collect the HWE reports <br>for autosomal locations]]
 
             hardy_weinberg_START --> report_hardy_weinberg_per_cluster & collect_autosomal_hardy_weinberg
             report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
@@ -150,8 +132,8 @@ flowchart TD
         subgraph variant_missingness[Variant Missingness]
             variant_missingness_START(((Start)))
             variant_missingness_END(((End)))
-            report_missingness_per_cluster[[**report_missingness_per_cluster**: Report the missingness rates observed across each cluster]]
-            collect_variant_missingness[[**collect_variant_missingness**: Collect all per-cluster variant missingness reports into one]]
+            report_missingness_per_cluster[[**report_missingness_per_cluster**: <br>Report the missingness rates <br>observed across each cluster]]
+            collect_variant_missingness[[**collect_variant_missingness**: <br>Collect all per-cluster <br>variant missingness reports <br>into one]]
 
             variant_missingness_START --> report_missingness_per_cluster & collect_variant_missingness
             report_missingness_per_cluster --> collect_variant_missingness
@@ -161,8 +143,8 @@ flowchart TD
         subgraph vep[Variant Effect Prediction]
             vep_START(((Start)))
             vep_END(((End)))
-            query_variant_effect_predictions[[**query_variant_effect_predictions**: Perform API calls to E! Ensemble REST API to identify variants]]
-            compile_variant_effect_predictions[[**compile_variant_effect_predictions**: Collect the RAW API payloads and extract relevant metrics]]
+            query_variant_effect_predictions[[**query_variant_effect_predictions**: <br>Perform API calls to <br>E! Ensemble REST API to <br>identify variants]]
+            compile_variant_effect_predictions[[**compile_variant_effect_predictions**: <br>Collect the RAW API <br>payloads and extract <br>relevant metrics]]
             
             vep_START --> query_variant_effect_predictions & compile_variant_effect_predictions
             query_variant_effect_predictions --> compile_variant_effect_predictions
@@ -172,7 +154,7 @@ flowchart TD
         subgraph fishers_exact[Fishers Exact w/t Bonferoni Correction]
             fishers_exact_START(((Start)))
             fishers_exact_END(((End)))
-            report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**: Perform Fishers-Exact test with Bonferonni correction]]
+            report_fishers_exact_with_corrections[[**report_fishers_exact_with_corrections**: <br>Perform Fishers-Exact test <br>with Bonferonni correction]]
 
             fishers_exact_START --> report_fishers_exact_with_corrections --> fishers_exact_END
         end
@@ -182,7 +164,7 @@ flowchart TD
 
 
 
-        consolidate_reports[[**consolidate_reports**: Consolidate all the generated reports into one]]
+        consolidate_reports[[**consolidate_reports**: <br>Consolidate all the <br>generated reports <br>into one]]
 
         class format_sample_metadata,query_variant_effect_predictions,compile_variant_effect_predictions,collect_autosomal_hardy_weinberg,collect_variant_count,collect_variant_frequency,collect_variant_missingness,report_fishers_exact_with_corrections,consolidate_reports python;
 
