@@ -714,9 +714,9 @@ flowchart TD
   This protocol is responsible for performing clustered variant count and frequency analysis. Two python scripts are used to collect the results of each clusters counts and frequencies respectively, and convert these into named columns for the final output.
 
   <details markdown="block">
-    <summary>
-      <code>report_count_partitioned_per_cluster</code>
-    </summary>
+  <summary>
+    <code>report_count_partitioned_per_cluster</code>
+  </summary>
 
   ```mermaid
   flowchart TD    
@@ -762,9 +762,9 @@ flowchart TD
   </details>
   
   <details markdown="block">
-    <summary>
-      <code>collect_variant_frequency</code>
-    </summary>
+  <summary>
+    <code>collect_variant_frequency</code>
+  </summary>
 
   ```mermaid
   flowchart TD
@@ -782,9 +782,9 @@ flowchart TD
 </details>
 
 <details markdown="block">
-  <summary>
-    <code>collect_variant_count</code>
-  </summary>
+<summary>
+  <code>collect_variant_count</code>
+</summary>
 
   ```mermaid
   flowchart TD
@@ -917,9 +917,9 @@ end
   ```
 
   <details markdown="block">
-    <summary>
-      <code>report_missingness_per_cluster</code>
-    </summary>
+  <summary>
+    <code>report_missingness_per_cluster</code>
+  </summary>
 
   ```mermaid
   flowchart TD
@@ -964,7 +964,7 @@ end
   </dl>
   </details>
 
-<details markdown="block">
+  <details markdown="block">
   <summary>
     <code>collect_variant_missingness</code>
   </summary>
@@ -978,12 +978,11 @@ end
   ```
 
   <dl>
-      <dt>Function</dt>
-      <dd>
-      A python script to compile multiple cluster-level variant-missingness results into a single report.</dd>
-    </dl>
-
-</details>
+    <dt>Function</dt>
+    <dd>
+    A python script to compile multiple cluster-level variant-missingness results into a single report.</dd>
+  </dl>
+  </details>
 </details>
 
 <details markdown="block">
@@ -1004,9 +1003,9 @@ end
   ```
 
   <details markdown="block">
-    <summary>
-      <code>report_fishers_exact_with_corrections</code>
-    </summary>
+  <summary>
+    <code>report_fishers_exact_with_corrections</code>
+  </summary>
 
   ```mermaid
   flowchart TD
@@ -1047,9 +1046,9 @@ end
   ```
 
   <details markdown="block">
-    <summary>
-      <code>query_variant_effect_predictions</code>
-    </summary>
+  <summary>
+    <code>query_variant_effect_predictions</code>
+  </summary>
 
   ```mermaid
   flowchart TD
@@ -1064,13 +1063,12 @@ end
     <dd>
     A python script to perform batched API calls to the <a href="https://rest.ensembl.org/#VEP">E! Ensembl REST APIs VEP tool</a> to retrieve and store cached variant annotations.</dd>
   </dl>
-
   </details>
 
   <details markdown="block">
-    <summary>
-      <code>compile_variant_effect_predictions</code>
-    </summary>
+  <summary>
+    <code>compile_variant_effect_predictions</code>
+  </summary>
 
   ```mermaid
   flowchart TD
@@ -1084,7 +1082,6 @@ end
     <dt>Function</dt>
     <dd>A python script to extract relevant metrics from the returned annotations.</dd>
   </dl>
-
   </details>
 </details>
 
