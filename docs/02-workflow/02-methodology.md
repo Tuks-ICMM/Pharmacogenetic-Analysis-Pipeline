@@ -286,7 +286,7 @@ A python script which uses Pandas to convert the provided `samples.csv` into a f
   </details>
 
   <details markdown="block">
-    <summary><code>merge_datasets</code></summary>
+  <summary><code>normalize_merged_datasets</code></summary>
 
   ```mermaid
   flowchart TD
@@ -805,30 +805,30 @@ flowchart TD
 <details markdown="block">
   <summary>Hardy-Weinberg Protocol</summary>
 
-  ```mermaid
-  flowchart TD
-  subgraph hardy_weinberg[Hardy-Weinberg]
-    hardy_weinberg_START(((Start)))
-    hardy_weinberg_END(((End)))
-    report_hardy_weinberg_per_cluster[[<b>report_hardy_weinberg_per_cluster</b>: <br>Perform HWE analysis <br>across each cluster]]
-    collect_autosomal_hardy_weinberg[[<b>collect_autosomal_hardy_weinberg</b>: <br>Collect the HWE reports <br>for autosomal locations]]
+```mermaid
+flowchart TD
+subgraph hardy_weinberg[Hardy-Weinberg]
+  hardy_weinberg_START(((Start)))
+  hardy_weinberg_END(((End)))
+  report_hardy_weinberg_per_cluster[[<b>report_hardy_weinberg_per_cluster</b>: <br>Perform HWE analysis <br>across each cluster]]
+  collect_autosomal_hardy_weinberg[[<b>collect_autosomal_hardy_weinberg</b>: <br>Collect the HWE reports <br>for autosomal locations]]
 
-    hardy_weinberg_START --> report_hardy_weinberg_per_cluster & collect_autosomal_hardy_weinberg
-    report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
-    collect_autosomal_hardy_weinberg --> hardy_weinberg_END
+  hardy_weinberg_START --> report_hardy_weinberg_per_cluster & collect_autosomal_hardy_weinberg
+  report_hardy_weinberg_per_cluster --> collect_autosomal_hardy_weinberg
+  collect_autosomal_hardy_weinberg --> hardy_weinberg_END
 
-    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
-    class report_hardy_weinberg_per_cluster plink;
+  classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
+  class report_hardy_weinberg_per_cluster plink;
 
-    classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
-    class collect_autosomal_hardy_weinberg python;
-  end
-  ```
+  classDef python stroke:#FEBE10,fill:#D3D3D3,stroke-width:4px,color:black;
+  class collect_autosomal_hardy_weinberg python;
+end
+```
 
   <details markdown="block">
-    <summary>
-      <code>report_hardy_weinberg_per_cluster</code>
-    </summary>
+  <summary>
+    <code>report_hardy_weinberg_per_cluster</code>
+  </summary>
 
   ```mermaid
   flowchart TD
@@ -839,44 +839,43 @@ flowchart TD
   ```
 
   <dl>
-      <dt>Function</dt>
-      <dd>
-      To generate a hardy-weinberg report.</dd>
-      <dt>Command</dt>
-      <dd><code>plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p --out {params.output}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>--threads {threads}</code></dt>
-          <dd>Used to set the number of CPU threads used during this calculation</dd>
-          <dt><code>--pfile {params.input} vzs</code></dt>
-          <dd>Used to provide plink with the location of a plink-2 binary file set (.psam, .pvar and .pgen files), and to expect z-compressed files.</dd>
-          <dt><code>--loop-cats {wildcards.cluster}</code></dt>
-          <dd>Perform the requested computation repeAtedly, sampeling across the provided clusters, as assigned via the provided <code>samples.csv</code></dd>
-          <dt><code>--hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p</code></dt>
-          <dd>Perform equilibrium, test on each variant record. Include the following columns:
-            <ul>
-                <li>Chromosome</li>
-                <li>Position</li>
-                <li>Reference Allele</li>
-                <li>Alternate allele</li>
-                <li>Genotype counts</li>
-                <li>Heterozygote frequency</li>
-                <li>P-value</li>
-            </ul>
-          </dd>
-          <dt><code>--out {params.output}</code></dt>
-          <dd>Provide the file name and path for output creation.</dd>  
-        </dl>
-      </dd>
-    </dl>
-
+    <dt>Function</dt>
+    <dd>
+    To generate a hardy-weinberg report.</dd>
+    <dt>Command</dt>
+    <dd><code>plink2 --threads {threads} --pfile {params.input} vzs --loop-cats {wildcards.cluster} --hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p --out {params.output}</code></dd>
+    <dt>Parameters</dt>
+    <dd>
+      <dl>
+        <dt><code>--threads {threads}</code></dt>
+        <dd>Used to set the number of CPU threads used during this calculation</dd>
+        <dt><code>--pfile {params.input} vzs</code></dt>
+        <dd>Used to provide plink with the location of a plink-2 binary file set (.psam, .pvar and .pgen files), and to expect z-compressed files.</dd>
+        <dt><code>--loop-cats {wildcards.cluster}</code></dt>
+        <dd>Perform the requested computation repeAtedly, sampeling across the provided clusters, as assigned via the provided <code>samples.csv</code></dd>
+        <dt><code>--hardy midp cols=chrom,pos,ref,alt,gcounts,hetfreq,p</code></dt>
+        <dd>Perform equilibrium, test on each variant record. Include the following columns:
+          <ul>
+              <li>Chromosome</li>
+              <li>Position</li>
+              <li>Reference Allele</li>
+              <li>Alternate allele</li>
+              <li>Genotype counts</li>
+              <li>Heterozygote frequency</li>
+              <li>P-value</li>
+          </ul>
+        </dd>
+        <dt><code>--out {params.output}</code></dt>
+        <dd>Provide the file name and path for output creation.</dd>  
+      </dl>
+    </dd>
+  </dl>
   </details>
 
   <details markdown="block">
-    <summary>
-      <code>collect_autosomal_hardy_weinberg</code>
-    </summary>
+  <summary>
+    <code>collect_autosomal_hardy_weinberg</code>
+  </summary>
 
   ```mermaid
   flowchart TD
@@ -887,51 +886,12 @@ flowchart TD
   ```
 
   <dl>
-      <dt>Function</dt>
-      <dd>
-      A python script to compile multiple cluster-level autosomal hardy-weinberg results into a single report.</dd>
-    </dl>
-
+    <dt>Function</dt>
+    <dd>
+    A python script to compile multiple cluster-level autosomal hardy-weinberg results into a single report.</dd>
+  </dl>
+  </details>
 </details>
-</details>
-
-<!-- <details markdown="block">
-  <summary>
-    <code>report_fixation_index_per_cluster</code>
-  </summary> -->
-
-  <!-- ```mermaid
-  flowchart TD
-    classDef plink stroke:#36454F,fill:#D3D3D3,stroke-width:4px,color:black;
-
-    report_fixation_index_per_cluster[[**report_fixation_index_per_cluster**:
-Perform Fixation index calculations]]
-
-    class report_fixation_index_per_cluster plink;
-  ``` -->
-<!-- 
-  <dl>
-      <dt>Function</dt>
-      <dd>
-      To generate a hardy-weinberg report.</dd>
-      <dt>Command</dt>
-      <dd><code>plink2 --threads {threads} --pfile {params.input} vzs --fst {wildcards.cluster} report-variants zs --out {params.output}</code></dd>
-      <dt>Parameters</dt>
-      <dd>
-        <dl>
-          <dt><code>--threads {threads}</code></dt>
-          <dd>Used to set the number of CPU threads used during this calculation</dd>
-          <dt><code>--pfile {params.input} vzs</code></dt>
-          <dd>Used to provide plink with the location of a plink-2 binary file set (.psam, .pvar and .pgen files), and to expect z-compressed files.</dd>
-          <dt><code>--fst {wildcards.cluster} report-variants zs</code></dt>
-          <dd>Perform the requested fixation index calculations. the <code>report-variants</code> modifier requests variant-level fst results and the <code>zs</code> modifier requests the output to be compressed.</dd>
-          <dt><code>--out {params.output}</code></dt>
-          <dd>Provide the file name and path for output creation.</dd>  
-        </dl>
-      </dd>
-    </dl>
-
-</details> -->
 
 <details markdown="block">
   <summary>Missingness Protocol</summary>
