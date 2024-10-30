@@ -53,28 +53,28 @@ This workflow makes use of an analysis manifest to encapsulate all analysis vari
 title: Data Requirements
 ---
 flowchart TB
-  subgraph Standard ["Resources folder"]
-      reference_genome{{"Reference Genome <br> <i>genome_version_name.fa</i>"}}
+  subgraph Standard [Resources folder]
+      reference_genome{{Reference Genome <br> <i>genome_version_name.fa</i>}}
   end
-  subgraph projectSpecific ["Input folder"]
-      %% Use LR to invert axis set by parent to effectively force relative "TB"
+  subgraph projectSpecific [Input folder]
+      %% Use LR to invert axis set by parent to effectively force relative TB
       direction LR
-      subgraph data ["Analysis datasets"]
+      subgraph data [Analysis datasets]
             direction TB
-          datasetFile1{{"<b>Dataset file</b><br><code>input/GnomAD_Chr1.vcf.gz</code>"}}
-          datasetFile2{{"<b>Dataset file</b><br><code>input/GnomAD_Chr2.vcf.gz</code>"}}
-          datasetFileN{{"<b>Dataset file</b><br><code>input/GnomAD_ChrN...vcf.gz</code>"}}
+          datasetFile1{{<b>Dataset file</b><br><code>input/GnomAD_Chr1.vcf.gz</code>}}
+          datasetFile2{{<b>Dataset file</b><br><code>input/GnomAD_Chr2.vcf.gz</code>}}
+          datasetFileN{{<b>Dataset file</b><br><code>input/GnomAD_ChrN...vcf.gz</code>}}
       end
-      subgraph metadata ["Analysis Metadata"]
-          %% Use LR to invert axis set by parent to effectively force relative "TB"
+      subgraph metadata [Analysis Metadata]
+          %% Use LR to invert axis set by parent to effectively force relative TB
           direction LR
 
           manifest{{<b>Analysis Manifest</b> <br><code>input/manifest.json</code>}}
 
-          datasetMeta{{"<b>Data files to incude</b><br><code>input/datasets.csv</code>"}}
-          locationMeta{{"<b>Coordinates for study</b><br><code>input/locations.csv</code>"}}
-          sampleMeta{{"<b>Sample metadata</b><br><code>input/samples.csv</code>"}}
-          transcriptMeta{{"<b>Transcript preferences</b><br><code>input/transcripts.csv</code>"}}
+          datasetMeta{{<b>Data files to incude</b><br><code>input/datasets.csv</code>}}
+          locationMeta{{<b>Coordinates for study</b><br><code>input/locations.csv</code>}}
+          sampleMeta{{<b>Sample metadata</b><br><code>input/samples.csv</code>}}
+          transcriptMeta{{<b>Transcript preferences</b><br><code>input/transcripts.csv</code>}}
       end
   end
 
@@ -137,7 +137,7 @@ All metadata is provided in the form of appropriately named ` .csv` files locate
   <summary>
     <h4><code>manifest.json</code> format example</h4>
   </summary>
-  
+
   <dl>
     <dt>fishers-test <code>&lt;object&gt;</code></dt>
     <dd>
