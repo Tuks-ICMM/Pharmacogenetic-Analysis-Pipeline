@@ -89,7 +89,9 @@
 </script>
 
 <script type="module">
-import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.3.0/dist/mermaid.esm.min.mjs';
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@11/dist/mermaid-layout-elk.esm.min.mjs';
+
 const config = {
         startOnLoad: true,
         theme: "dark",
@@ -98,6 +100,7 @@ const config = {
             defaultRenderer: "elk"
     }
 };
+mermaid.registerLayoutLoaders(elkLayouts);
 mermaid.initialize(config);
 mermaid.run({ querySelector: '.language-mermaid', });
 </script>
