@@ -69,7 +69,7 @@ VARIANT_TYPE_CATEGORIES = [
 def removeFromList(
     sheet_names: List[int | str], names_to_remove: List[str]
 ) -> List[int | str]:
-    """A function to remove unintended sheets from teh excel before processing"""
+    """A function to remove unintended sheets from the excel before processing"""
     RESULT = sheet_names
     for sheet_name in names_to_remove:
         try:

@@ -1,0 +1,12 @@
+.main-content dl.def-small {
+    display: grid;
+    grid-template: auto / 5em 1fr;
+}
+.main-content dl {
+    display: grid;
+    grid-template: auto / 10em 1fr;
+}
+.main-content dl.def-wide {
+    display: grid;
+    grid-template: auto / 15em 1fr;
+}

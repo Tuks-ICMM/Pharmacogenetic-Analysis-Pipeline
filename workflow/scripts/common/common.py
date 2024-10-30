@@ -130,7 +130,7 @@ def generate_params(transcription_ids: list = None, canonical=False) -> dict:
         "Blosum62": True,
         # Request a CADD score for this variant
         "CADD": True,
-        # Retrive a conservation score from teh E! Ensembl Compara database
+        # Retrive a conservation score from the E! Ensembl Compara database
         # "Conservation": True,
         # https://raw.githubusercontent.com/ensembl-variation/VEP_plugins/master/DisGeNET.pm
         # Retrieves a list of variant-disease PMID associations for meta-analysis
