@@ -40,9 +40,6 @@ Piccard
 ```mermaid
 ---
 title: Pharmacogenetics Analysis
-config:
-    flowchart:
-        defaultRenderer: elk
 ---
 flowchart TD
     START(((Input Files)))
