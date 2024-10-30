@@ -17,8 +17,10 @@ Reference Genome Configuration
 
 ---
 
-The <i>{{ site.title }}</i> is a pipeline powered by <a href="https://snakemake.readthedocs.io/" target="_blank">Snakemake</a>, a python-based workflow management package.
+This section explains the construction of this workflow in detail, to encourage reproducible and iterative development of the analysis this workflow conducts.
 
-<!-- This project has been created with support for PBS-Torque scheduler environments on Linux servers.
+## Data
+We describe the input data required in order to run this workflow in detail, describing the requested dataset formats, optimizations and metadata supported and requested.
 
-Below is a diagram representing the pipeline flow and steps in the form of a process flow diagram. For reference on the graph syntax (Shape legend), please consult [this guide](https://www.bbc.co.uk/bitesize/guides/znv3rwx/revision/2). -->
+## Methodology
+Each step in teh workflow is discussed in detail, with a summary of each command performed and an explanation for each argument passed to the underlying software.

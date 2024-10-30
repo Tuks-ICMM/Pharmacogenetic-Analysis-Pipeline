@@ -45,11 +45,14 @@ config:
         defaultRenderer: elk
 ---
 flowchart TD
-    START(((Start)))
+    START(((Input Files)))
+    click START href "/workflow/data" _blank
+
     ValidateVcfWorkflow[\Validate VCF Workflow/]
     click ValidateVcfWorkflow href "https://tuks-icmm.github.io/VCF-Validation-Workflow/workflow/methodology" _blank
 
-    START --> ValidateVcfWorkflow
+    START --> ValidateVcfWorkflow --> multipleVcfProtocol
+    START --> format_sample_metadata
 
     subgraph pharmacogeneticsWorkflow [Pharmacogenetics Workflow]
         direction BT
@@ -61,9 +64,6 @@ flowchart TD
         classDef tabix stroke:#023020,fill:#D3D3D3,stroke-width:4px,color:black;
         classDef gatk stroke:#007FFF,fill:#D3D3D3,stroke-width:4px,color:black;
         classDef workflow stroke:#fff,fill:#000000,stroke-width:4px,color:white;
-
-
-        pharmacogeneticsWorkflow_START(((Start)))
 
         subgraph multipleVcfProtocol [Multiple dataset protocol]
             direction LR
@@ -198,9 +198,6 @@ flowchart TD
 
     remove_related_samples --> PopulationStructureWorkflow
 
-    ValidateVcfWorkflow --> pharmacogeneticsWorkflow
-
-    pharmacogeneticsWorkflow_START --> multipleVcfProtocol & format_sample_metadata
 
     END((Results))
 
@@ -211,7 +208,7 @@ flowchart TD
 
 ## Workflow Rules Explained
 
-Below, each rule in the workflow has been broken down and explained for convenience.
+Below, each rule in the workflow has been broken down and explained for convenience. In teh case of nested protocols, these are summarized and explained below in nested dropdowns.
 
 <details markdown="block">
 <summary>

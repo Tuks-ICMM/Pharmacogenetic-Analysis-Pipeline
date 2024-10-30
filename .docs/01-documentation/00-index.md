@@ -18,9 +18,9 @@ This workflow includes a number of tools and processing steps intended to help r
 
 ## Project Structure
 
-Below is a brief summary of the files and folders, based on the recommended Snakemake project structure detailed on [Snakemakes Documentation](https://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html).
+Since users of this workflow will need to work within the file structure in order to configure, and run this workflow, a dedicated file-structure has been employed to keep our source code neat and tidy. Below is a brief summary of the files and folders, based on the recommended Snakemake project structure detailed on [the Snakemake Documentation website](https://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html).
 
-{: .note }
+{: .normal }
 > Several development-related files and folders have been excluded for practicality. These folders have all been prefaced with a period (`.`) to denote them as hidden files and folders.
 
 ```
@@ -194,7 +194,7 @@ To do this, you may use the `queue` key to describing the available PBS-Torque r
 >
 > In some cases, users might want to run some jobs on multiple nodes and some on single nodes. To support this, you may declare the same underlying queue multiple times with a different `queue` key in the config file and create multiple versions of the same underlying hardware queue.
 
-{: .note }
+{: .normal }
 > It is recommended that you submit the workflow execution script with the longest available walltime as this will create a watcher process who is responsible for queueing each rule and monitoring their states. If this process is interupted, the workflow will cease.
 
 <dl>

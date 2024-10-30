@@ -7,10 +7,10 @@ has_children: false
 parent: Workflow
 ---
 
-# Data Requirements
+# Data
 {: .no_toc}
 
-A summary of the required data and input files needed to run an analysis.
+A summary of the required data and input files needed to perform an analysis.
 {: .fs-6 .fw-300 }
 
 Datasets
@@ -36,13 +36,15 @@ Transcript Selection
 
 ---
 
-This page lists the informational requirements needed to execute the _{{ site.title }}_. Below is a simplified overview diagram indicating the full list of required information. For more information, you may consult the relevant section below which contains more advanced explanations, discussions and technical documentation for each requirement and any formatting involved.
+This page lists the information needed to run the _{{ site.title }}_. Below we guide users through the system used to declare an analysis manifest, and all associated metadata files. For more information, please consult the relevant section below which contains more specific guidance, discussions and technical documentation.
 
 ## Overview
 
-<details markdown="block">
+This workflow makes use of an analysis manifest to encapsulate all analysis variables used. This manifest file collects and connects the metadata for your samples, datasets, and relevant reference resources (Reference Genomes, etc) together. Doing so allows the workflow to programmatically access clusters through sample annotations, which is required in order to produce cluster-level reports.
+
+<details markdown="block" open>
   <summary>
-    Data Requirements Diagram
+    Input Data Infographic
   </summary>
   {: .text-delta }
 
@@ -51,69 +53,131 @@ This page lists the informational requirements needed to execute the _{{ site.ti
 title: Data Requirements
 ---
 flowchart TB
-  subgraph Standard ["Standard Resources"]
-            genomeFasta[/"Reference Genome\nGRCh38 (FASTA)"/]
-        end
-        subgraph projectSpecific ["Project specific data"]
-            %% Use LR to invert axis set by parent to effectively force relative "TB"
-            direction LR
-            subgraph data ["Variant input data"]
-                datasetFiles[/"Datasets (VCF)"/]
-            end
-            subgraph metadata ["Analysis metadata"]
-                %% Use LR to invert axis set by parent to effectively force relative "TB"
-                direction LR
+  subgraph Standard ["Resources folder"]
+      reference_genome{{"Reference Genome <br> <i>genome_version_name.fa</i>"}}
+  end
+  subgraph projectSpecific ["Input folder"]
+      %% Use LR to invert axis set by parent to effectively force relative "TB"
+      direction LR
+      subgraph data ["Analysis datasets"]
+            direction TB
+          datasetFile1{{"<b>Dataset file</b><br><code>input/GnomAD_Chr1.vcf.gz</code>"}}
+          datasetFile2{{"<b>Dataset file</b><br><code>input/GnomAD_Chr2.vcf.gz</code>"}}
+          datasetFileN{{"<b>Dataset file</b><br><code>input/GnomAD_ChrN...vcf.gz</code>"}}
+      end
+      subgraph metadata ["Analysis Metadata"]
+          %% Use LR to invert axis set by parent to effectively force relative "TB"
+          direction LR
 
-                datasetMeta[/"Datasets metadata\n(CSV)"/]
-                locationMeta[/"Genomic location\nmetadata (CSV)"/]
-                sampleMeta[/"Sample metadata\n(CSV)"/]
-                transcriptMeta[/"Transcript metadata\n(CSV)"/]
-            end
-        end
+          manifest{{<b>Analysis Manifest</b> <br><code>input/manifest.json</code>}}
+
+          datasetMeta{{"<b>Data files to incude</b><br><code>input/datasets.csv</code>"}}
+          locationMeta{{"<b>Coordinates for study</b><br><code>input/locations.csv</code>"}}
+          sampleMeta{{"<b>Sample metadata</b><br><code>input/samples.csv</code>"}}
+          transcriptMeta{{"<b>Transcript preferences</b><br><code>input/transcripts.csv</code>"}}
+      end
+  end
+
+  workflow[\Pharmacogenetics Analysis Workflow/]
+
+  click workflow href "/workflow/methodology" _blank
+  
+  transcriptMeta & sampleMeta & datasetMeta & locationMeta --> manifest
+
+  data -.-|Referenced in| datasetMeta
+  data -.-|Referenced in| sampleMeta
+  data -.-|Referenced in| locationMeta
+
+  reference_genome -.-|Referenced in| datasetMeta
+
+  manifest --> workflow
 ```
 
 </details>
 
 
-## Reference Genome
+## Analysis Datasets
 
-Due to the nature of reference sequences, they are not included as pipeline inputs and are, as a result, not handled in this section. For additional information, please consult the Reference Genome section on the pipeline configuration page.
+This workflow is designed to work on <i>variant-call-format</i> files (<code>.vcf</code> file extension) files. The latest version of the VCF specification can be found [here](https://samtools.github.io/hts-specs/VCFv4.3.pdf).
 
-## Datasets & Dataset Files
+### Dataset Subdivisions
 
-Please provide all input datasets in the form of _variant-call-format_ or `.vcf` files. The latest version of the VCF specification can be found [here](https://samtools.github.io/hts-specs/VCFv4.3.pdf).
+The data used in this workflow should be sub-divided into contigs. This reduces unnecessary processing times associated with genomic content that is not relevant to the analysis.
 
-### Compression and Indexing
+### Dataset Compression and Indexing
 
-Due to the nature of bioinformatics and genomics, datasets are often quite large in uncompressed form. Users are welcome to compress their data files for additional performance and administrative ease-of-use.
+Datasets are often quite large in uncompressed form. Users are welcome to compress their data files for additional performance gains. The software used in this workflow supports BGZip-compression.
 
 If you wish to compress your VCF files, please provide the following files as input:
 
-- [x] BGZIP-compressed VCF file (`.vcf.gz` or `vcf.bgz`)
-- [x] Tabix Index (`.vcf.gz.tbi` or `.vcf.bgz.tbi`)
+- BGZIP-compressed VCF file (<code>.vcf.gz</code> or <code>vcf.bgz</code>)
+- Tabix Index (<code>.vcf.gz.tbi</code> or <code>.vcf.bgz.tbi</code>)
 
 {: .normal }
-> This pipeline is designed to accept `.vcf.gz` files produced by **Block Compression (BGZIP)**. This is a non-standard type of compression which is not typically the default on Windows or MacOS. It is used to compress `.vcf` files in a series of blocks or chunks and can be done using many popular bioinformatics tools.
+> <b>Block Compression (BGZIP)</b> is a non-standard type of compression which is not the default compression type used on Windows or MacOS. It is used to compress files in a series of blocks or chunks.
 >
-> Normally, block-compression alone would only make your data file smaller. To facilitate more efficient usage of computational resources, you can also create a **Tabix Index**. This is an accompanying index file to BGZIP-compressed `.vcf.gz` files which contains an index indicating the bounds of each compression block relative to the genomic coordinates and variant IDs in the dataset, making targeted decompression much more efficient.
+> Block-compression alone is simply an alternative compression method to make your data file smaller. In computational biology applications, block-compression is combined with a <b>Tabix Index</b> to record the coordinate coverage/bounds in each compressed block. This allows targeted decompression of spesific regions for analysis, as opposed to having to parse the entire file until the requested coordinates are found.
 >
 > Both block-compression and tabix indexing are provided as part of [SamTools](http://www.htslib.org/doc/bgzip.html).
 
-## Metadata Declarations
+## Analysis Metadata
 
-To run the _{{ site.title }}_, you will need to provide some additional contextual information. All metadata is provided in the form of appropriately named ` .csv` files located in the input directory.
+<h3><code>manifest.json</code></h3>
+
+To declare all analysis variables, a <code>manifest.json</code> file should be provided in the <code>input</code> folder. This file is responsible for declaring all information relating to the analysis and serves as the central point of contact between the workflow runtime and your input data.
+
+All metadata is provided in the form of appropriately named ` .csv` files located in the input directory.
 
 {: .normal-title }
 > Case sensitivity
 >
 > The following metadata declaration files use _**case-sensitive column names**_.
 
+<details markdown="block">
+  <summary>
+    <h4><code>manifest.json</code> format example</h4>
+  </summary>
+  
+  <dl>
+    <dt>fishers-test <code>&lt;object&gt;</code></dt>
+    <dd>
+      <dl>
+        <dt><i>cluster_name</i> <code>&lt;str&gt;</code></dt>
+        <dd>The name of the cluster-level declared in your <code>samples.csv</code> annotations for which you would like to declare a reference population for pair-wise testing.</dd>
+      </dl>
+    </dd>
+    <dt>output-dir <code>&lt;Array&lt;Str&gt;&gt;</code></dt>
+    <dd>A list representing the file-path for the location at which the workflow should save its output. If the folder does not exist, the workflow will automatically create it.</dd>
+  </dl>
+
+  ```json
+  {
+      "fishers-test": {
+          "my_cluster": "my_population_of_interest"
+      },
+      "output-dir": [
+          "/",
+          "path",
+          "to",
+          "my",
+          "output",
+          "location"
+      ]
+  }
+  ```
+</details>
+
 ---
-### Datasets
+<h3><code>datasets.csv</code></h3>
 
-The `datasets.csv` file allows you to declare datasets and provide the necessary dataset-level information for use in this pipeline.
+The `datasets.csv` file allows you to declare datasets and provide the necessary information to determine which contig-level files should be used for analysis given the provided genomic coordinates.
 
-#### Data requirements
+
+<details markdown="block">
+  <summary>
+    <h4><code>datasets.csv</code> format example</h4>
+  </summary>
+  {: .text-delta }
 
 <dl class="def-wide">
   <dt>dataset_name <code>&lt;str&gt;</code></dt>
@@ -132,12 +196,6 @@ The `datasets.csv` file allows you to declare datasets and provide the necessary
   <br><strong><i>E.g. <code>GRCh37</code> or <code>GRCh38</code></i></strong></dd>
 </dl>
 
-<details markdown="block">
-  <summary>
-    <code>datasets.csv</code> data example
-  </summary>
-  {: .text-delta }
-
 | **dataset_name** | **reference_genome** | **file**                                                    |
 | :--------------- | :------------------- | :---------------------------------------------------------- |
 | HG002            | GRCh38               | `/nlustre/users/graeme/PUBLIC/GenomeInABottle/HG002.vcf.gz` |
@@ -147,11 +205,15 @@ The `datasets.csv` file allows you to declare datasets and provide the necessary
 </details>
 
 ---
-### Samples
+<h3><code>samples.csv</code></h3>
 
 The `samples.csv` file allows you to declare samples and provide the necessary sample-level information for use in this pipeline.
 
-#### Data requirements
+<details markdown="block">
+  <summary>
+    <h4><code>samples.csv</code> format example</h4>
+  </summary>
+  {: .text-delta }
 
 <dl class="def-wide">
   <dt>sample_name <code>&lt;str&gt;</code></dt>
@@ -169,13 +231,6 @@ The `samples.csv` file allows you to declare samples and provide the necessary s
   
   <br><strong><i>E.g. <code>GRCh37</code> or <code>GRCh38</code></i></strong></dd>
 </dl>
-
-<details markdown="block">
-  <summary>
-    <code>samples.csv</code> data example
-  </summary>
-  {: .text-delta }
-
 | **sample_name** | **dataset** | **SUPER** | **SUB** |
 | :-------------- | :---------- | :-------- | :------ |
 | HG002           | HG002       | `EUR`     | `GBR`   |
@@ -185,11 +240,17 @@ The `samples.csv` file allows you to declare samples and provide the necessary s
 </details>
 
 ---
-### Genomic Locations
+<h3><code>locations.csv</code></h3>
 
 The `locations.csv` file allows you to declare samples and provide the necessary sample-level information for use in this pipeline.
 
-#### Data requirements
+
+<details markdown="block">
+  <summary>
+    <h4><code>locations.csv</code> format example</h4>
+  </summary>
+  {: .text-delta }
+
 
 <dl class="def-wide">
   <dt>location_name <code>&lt;str&gt;</code></dt>
@@ -217,12 +278,6 @@ The `locations.csv` file allows you to declare samples and provide the necessary
   
   <br><strong><i>E.g. <code>-1</code></i></strong></dd>
 </dl>
-<details markdown="block">
-  <summary>
-    <code>locations.csv</code> data example
-  </summary>
-  {: .text-delta }
-
 | **location_name** | **chromosome** | **start** | **stop**  | **strand** |
 | :---------------- | :------------- | :-------- | :-------- | :--------- |
 | CYP2A6            | 19             | 40842850  | 40851138  | -1         |
@@ -232,7 +287,7 @@ The `locations.csv` file allows you to declare samples and provide the necessary
 </details>
 
 ---
-### Transcripts
+### <code>transcripts.csv</code>
 
 The `transcripts.csv` file allows you to declare which transcripts you would like to use when performing variant-effect-prediction.
 
@@ -285,3 +340,9 @@ During the execution of the _{{ site.title }}_, variant-effect-prediction (VEP) 
 | UGT2B7        | ENST00000509763.1   |
 
 </details>
+
+
+
+## Reference Genome
+
+Reference Genomes are considered a 'resource', given that they are versioned and in many cases, may be analysis-specific and non-standard. As such, they are housed under the `resources` folder, and need to be provisioned and maintained separately.

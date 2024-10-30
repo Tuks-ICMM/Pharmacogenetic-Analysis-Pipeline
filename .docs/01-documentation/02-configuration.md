@@ -28,44 +28,38 @@ Software
 
 ---
 
-## Introduction
+## `config` folder
 
-Since users of this workflow will need to work within the file structure in order to configure, and run this workflow, a dedicated file-structure has been employed to keep our source code clean and in alignment with recommendations from the creators of Snakemake.
+To perform an analysis with this workflow, a few environmental variables need to be declared. Currently, this includes a reference to the output These are all tracked using files housed in the `config` directory at the project-root. The files in this folder contains all the configuration information specific to the environment you are running this pipeline on.
 
-<!-- ## Docker Environments
-A docker image has been created using [Alpine Linux](https://www.alpinelinux.org), a bare-bones version of linux optimized for size and efficiency, making it an ideal OS for lightweight Docker images. This image is available on [DockerHub here](https://hub.docker.com/repository/docker/graemeford/pipeline-os/general).
+### `config.json` file
 
-```bash
-docker pull graemeford/pipeline-os:latest
-``` -->
+The `config.json` file is used to declare all runtime variables that will be needed to run the workflow and its software.
 
-<!-- ## Virtual Environments
-Users are encouraged to use Python virtual environments to maintain a clean, project-specific environment. To create one, you can run the `python -m venv <folder-to-create>` command to create a virtual environment. IDE's such as Visual Studio Code with the appropriate python language packs enabled will be able to auto-detect this virtual environment and activate it for you. After activation, any python-related commands will install to and reference from this virtual environment.
-
-Pinned package version files for the python package manager, `pip`, are available to prime this environment with all necessary software. This is maintained via the `pip-tools` packages `pip-compile --generate-hashes` command.
-
-
-**Linux:**
-```bash
-# IF no venv folder present THEN
-# CREATE virtual environment
-python3 -m venv venv
-
-# ACTIVATE virtual environment 'venv'
-source ./venv/bin/activate
-
-# (venv) INSTALL dependancies
-pip install -r requirements.deb.txt
+```json
+{
+    "fishers-test": {
+        "my_cluster": "population_1"
+    },
+    "reference-genomes": [
+        {
+            "version": "GRCh38",
+            "file_path": [
+                "/",
+                "path",
+                "to",
+                "my",
+                "reference_genome.fa"
+            ]
+        }
+    ],
+    "output-dir": [
+        "/",
+        "path",
+        "to",
+        "my",
+        "output",
+        "location"
+    ]
+}
 ```
-
-{: .normal-title}
-> Virtual environments
->
-> Users are encouraged to use Python virtual environments to maintain a clean, project-specific environment. To create one, you can run the `python -m venv <folder-to-create>` command to create a vritual environment. To activate this environment, use the `source <path-to<folder-to-create>>/bin/activate`. Now, any installation commands will install to this blank environment.
-
-{: .normal-title }
-> Windows compatability
->
-> Virtual environments are supported on windows, however, the `source` command is linux-specific. Users can use an IDE which is capable of auto-detecting and auto-enabling virtual environments (such as [Visual Studio Code]()) for ease-of-use.
-
-> `--generate-hashes` is used to record an MD5-checksum digest of the files that form part of the packages file download. This allows pip to verify the file composition on download against these records, as a security function. -->
