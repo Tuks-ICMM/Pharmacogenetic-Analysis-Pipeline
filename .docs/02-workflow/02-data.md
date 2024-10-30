@@ -206,6 +206,7 @@ The `samples.csv` file allows you to declare samples and provide the necessary s
   
   <br><strong><i>E.g. <code>GRCh37</code> or <code>GRCh38</code></i></strong></dd>
 </dl>
+
 | **sample_name** | **dataset** | **SUPER** | **SUB** |
 | :-------------- | :---------- | :-------- | :------ |
 | HG002           | HG002       | `EUR`     | `GBR`   |
@@ -253,6 +254,7 @@ The `locations.csv` file allows you to declare samples and provide the necessary
   
   <br><strong><i>E.g. <code>-1</code></i></strong></dd>
 </dl>
+
 | **location_name** | **chromosome** | **start** | **stop**  | **strand** |
 | :---------------- | :------------- | :-------- | :-------- | :--------- |
 | CYP2A6            | 19             | 40842850  | 40851138  | -1         |
