@@ -1,4 +1,4 @@
 {
-    theme: "dark"
+    theme: "dark",
     layout: "elk"
 };
