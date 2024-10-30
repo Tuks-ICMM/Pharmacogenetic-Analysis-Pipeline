@@ -32,7 +32,7 @@ mermaid:
   # Version of mermaid library
   # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
   version: "11.3.0"
-  src: "_includes/mermaid_config.json"
+  src: "_includes/mermaid_config.js"
 
 # Build settings
 remote_theme: just-the-docs/just-the-docs
