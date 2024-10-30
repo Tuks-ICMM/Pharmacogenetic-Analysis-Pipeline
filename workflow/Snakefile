@@ -20,7 +20,7 @@ min_version("7.24.2")
 
 
 # DEFINE CONFIG FILE FOR SNAKEMAKE:
-configfile: join("config", "config.json")
+configfile: join("config", "manifest.json")
 
 
 # SET REPORT TEMPLATE

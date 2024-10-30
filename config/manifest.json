@@ -1,0 +1,11 @@
+{
+    "fishers-test": {
+        "super-population": "AFR"
+    },
+    "output-dir": [
+        "/",
+        "mnt",
+        "ICMM_HDD_12TB",
+        "Results_25SEP2024"
+    ]
+}

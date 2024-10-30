@@ -28,11 +28,14 @@ baseurl: "/Pharmacogenetic-Analysis-Pipeline" # the subpath of your site, e.g. /
 url: "https://tuks-icmm.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username: G-Kodes
 
-# mermaid:
-#   # Version of mermaid library
-#   # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
-#   version: "11.3.0"
-#   src: "_includes/mermaid_config.js"
+# For copy button on code and syntax highlighting css classes with Rouge
+enable_copy_code_button: true
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    # Use existing pygments syntax highlighting css
+    css_class: "highlight"
 
 # Build settings
 remote_theme: just-the-docs/just-the-docs
@@ -72,7 +75,7 @@ gh_edit_link: true # show or hide edit this page link
 gh_edit_link_text: "View this page on GitHub."
 gh_edit_repository: "https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline" # the github URL for your repo
 gh_edit_branch: "main" # the branch that your docs is served from
-gh_edit_source: docs # the source that your files originate from
+gh_edit_source: ".docs" # the source that your files originate from
 gh_edit_view_mode: "tree" # "tree" or "edit" if you want the user to jump into the editor immediately
 
 # SEO

@@ -30,15 +30,16 @@ Reference Genome Configuration
 
 This workflow was created by <a href="https://github.com/G-kodes" target="_blank">{% avatar G-Kodes size=15 %} Graeme Ford</a> under the [Institute for Cellular and Molecular Medicine (ICMM)](https://www.up.ac.za/institute-for-cellular-and-molecular-medicine). This workflow is maintained and distributed through the [ICMM GitHub page](https://github.com/Tuks-ICMM), where releases are versioned for convenience.
 
-
-
 ## Dependencies overview
 
-This workflow is built and powered using a python-based framework for workflow management. In addition, we maKE use of several underlying bioinformatics toolkits and third-party command-line programs to perform some steps in the analysis (For more information, see the [methodology age](/workflow/methodology)).
+This workflow is built and powered using a python-based framework for workflow management. In addition, we make use of several underlying bioinformatics toolkits and third-party command-line programs to perform some steps in the analysis (For more information, see the [methodology page](/workflow/methodology)).
 
-- [ ] Download a copy of the [Pharmacogenetics Analysis Workflow](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline)
-- [ ] Prepare a [Python](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline) environment with basic dependencies installed
-- [ ] Download and install required CLI dependencies and Bioinformatics Tools
+- Download a copy of the [Pharmacogenetics Analysis Workflow](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline)
+- Prepare a [Python](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline) environment with basic dependencies installed
+- Download and install required CLI dependencies:
+    - Python
+    - Plink-2
+    - BCFtools
 
 ## Software Needed
 
@@ -48,9 +49,6 @@ In addition to powering the overall workflow management framework, this workflow
 
 {: .normal }
 > With increased popularity and adoption of Python, many operating systems now include a stripped down python version for internal use. This does pose some logistical issues when a user may want to install a custom, complete installation for direct use. It is possible in many cases to mix and overwrite python versions unless a dedicated strategy or version-management system is used. This can be especially dangerous as depending on the damage to the OS python installation, fixing this issue may require re-installing the OS.
-
-- [ ] Download and install a Conda implementation
-- [ ] 
 
 ### Plink-2
 

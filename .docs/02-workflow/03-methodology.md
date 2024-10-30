@@ -13,17 +13,6 @@ parent: Workflow
 An in-depth overview of each step in the workflow.
 {: .fs-6 .fw-300 }
 
-Plink-2
-{: .label }
-
-BcfTools
-{: .label }
-
-Piccard
-{: .label }
-
-
-
 <details markdown="block">
   <summary>
     Table of contents
@@ -40,6 +29,8 @@ Piccard
 ```mermaid
 ---
 title: Pharmacogenetics Analysis
+config:
+    layout: elk
 ---
 flowchart TD
     START(((Input Files)))
