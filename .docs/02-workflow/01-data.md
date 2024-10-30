@@ -52,21 +52,19 @@ This workflow makes use of an analysis manifest to encapsulate all analysis vari
 ---
 title: Data Requirements
 ---
+{% raw %}
 flowchart TB
   subgraph Standard [Resources folder]
       reference_genome{{Reference Genome <br> <i>genome_version_name.fa</i>}}
   end
   subgraph projectSpecific [Input folder]
-      %% Use LR to invert axis set by parent to effectively force relative TB
-      direction LR
       subgraph data [Analysis datasets]
-            direction TB
+          direction TB
           datasetFile1{{<b>Dataset file</b><br><code>input/GnomAD_Chr1.vcf.gz</code>}}
           datasetFile2{{<b>Dataset file</b><br><code>input/GnomAD_Chr2.vcf.gz</code>}}
           datasetFileN{{<b>Dataset file</b><br><code>input/GnomAD_ChrN...vcf.gz</code>}}
       end
       subgraph metadata [Analysis Metadata]
-          %% Use LR to invert axis set by parent to effectively force relative TB
           direction LR
 
           manifest{{<b>Analysis Manifest</b> <br><code>input/manifest.json</code>}}
@@ -91,6 +89,8 @@ flowchart TB
   reference_genome -.-|Referenced in| datasetMeta
 
   manifest --> workflow
+
+{% endraw %}
 ```
 
 </details>
