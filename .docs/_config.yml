@@ -28,11 +28,11 @@ baseurl: "/Pharmacogenetic-Analysis-Pipeline" # the subpath of your site, e.g. /
 url: "https://tuks-icmm.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username: G-Kodes
 
-mermaid:
-  # Version of mermaid library
-  # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
-  version: "11.3.0"
-  src: "_includes/mermaid_config.js"
+# mermaid:
+#   # Version of mermaid library
+#   # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
+#   version: "11.3.0"
+#   src: "_includes/mermaid_config.js"
 
 # Build settings
 remote_theme: just-the-docs/just-the-docs
