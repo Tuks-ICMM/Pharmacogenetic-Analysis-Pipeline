@@ -52,43 +52,59 @@ This workflow makes use of an analysis manifest to encapsulate all analysis vari
 ```mermaid
 ---
 title: Input filemap
+config:
+    flowchart:
+        defaultRenderer: elk
+    elk:
+        nodePlacementStrategy: BRANDES_KOEPF
 ---
 flowchart TB
-  subgraph resources [<code>resources/</code>]
-      reference_genome{{Reference Genome <br> <code>resources/genome_version_name.fa</code>}}
-  end
   subgraph input [<code>input/</code>]
       subgraph data [Datasets]
-          direction TB
           datasetFile1{{<b>Dataset file</b><br><code>input/GnomAD_Chr1.vcf.gz</code>}}
           datasetFile2{{<b>Dataset file</b><br><code>input/GnomAD_Chr2.vcf.gz</code>}}
           datasetFileN{{<b>Dataset file</b><br><code>input/GnomAD_ChrN...vcf.gz</code>}}
       end
 
       subgraph metadata [Analysis Metadata]
-          direction LR
           locationMeta{{<b>Coordinates for study</b><br><code>input/locations.csv</code>}}
           sampleMeta{{<b>Sample metadata</b><br><code>input/samples.csv</code>}}
-          transcriptMeta{{<b>Transcript preferences</b><br><code>input/transcripts.csv</code>}}
           datasetMeta{{<b>Data files to incude</b><br><code>input/datasets.csv</code>}}
+          transcriptMeta{{<b>Transcript preferences</b><br><code>input/transcripts.csv</code>}}
       end
+  end
+  subgraph resources [<code>resources/</code>]
+      reference_genome{{Reference Genome <br> <code>resources/genome_version_name.fa</code>}}
   end
   subgraph config [<code>config/</code>]
     configuration{{<b>Analysis configuration</b> <br><code>config/configuration.json</code>}}
   end
-  workflow[\Pharmacogenetics Analysis Workflow/]
 
-  click workflow href "/workflow/methodology" _blank
+  vcf_validation_workflow[\VCF Validation Workflow/]
+  click vcf_validation_workflow href "https://tuks-icmm.github.io/VCF-Validation-Workflow/workflow/methodology" _blank
 
-  datasetMeta -..-o|Describes| data
-  sampleMeta -..-o|Describes| data
-  locationMeta -..-o|Describes| data
+  pharmacogenetic_analysis_workflow[\Pharmacogenetics Analysis Workflow/]
+  click pharmacogenetic_analysis_workflow href "/workflow/methodology" _blank
 
-  reference_genome -.-|Referenced in| datasetMeta
+  population_structure_workflow[\Population structure Workflow/]
+  click population_structure_workflow href "https://tuks-icmm.github.io/Population-Structure-Workflow/workflow/methodology" _blank
 
-  config --> workflow
-  resources ----> workflow
-  input ----> workflow
+  datasetMeta -...-o|Referenced in| reference_genome
+
+  metadata -.-o|Describes| data
+
+  input --> vcf_validation_workflow
+  config ----> vcf_validation_workflow
+  resources ----> vcf_validation_workflow
+
+  vcf_validation_workflow --> pharmacogenetic_analysis_workflow
+
+  pharmacogenetic_analysis_workflow --> population_structure_workflow
+  pharmacogenetic_analysis_workflow --> results
+
+  population_structure_workflow --> results
+
+  results(((Results)))
 ```
 {% endraw %}
 

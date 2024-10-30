@@ -38,8 +38,9 @@ This file is responsible for declaring all information relating to the analysis 
 
 <details markdown="block">
   <summary>
-    <h4><code>manifest.json</code> format example</h4>
+    <code>manifest.json</code> format example
   </summary>
+  {: .text-delta }
 
   <dl>
     <dt>fishers-test <code>&lt;object&gt;</code></dt>

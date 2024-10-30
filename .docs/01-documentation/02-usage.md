@@ -31,7 +31,7 @@ Software
 
 This workflow is powered using [Snakemake](https://snakemake.readthedocs.io/en/stable/), a python-based workflow-management framework. As such, running this workflow will require a basic familiarity with the Snakemake command-line (CLI) program. A review of the Snakemake frameworks capabilities and CLI is recommended.
 
-<details>
+<details markdown="block">
     <summary>run</summary>
 
 ```bash
