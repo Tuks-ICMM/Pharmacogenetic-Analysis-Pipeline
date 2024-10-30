@@ -1,4 +1,0 @@
-{
-    theme: "dark",
-    defaultRenderer: "elk"
-}
