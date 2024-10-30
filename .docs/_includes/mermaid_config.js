@@ -1,4 +1,4 @@
 {
     theme: "dark",
-    layout: "elk"
+    defaultRenderer: "elk"
 };
