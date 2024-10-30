@@ -23,4 +23,4 @@ This section explains the construction of this workflow in detail, to encourage 
 We describe the input data required in order to run this workflow in detail, describing the requested dataset formats, optimizations and metadata supported and requested.
 
 ## Methodology
-Each step in teh workflow is discussed in detail, with a summary of each command performed and an explanation for each argument passed to the underlying software.
+Each step in the workflow is discussed in detail, with a summary of each command performed and an explanation for each argument passed to the underlying software.

@@ -2,7 +2,7 @@
 title: Usage
 permalink: documentation/usage
 layout: page
-nav_order: 3
+nav_order: 2
 has_children: false
 parent: Documentation
 ---
@@ -29,8 +29,19 @@ Software
 
 ---
 
-This workflow is powered using [Snakemake](https://snakemake.readthedocs.io/en/stable/), a python-based workflow-management framework. As such, running this workflow will require a basic understanding of Snakemake and their underlying philosophy around managing and running workflow/pipelines. Below is a brief summary of the important points needed to begin running this workflow, however an in-depth review of the Snakemake framework is recommended.
+This workflow is powered using [Snakemake](https://snakemake.readthedocs.io/en/stable/), a python-based workflow-management framework. As such, running this workflow will require a basic familiarity with the Snakemake command-line (CLI) program. A review of the Snakemake frameworks capabilities and CLI is recommended.
 
+<details>
+    <summary>run</summary>
+
+```bash
+snakemake -c24 
+```
+</details>
+
+<!-- understanding of Snakemake and their underlying philosophy around managing and running workflow/pipelines. -->
+
+<!-- 
 ## DAG
 
 Each <code>rule</code> or <code>checkpoint</code> in this or any connected workflow(s) is defined as a collection of properties, declaring various properties associated with the <code>rule</code>/<code>checkpoint</code>. 
@@ -41,4 +52,4 @@ As a result of this approach, it is theoretically possible to declare complex DA
 
 <b>Snakemake addresses this issue by working backwards from a requested file, building the DAG around that file.</b> This is doen by building the DAG, using the requested file as the termination point of the DAG, and connecting rules to the growing chain of rules until it can map all rule-execution inputs to files available on-hand (i.e. input files or non-stale files from prior run). What this means is that when a Snakemake workflow is executed, requested output files need to be provided to give Snakemake as an anchor-point from which to construct the DAG. It is possible to declare default outputs in a rule from the workflow (titled <code>all</code> by and annotated with a flag marking it as default). This <code>all</code> rule provides an overridable list of standard files to generate when the execution command is run without explicit file requests.
 
-While suitable for all default uses, users may want to re-generate specific reports. This can be done by requesting the file as a positional argument in the Snakemake command.
+While suitable for all default uses, users may want to re-generate specific reports. This can be done by requesting the file as a positional argument in the Snakemake command. -->

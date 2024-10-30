@@ -2,7 +2,7 @@
 title: Methodology
 permalink: workflow/methodology
 layout: page
-nav_order: 2
+nav_order: 3
 has_children: false
 parent: Workflow
 ---

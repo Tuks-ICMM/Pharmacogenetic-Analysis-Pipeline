@@ -2,7 +2,7 @@
 title: Data
 permalink: workflow/data
 layout: page
-nav_order: 1
+nav_order: 2
 has_children: false
 parent: Workflow
 ---
@@ -48,134 +48,86 @@ This workflow makes use of an analysis manifest to encapsulate all analysis vari
   </summary>
   {: .text-delta }
 
+{% raw %}
 ```mermaid
 ---
-title: Data Requirements
+title: Input filemap
 ---
-{% raw %}
 flowchart TB
-  subgraph Standard [Resources folder]
-      reference_genome{{Reference Genome <br> <i>genome_version_name.fa</i>}}
+  subgraph resources [<code>resources/</code>]
+      reference_genome{{Reference Genome <br> <code>resources/genome_version_name.fa</code>}}
   end
-  subgraph projectSpecific [Input folder]
-      subgraph data [Analysis datasets]
+  subgraph input [<code>input/</code>]
+      subgraph data [Datasets]
           direction TB
           datasetFile1{{<b>Dataset file</b><br><code>input/GnomAD_Chr1.vcf.gz</code>}}
           datasetFile2{{<b>Dataset file</b><br><code>input/GnomAD_Chr2.vcf.gz</code>}}
           datasetFileN{{<b>Dataset file</b><br><code>input/GnomAD_ChrN...vcf.gz</code>}}
       end
+
       subgraph metadata [Analysis Metadata]
           direction LR
-
-          manifest{{<b>Analysis Manifest</b> <br><code>input/manifest.json</code>}}
-
-          datasetMeta{{<b>Data files to incude</b><br><code>input/datasets.csv</code>}}
           locationMeta{{<b>Coordinates for study</b><br><code>input/locations.csv</code>}}
           sampleMeta{{<b>Sample metadata</b><br><code>input/samples.csv</code>}}
           transcriptMeta{{<b>Transcript preferences</b><br><code>input/transcripts.csv</code>}}
+          datasetMeta{{<b>Data files to incude</b><br><code>input/datasets.csv</code>}}
       end
   end
-
+  subgraph config [<code>config/</code>]
+    configuration{{<b>Analysis configuration</b> <br><code>config/configuration.json</code>}}
+  end
   workflow[\Pharmacogenetics Analysis Workflow/]
 
   click workflow href "/workflow/methodology" _blank
-  
-  transcriptMeta & sampleMeta & datasetMeta & locationMeta --> manifest
 
-  data -.-|Referenced in| datasetMeta
-  data -.-|Referenced in| sampleMeta
-  data -.-|Referenced in| locationMeta
+  datasetMeta -..-o|Describes| data
+  sampleMeta -..-o|Describes| data
+  locationMeta -..-o|Describes| data
 
   reference_genome -.-|Referenced in| datasetMeta
 
-  manifest --> workflow
-
-{% endraw %}
+  config --> workflow
+  resources ----> workflow
+  input ----> workflow
 ```
+{% endraw %}
 
 </details>
 
 
 ## Analysis Datasets
 
-This workflow is designed to work on <i>variant-call-format</i> files (<code>.vcf</code> file extension) files. The latest version of the VCF specification can be found [here](https://samtools.github.io/hts-specs/VCFv4.3.pdf).
+This workflow is designed to work on variant-call-format files (<code>.vcf</code> file extension). The latest version of the VCF specification can be found [here](https://samtools.github.io/hts-specs/VCFv4.3.pdf).
 
 ### Dataset Subdivisions
 
-The data used in this workflow should be sub-divided into contigs. This reduces unnecessary processing times associated with genomic content that is not relevant to the analysis.
+The VCF files provided for analysis should be split by contigs. This convention reduces unnecessary processing times associated with genomic content that is not relevant to the coordinates being targeted.
 
 ### Dataset Compression and Indexing
 
-Datasets are often quite large in uncompressed form. Users are welcome to compress their data files for additional performance gains. The software used in this workflow supports BGZip-compression.
+VCF datasets are often quite large in uncompressed form. These files are text-based, and require parsing that reduces I/O performance. They are prone to large sizes by nature, and can contain variable-length annotation columns. For these reasons, this workflow has been configured to convert to remove annotation columns, and perform BGZip-compression and tabix-indexing for the sake of computational efficiency.
 
-If you wish to compress your VCF files, please provide the following files as input:
-
-- BGZIP-compressed VCF file (<code>.vcf.gz</code> or <code>vcf.bgz</code>)
-- Tabix Index (<code>.vcf.gz.tbi</code> or <code>.vcf.bgz.tbi</code>)
 
 {: .normal }
-> <b>Block Compression (BGZIP)</b> is a non-standard type of compression which is not the default compression type used on Windows or MacOS. It is used to compress files in a series of blocks or chunks.
+> <b>Block Compression</b> is a non-standard type of compression. This means it is not the same as the default compression type used on Windows or MacOS. At a high level, it is used to compress files in a series of blocks or chunks. It is typically used in tandem with some kind of index, to enable targeted decompression and access of specific records. This eliminates the need to decompress the whole file.
 >
-> Block-compression alone is simply an alternative compression method to make your data file smaller. In computational biology applications, block-compression is combined with a <b>Tabix Index</b> to record the coordinate coverage/bounds in each compressed block. This allows targeted decompression of spesific regions for analysis, as opposed to having to parse the entire file until the requested coordinates are found.
+> In computational biology applications, block-compression is combined with a <b>Tabix Index</b> to record the coordinate coverage/bounds in each compressed block. This allows targeted decompression of spesific regions for analysis, as opposed to having to parse the entire file until the requested coordinates are found.
 >
-> Both block-compression and tabix indexing are provided as part of [SamTools](http://www.htslib.org/doc/bgzip.html).
+> Both block-compression and tabix indexing are provided by [SamTools](http://www.htslib.org/doc/bgzip.html).
 
 ## Analysis Metadata
 
-<h3><code>manifest.json</code></h3>
+All metadata is provided in the form of appropriately named ` .csv` files located in the input directory:
 
-To declare all analysis variables, a <code>manifest.json</code> file should be provided in the <code>input</code> folder. This file is responsible for declaring all information relating to the analysis and serves as the central point of contact between the workflow runtime and your input data.
-
-All metadata is provided in the form of appropriately named ` .csv` files located in the input directory.
-
-{: .normal-title }
-> Case sensitivity
->
-> The following metadata declaration files use _**case-sensitive column names**_.
-
-<details markdown="block">
-  <summary>
-    <h4><code>manifest.json</code> format example</h4>
-  </summary>
-
-  <dl>
-    <dt>fishers-test <code>&lt;object&gt;</code></dt>
-    <dd>
-      <dl>
-        <dt><i>cluster_name</i> <code>&lt;str&gt;</code></dt>
-        <dd>The name of the cluster-level declared in your <code>samples.csv</code> annotations for which you would like to declare a reference population for pair-wise testing.</dd>
-      </dl>
-    </dd>
-    <dt>output-dir <code>&lt;Array&lt;Str&gt;&gt;</code></dt>
-    <dd>A list representing the file-path for the location at which the workflow should save its output. If the folder does not exist, the workflow will automatically create it.</dd>
-  </dl>
-
-  ```json
-  {
-      "fishers-test": {
-          "my_cluster": "my_population_of_interest"
-      },
-      "output-dir": [
-          "/",
-          "path",
-          "to",
-          "my",
-          "output",
-          "location"
-      ]
-  }
-  ```
-</details>
-
----
 <h3><code>datasets.csv</code></h3>
+
 
 The `datasets.csv` file allows you to declare datasets and provide the necessary information to determine which contig-level files should be used for analysis given the provided genomic coordinates.
 
 
 <details markdown="block">
   <summary>
-    <h4><code>datasets.csv</code> format example</h4>
+    <code>datasets.csv</code> format example
   </summary>
   {: .text-delta }
 
@@ -209,11 +161,18 @@ The `datasets.csv` file allows you to declare datasets and provide the necessary
 
 The `samples.csv` file allows you to declare samples and provide the necessary sample-level information for use in this pipeline.
 
+
+
 <details markdown="block">
   <summary>
-    <h4><code>samples.csv</code> format example</h4>
+   <code>samples.csv</code> format example
   </summary>
   {: .text-delta }
+
+{: .highlight-title }
+> Case Sensitive
+>
+> The following metadata declaration files use _**case-sensitive column names**_.
 
 <dl class="def-wide">
   <dt>sample_name <code>&lt;str&gt;</code></dt>
@@ -227,7 +186,7 @@ The `samples.csv` file allows you to declare samples and provide the necessary s
   <br><strong><i>E.g. <code>1000g</code></i></strong></dd>
   
   <dt><code>* &lt;str&gt;</code></dt>
-  <dd>A file path indicating the location of the dataset to be used in the analysis.
+  <dd>A file path indicating the location of the dataset to be used in the analysis. Please note that the column names are <b><i><u>case-sensitive</u></i></b>.
   
   <br><strong><i>E.g. <code>GRCh37</code> or <code>GRCh38</code></i></strong></dd>
 </dl>
@@ -247,7 +206,7 @@ The `locations.csv` file allows you to declare samples and provide the necessary
 
 <details markdown="block">
   <summary>
-    <h4><code>locations.csv</code> format example</h4>
+    <code>locations.csv</code> format example
   </summary>
   {: .text-delta }
 
@@ -291,7 +250,7 @@ The `locations.csv` file allows you to declare samples and provide the necessary
 
 The `transcripts.csv` file allows you to declare which transcripts you would like to use when performing variant-effect-prediction.
 
-During the execution of the _{{ site.title }}_, variant-effect-prediction (VEP) is performed using a publicly accessible VEP query API by E! Ensembl. Currently, the API returns multiple VEP predictions based on any transcripts that are present at a given genomic location. Users are able to provide a <code>transcripts.csv</code> input file to declare a list of transcripts per genomic-region they would like to consider for this analysis. 
+During the execution of the _{{ site.title }}_, variant-effect-prediction (VEP) is performed using a publicly accessible VEP query API by E! Ensembl. Currently, the API returns multiple VEP predictions based on any transcripts that are found matching the requested genomic location. Users are able to provide a <code>transcripts.csv</code> input file to declare a list of transcripts per genomic-region they would like to consider for this analysis.
 
 {: .normal-title }
 > Transcript IDs
@@ -319,7 +278,7 @@ During the execution of the _{{ site.title }}_, variant-effect-prediction (VEP) 
 
 <details markdown="block">
   <summary>
-    <code>transcripts.csv</code> data example
+    <code>transcripts.csv</code> format example
   </summary>
 
 | **gene_name** | **transcript_id**   |
