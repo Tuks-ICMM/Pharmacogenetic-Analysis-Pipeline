@@ -28,20 +28,28 @@ Reference Genome Configuration
 
 ---
 
-This workflow was created by <a href="https://github.com/G-kodes" target="_blank">{% avatar G-Kodes size=15 %} Graeme Ford</a> under the [Institute for Cellular and Molecular Medicine (ICMM)](https://www.up.ac.za/institute-for-cellular-and-molecular-medicine). This workflow is maintained and distributed through the [ICMM GitHub page](https://github.com/Tuks-ICMM), where releases are versioned for convenience.
+This workflow is maintained and distributed through the [ICMM GitHub page](https://github.com/Tuks-ICMM). The source-code has been versioned according to publications and relevant checkpoints, and can be downloaded via a git clone command:
 
-## Dependencies overview
+```bash
+git clone https://github.com/Tuks-ICMM/VCF-Validation-Workflow.git
+```
 
-This workflow is built and powered using a python-based framework for workflow management. In addition, we make use of several underlying bioinformatics toolkits and third-party command-line programs to perform some steps in the analysis (For more information, see the [methodology page](/workflow/methodology)).
+If you would like to clone a specific version, versions are declared and maintained via the repositories [releases page](https://github.com/Tuks-ICMM/VCF-Validation-Workflow/tags). To access a version, users can clone the repository, and perform a <code>checkout</code> command, providing the version to checkout:
 
-- Download a copy of the [Pharmacogenetics Analysis Workflow](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline)
-- Prepare a [Python](https://github.com/Tuks-ICMM/Pharmacogenetic-Analysis-Pipeline) environment with basic dependencies installed
-- Download and install required CLI dependencies:
-    - Python
-    - Plink-2
-    - BCFtools
+```bash
+git clone https://github.com/Tuks-ICMM/VCF-Validation-Workflow.git
+git checkout tags/<release_version>
+```
 
-## Software Needed
+
+
+## Dependencies
+
+This workflow is built and powered using a python-based framework for workflow management. In addition, we make use of several underlying bioinformatics tools and third-party command-line programs to perform some steps in the analysis (For more information, see the [methodology page](/workflow/methodology)):
+
+- Python
+- Plink-2
+- BCFtools
 
 ### Python
 
@@ -67,9 +75,6 @@ You may test the installation by opening your command-line and executing the fol
 ```
 plink2 --help
 ```
-
-
-
 
 ### BCFtools
 
