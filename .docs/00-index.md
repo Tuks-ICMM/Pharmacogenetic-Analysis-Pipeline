@@ -24,7 +24,7 @@ nav_order: 0
 <!-- END - Links, Badges and Markdown Variables -->
 <hr />
 
-Welcome to the <i>{{ site.title }}</i>. This is a documentation site containing instruction and technical discussion on the use of the {{ site.title }}. This pipeline was created by <a href="https://github.com/G-kodes" target="_blank">{% avatar G-Kodes size=15 %} Graeme Ford</a> to perform the following bioinformatics functions:
+Welcome to the <i>{{ site.title }} </i>. This is a documentation site containing instructions and technical discussion on the use of the {{ site.title }}, a snakemake-powered workflow, developed under the [Institute for Cellular and Molecular Medicine](https://www.up.ac.za/institute-for-cellular-and-molecular-medicine) by <a href="http://github.com/G-kodes" target="_blank">{% avatar G-kodes size=15 %} Graeme Ford</a>. This workflow is designed to perform the following bioinformatics functions:
 
 - Perform variant frequency analysis
 - Perform variant-effect-prediction

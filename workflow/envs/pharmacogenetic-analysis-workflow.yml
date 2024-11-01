@@ -1,4 +1,4 @@
-name: snakemake
+name: pharmacogenetic-analysis-workflow
 channels:
   - bioconda
   - conda-forge
