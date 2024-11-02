@@ -54,7 +54,7 @@ rule format_sample_metadata:
     log: out("tmp/formatted_sample_metadata/All.log")
     benchmark: out("tmp/formatted_sample_metadata/All.benchmark")
     conda:
-        join("envs", "snakemake.yml")
+        join("envs", "pharmacogenetic-analysis-workflow.yml")
     input:
         sample_annotations="input/samples.csv"
     output:
@@ -145,8 +145,8 @@ rule verify_records_against_reference_genome:
         ref=lambda wildcards: join(
         *next(
             i["path"]
-            for i in config["resources"]["reference-genomes"]
-        if i["version"] == "GRCh38"
+            for i in config["resources"]["reference_genomes"]
+        if i["name"] == "GRCh38"
             ),
         )
     input: 
@@ -433,7 +433,7 @@ rule report_fishers_exact_with_corrections:
     log: out("tmp/{cluster}/{location}/fishers_exact.log")
     benchmark: out("tmp/{cluster}/{location}/fishers_exact.benchmark")
     params:
-        reference_population=lambda wildcards: config["fishers-test"][wildcards.cluster],
+        reference_population=lambda wildcards: config["parameters"]["fishers-test"][wildcards.cluster],
     wildcard_constraints:
         location=r"[a-zA-Z0-9\-]+",
         cluster=r"[a-zA-Z0-9\-]+",

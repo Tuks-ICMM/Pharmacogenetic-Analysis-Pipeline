@@ -5,7 +5,7 @@ module VCFValidation:
 use rule * from VCFValidation as vcf_validation_*
 
 # TODO: Document this behaviour for technical users
-ruleorder: VCF_Validation_tabix > tabix
+ruleorder: vcf_validation_tabix > tabix
 
 
 # BEGIN DEFINING RULES:
