@@ -68,19 +68,15 @@ Since users of this workflow will need to work within the file structure in orde
     |   |   ├── condel_score.py # DELETE?
     |   |   ├── fishers_exact_test.py
     |   |   └── variant_effect_prediction_parsers.py
-    |   ├── 00-LIFTOVER.py
-    |   ├── 01-TRANSPILE_CLUSTERs.py
-    |   ├── 01.5-TRANSPILE_SAMPLE_SEXES.py
-    |   ├── 02-CALCULATIONS.py # DELETE?
-    |   ├── calculateFishersExactWithCorrection.py
-    |   ├── collectAutosomalHardyWeinbergPartitionedPerCluster.py
-    |   ├── collectCountPartitionedPerClusterPerLocation.py
-    |   ├── collectFreqPartitionedPerClusterPerLocation.py
-    |   ├── collectVariantMissingnessPerClusterPerLocation.py
-    |   ├── combine.py
+    |   ├── collect_autosomal_hardy_weinberg.py
+    |   ├── collect_variant_count.py
+    |   ├── collect_variant_frequency.py
+    |   ├── collect_variant_missingness.py
     |   ├── compile_variant_effects.py
-    |   ├── consolidateReports.py
+    |   ├── consolidate_reports.py
     |   ├── custom_sheets_and_filters.py
+    |   ├── format_sample_metadata.py
     |   └── query_variant_effects.py
+    |   ├── report_fishers_exact_with_corrections.py
     └── Snakefile
 ```

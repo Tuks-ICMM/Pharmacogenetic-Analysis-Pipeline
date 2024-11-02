@@ -28,7 +28,7 @@ def search(property: str, rule: str) -> Union[str, int]:
         i[property] for i in config["environment"]["queues"] if rule in i["rules"]
     )
 
-def outputDir(path: str) -> str:
+def out(path: str) -> str:
     """This function consults the `config.json` file to determine if a pre-set output directory has been specified. If it has, the provided directory will be used. If not, the current working directory will be used."""
     if "output-dir" in config:
         OUTPUT_DIR_PATH = join(*config["output-dir"])

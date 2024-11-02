@@ -7,7 +7,7 @@ def collect_report_count_partitioned_per_cluster(wildcards):
         join(checkpoint_output, "allele_count.{populations}.acount")
     )
     return expand(
-        outputDir(
+        out(
             "tmp/{cluster}/{location}/reported_frequency_per_cluster/allele_count.{population}.acount"
         ),
         cluster=wildcards.cluster,
@@ -21,7 +21,7 @@ def collect_calculate_linkage_disequilibrium_per_cluster(wildcards) -> list[str]
     for location in locations["location_name"].unique().tolist():
         for cluster in clusters:
             LD_output.append(
-                directory(outputDir(f"linkage_disequilibrium/{cluster}/{location}/"))
+                directory(out(f"linkage_disequilibrium/{cluster}/{location}/"))
             )
     return LD_output
 
@@ -31,7 +31,7 @@ def collect_calculate_linkage_disequilibrium_per_cluster(wildcards) -> list[str]
 #         **wildcards
 #     ).output[0]
 #     return expand(
-#         outputDir(
+#         out(
 #             "tmp/report_count_partitioned_per_cluster/{cluster}/{location}/allele_count.{population}.acount"
 #         ),
 #         cluster=wildcards.cluster,
@@ -48,7 +48,7 @@ def collect_sex_linked_hardy_weinberg_per_cluster(wildcards):
         join(checkpoint_output, "%s.{extensions,([\\w\\.]+)}" % wilcards.location)
     ).extensions
     return expand(
-        outputDir(
+        out(
             "tmp/report_count_partitioned_per_cluster/{cluster}/{location}/allele_count.{population}.hardy.x"
         ),
         cluster=wildcards.cluster,
@@ -63,7 +63,7 @@ def collect_autosomal_hardy_weinberg_per_cluster(wildcards):
         join(checkpoint_output, "hardy_weinberg.{populations}.hardy")
     ).populations
     return expand(
-        outputDir(
+        out(
             "tmp/{cluster}/{location}/hardy_weinberg_per_cluster/hardy_weinberg.{population}.hardy"
         ),
         cluster=wildcards.cluster,
@@ -82,7 +82,7 @@ def collect_reportAutosomalHardyWeinbergPartitionedPerClusterPerLocationOnChrX(
     ]
     # populations = glob_wildcards(join(checkpoint_output, "hardy_weinberg.{populations}.hardy.x")).populations
     return expand(
-        outputDir(
+        out(
             "tmp/reportAutosomalHardyWeinbergPartitionedPerClusterPerLocationOnChrX/{cluster}/{location}/hardy_weinberg.{population}.hardy.x"
         ),
         cluster=wildcards.cluster,
@@ -105,7 +105,7 @@ def collect_report_fixation_index_per_cluster(wildcards):
             #     ).output["fixation_report"]
             # )
             FILES_TO_RETURN.append(
-                directory(outputDir(f"fixation_index/{cluster}/{location}/"))
+                directory(out(f"fixation_index/{cluster}/{location}/"))
             )
     return FILES_TO_RETURN
 
@@ -125,7 +125,7 @@ def collect_reportSampleMissingnessPerClusterPerLocation(wildcards):
             ).populations
             FILES_TO_RETURN.extend(
                 expand(
-                    outputDir(
+                    out(
                         "tmp/report_missingness_per_cluster/{cluster}/{location}/{cluster}_{location}_missingness.{population}.smiss"
                     ),
                     cluster=cluster,
@@ -147,7 +147,7 @@ def collect_report_missingness_per_cluster(wildcards):
         )
     ).populations
     return expand(
-        outputDir(
+        out(
             "tmp/report_missingness_per_cluster/{cluster}/{location}/{cluster}_{location}_missingness.{population}.vmiss"
         ),
         cluster=wildcards.cluster,
@@ -158,24 +158,24 @@ def collect_report_missingness_per_cluster(wildcards):
 
 def collect_reports_to_consolidate(wildcards):
     base = [
-        outputDir(
+        out(
             f"tmp/{wildcards.cluster}/{wildcards.location}/cleaned_variant_effect_predictions.csv"
         ),
-        outputDir(
+        out(
             f"tmp/{wildcards.cluster}/{wildcards.location}/variant_frequency.csv"
         ),
-        outputDir(
+        out(
             f"tmp/{wildcards.cluster}/{wildcards.location}/variant_count.csv"
         ),
-        outputDir(
+        out(
             f"tmp/{wildcards.cluster}/{wildcards.location}/autosomal_hardy_weinberg.csv"
         ),
-        outputDir(f"tmp/{wildcards.cluster}/{wildcards.location}/missingness.csv"),
+        out(f"tmp/{wildcards.cluster}/{wildcards.location}/missingness.csv"),
     ]
 
-    if wildcards.cluster in config["fishers-test"]:
+    if wildcards.cluster in config["parameters"]["fishers-test"]:
         base.append(
-            outputDir(
+            out(
                 f"tmp/{wildcards.cluster}/{wildcards.location}/fishers_exact_with_corrections.csv"
             )
         )

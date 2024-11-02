@@ -7,10 +7,10 @@ use rule * from population_structure as population_structure_*
 # TODO: Document this behaviour for technical users
 use rule remove_rare_variants from population_structure as population_structure_remove_rare_variants with:
     input:
-        pgen=outputDir("tmp/{contig}/removed_related_samples.pgen"),
-        pvar=outputDir("tmp/{contig}/removed_related_samples.pvar.zst"),
-        psam=outputDir("tmp/{contig}/removed_related_samples.psam"),
-        sample_metadata=outputDir("tmp/formatted_sample_metadata/samples.tsv")
+        pgen=out("tmp/{contig}/removed_related_samples.pgen"),
+        pvar=out("tmp/{contig}/removed_related_samples.pvar.zst"),
+        psam=out("tmp/{contig}/removed_related_samples.psam"),
+        sample_metadata=out("tmp/formatted_sample_metadata/samples.tsv")
 
 # # TODO: Document this behaviour for technical users
 # use rule plinkPed from PopulationStructure as Population_Structure_plinkPed with:

@@ -199,7 +199,7 @@ try:
     DATA.to_csv(snakemake.output["allele_counts"], index=False)
     _logger.info("Results written to file.")
     # save_or_append_to_excel(
-    #     CONFIG["output-dir"], DATA[cluster][gene], cluster, gene, "Count", "replace"
+    #     config["output"], DATA[cluster][gene], cluster, gene, "Count", "replace"
     # )
 # %%
 

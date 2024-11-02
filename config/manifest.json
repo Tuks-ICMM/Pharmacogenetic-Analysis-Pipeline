@@ -1,11 +1,62 @@
 {
-    "fishers-test": {
-        "super-population": "AFR"
+    "input": {
+        "datasets": [
+            "/",
+            "mnt",
+            "ICMM_HDD_12TB",
+            "",
+            "input",
+            ""
+        ],
+        "locations": [
+            "/",
+            "mnt",
+            "ICMM_HDD_12TB",
+            "",
+            "input",
+            ""
+        ],
+        "samples": [
+            "/",
+            "mnt",
+            "ICMM_HDD_12TB",
+            "",
+            "input",
+            ""
+        ],
+        "transcripts": [
+            "/",
+            "mnt",
+            "ICMM_HDD_12TB",
+            "",
+            "input",
+            ""
+        ]
     },
-    "output-dir": [
+    "output": [
         "/",
         "mnt",
         "ICMM_HDD_12TB",
         "Results_25SEP2024"
-    ]
+    ],
+    "resources": {
+        "reference_genomes": [
+            {
+                "name": "",
+                "path": [
+                    "/",
+                    "mnt",
+                    "ICMM_HDD_12TB",
+                    "",
+                    "resources",
+                    ""
+                ]
+            }
+        ]
+    },
+    "parameters": {
+        "fishers-test": {
+            "super-population": "AFR"
+        }
+    }
 }
