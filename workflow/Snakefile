@@ -49,6 +49,10 @@ include: "rules/checkpoint_connectors.smk"
 # DEFINE CONTAINERIZED ENVIRONMENT:
 # container: "docker://graemeford/pipeline-os"
 
+# Wildcard constraints (RegEx)
+location_names_allowed=r"[a-zA-Z0-9\-]+"
+cluster_names_allowed=r"[a-zA-Z0-9\-]+"
+
 
 rule format_sample_metadata:
     log: out("tmp/formatted_sample_metadata/All.log")
@@ -308,7 +312,7 @@ rule extract_provided_coordinates:
     log: out("tmp/{location}/extracted_provided_coordinates.log"),
     benchmark: out("tmp/{location}/extracted_provided_coordinates.benchmark")
     wildcard_constraints:
-        location=r"[a-zA-Z0-9\-]+"
+        location=location_names_allowed
     params:
         fromBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "start"].item(),
         toBP=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "stop"].item(),
@@ -343,8 +347,8 @@ checkpoint report_count_partitioned_per_cluster:
     output:
         files=directory(out("tmp/{cluster}/{location}/reported_frequency_per_cluster/"))
     wildcard_constraints:
-        location=r"[a-zA-Z0-9\-]+",
-        cluster=r"[a-zA-Z0-9\-]+",
+        location=location_names_allowed,
+        cluster=cluster_names_allowed,
     threads: workflow.cores * 0.25
     shell:
         """
@@ -359,8 +363,8 @@ checkpoint report_hardy_weinberg_per_cluster:
         input= lambda wildcards, input: input["pgen"].replace(".pgen", ""),
         output=lambda wildcards: out(f"tmp/{wildcards.cluster}/{wildcards.location}/hardy_weinberg_per_cluster/hardy_weinberg")
     wildcard_constraints:
-        cluster=r"[a-zA-Z0-9\-]+",
-        location=r"[a-zA-Z0-9\-]+"
+        cluster=cluster_names_allowed,
+        location=location_names_allowed
     input:
         pgen=out("tmp/{location}/extracted_provided_coordinates.pgen"),
         pvar=out("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
@@ -381,8 +385,8 @@ checkpoint report_missingness_per_cluster:
         input=lambda wildcards, input: input["pgen"].replace(".pgen", ""),
         output=lambda wildcards: out(f"tmp/{wildcards.cluster}/{wildcards.location}/missingness_per_cluster/missingness")
     wildcard_constraints:
-        cluster=r"[a-zA-Z0-9\-]+",
-        location=r"[a-zA-Z0-9\-]+"
+        cluster=cluster_names_allowed,
+        location=location_names_allowed
     input:
         pgen=out("tmp/{location}/extracted_provided_coordinates.pgen"),
         pvar=out("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
@@ -400,8 +404,8 @@ rule collect_variant_count:
     log: out("tmp/{cluster}/{location}/variant_count.log")
     benchmark: out("tmp/{cluster}/{location}/variant_count.benchmark")
     wildcard_constraints:
-        location=r"[a-zA-Z0-9\-]+",
-        cluster=r"[a-zA-Z0-9\-]+",
+        location=location_names_allowed,
+        cluster=cluster_names_allowed,
     threads: workflow.cores * 0.25
     input:
         pvar=out("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
@@ -416,8 +420,8 @@ rule collect_variant_frequency:
     log: out("tmp/{cluster}/{location}/variant_frequency.log")
     benchmark: out("tmp/{cluster}/{location}/variant_frequency.benchmark")
     wildcard_constraints:
-        location=r"[a-zA-Z0-9\-]+",
-        cluster=r"[a-zA-Z0-9\-]+",
+        location=location_names_allowed,
+        cluster=cluster_names_allowed,
     threads: workflow.cores * 0.25
     input:
         pvar=out("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
@@ -435,8 +439,8 @@ rule report_fishers_exact_with_corrections:
     params:
         reference_population=lambda wildcards: config["parameters"]["fishers-test"][wildcards.cluster],
     wildcard_constraints:
-        location=r"[a-zA-Z0-9\-]+",
-        cluster=r"[a-zA-Z0-9\-]+",
+        location=location_names_allowed,
+        cluster=cluster_names_allowed,
     threads: workflow.cores * 0.25
     input:
         psam=out("tmp/{location}/extracted_provided_coordinates.psam"),
@@ -451,8 +455,8 @@ rule collect_autosomal_hardy_weinberg:
     log: out("tmp/{cluster}/{location}/autosomal_hardy_weinberg.log")
     benchmark: out("tmp/{cluster}/{location}/autosomal_hardy_weinberg.benchmark")
     wildcard_constraints:
-        location=r"[a-zA-Z0-9\-]+",
-        cluster=r"[a-zA-Z0-9\-]+",
+        location=location_names_allowed,
+        cluster=cluster_names_allowed,
     threads: workflow.cores * 0.25
     input:
         pvar=out("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
@@ -467,8 +471,8 @@ rule collect_variant_missingness:
     log: out("tmp/{cluster}/{location}/missingnessPartitionedPerCluster.log")
     benchmark: out("tmp/{cluster}/{location}/missingnessPartitionedPerCluster.benchmark")
     wildcard_constraints:
-        location=r"[a-zA-Z0-9\-]+",
-        cluster=r"[a-zA-Z0-9\-]+",
+        location=location_names_allowed,
+        cluster=cluster_names_allowed,
     threads: workflow.cores * 0.25
     input:
         pvar=out("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
@@ -483,8 +487,8 @@ rule query_variant_effect_predictions:
     log: out("tmp/{cluster}/{location}/variant_effect_predictions.log"),
     benchmark: out("tmp/{cluster}/{location}/variant_effect_predictions.benchmark")
     wildcard_constraints:
-        location=r"[a-zA-Z0-9\-]+",
-        cluster=r"[a-zA-Z0-9\-]+",
+        location=location_names_allowed,
+        cluster=cluster_names_allowed,
     threads: workflow.cores * 0.25
     params:
         strand=lambda wildcards: locations.loc[locations["location_name"] == wildcards.location, "strand"]
@@ -500,8 +504,8 @@ rule compile_variant_effect_predictions:
     log: out("tmp/{cluster}/{location}/cleaned_variant_effect_predictions.log"),
     benchmark: out("tmp/{cluster}/{location}/cleaned_variant_effect_predictions.benchmark")
     wildcard_constraints:
-        location=r"[a-zA-Z0-9\-]+",
-        cluster=r"[a-zA-Z0-9\-]+",
+        location=location_names_allowed,
+        cluster=cluster_names_allowed,
     threads: workflow.cores * 0.25
     input:
         vep_results=out("tmp/{cluster}/{location}/variant_effect_predictions.csv")
@@ -515,8 +519,8 @@ rule consolidate_reports:
     log: out("consolidated_reports/{cluster}_{location}.log")
     benchmark: out("consolidated_reports/{cluster}_{location}.benchmark")
     wildcard_constraints:
-        location=r"[a-zA-Z0-9\-]+",
-        cluster=r"[a-zA-Z0-9\-]+",
+        location=location_names_allowed,
+        cluster=cluster_names_allowed,
     threads: workflow.cores * 0.25
     input:
         pvar=out("tmp/{location}/extracted_provided_coordinates.pvar.zst"),
@@ -532,5 +536,28 @@ rule all:
     log:
         "logs/ALL/ALL.log",
     input:
+        # Contig-level data
+        expand(out("tmp/{contig}/merged_datasets.vcf.gz"), contig=locations["chromosome"].unique().tolist()),
+        expand(out("tmp/{contig}/normalized_merged_datasets.vcf.gz"), contig=locations["chromosome"].unique().tolist()),
+        expand(out("tmp/{contig}/verified_records_against_reference_genome.{ext}"), contig=locations["chromosome"].unique().tolist(), ext=["pgen", "pvar.zst", "psam"]),
+        expand(out("tmp/{contig}/removed_non_standard_chromosomes.{ext}"), contig=locations["chromosome"].unique().tolist(), ext=["pgen", "pvar.zst", "psam"]),
+        expand(out("tmp/{contig}/removed_unknown_samples.{ext}"), contig=locations["chromosome"].unique().tolist(), ext=["pgen", "pvar.zst", "psam"]),
+        expand(out("tmp/{contig}/filtered_variant_missingness.{ext}"), contig=locations["chromosome"].unique().tolist(), ext=["pgen", "pvar.zst", "psam"]),
+        expand(out("tmp/{contig}/filtered_sample_missingness.{ext}"), contig=locations["chromosome"].unique().tolist(), ext=["pgen", "pvar.zst", "psam"]),
+        expand(out("tmp/{contig}/calculated_sample_relatedness.{ext}"), contig=locations["chromosome"].unique().tolist(), ext=["king.cutoff.in.id", "king.cutoff.out.id"]),
+        expand(out("tmp/{contig}/removed_related_samples.{ext}"), contig=locations["chromosome"].unique().tolist(), ext=["pgen", "pvar.zst", "psam"]),
+        
+        # Location-level data
+        expand(out("tmp/{contig}/extracted_provided_coordinates.{ext}"), contig=locations["location_name"].unique().tolist(), ext=["pgen", "pvar.zst", "psam"]),
+
+        # Reports
+        expand(out("tmp/{cluster}/{location}/variant_count.csv"), cluster=clusters, location=locations["location_name"]),
+        expand(out("tmp/{cluster}/{location}/variant_frequency.csv"), cluster=clusters, location=locations["location_name"]),
+        expand(out("tmp/{cluster}/{location}/fishers_exact_with_corrections.csv"), cluster=config["parameters"]["fishers-test"].keys(), location=locations["location_name"]),
+        expand(out("tmp/{cluster}/{location}/autosomal_hardy_weinberg.csv"), cluster=clusters, location=locations["location_name"]),
+        expand(out("tmp/{cluster}/{location}/missingness.csv"), cluster=clusters, location=locations["location_name"]),
+        expand(out("tmp/{cluster}/{location}/variant_effect_predictions.csv"), cluster=clusters, location=locations["location_name"]),
+        expand(out("tmp/{cluster}/{location}/cleaned_variant_effect_predictions.csv"), cluster=clusters, location=locations["location_name"]),
+        
         expand(out("consolidated_reports/{cluster}_{location}.csv"), cluster=clusters, location=locations["location_name"]),
         rules.population_structure_all.input

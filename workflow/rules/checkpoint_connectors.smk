@@ -143,12 +143,12 @@ def collect_report_missingness_per_cluster(wildcards):
     populations = glob_wildcards(
         join(
             checkpoint_output,
-            "{cluster}_{location}_missingness.{populations}.vmiss",
+            "missingness.{populations}.vmiss.zst",
         )
     ).populations
     return expand(
         out(
-            "tmp/report_missingness_per_cluster/{cluster}/{location}/{cluster}_{location}_missingness.{population}.vmiss"
+            "tmp/{cluster}/{location}/missingness_per_cluster/missingness.{population}.vmiss.zst"
         ),
         cluster=wildcards.cluster,
         location=wildcards.location,

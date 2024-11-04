@@ -197,6 +197,8 @@ def generate_params(transcription_ids: list = None, canonical=False) -> dict:
         "numbers": True,
         # Retrive E! Ensembl protein identifiers
         # "protein": True,
+        # retrive REVEL scores
+        "REVEL": True,
         # Shift all variants that overlap ith transcripts as far possible in a 3' direction before predicting consequences
         # "shift_3prime": True,
         # Retrive transcript version numbers as well

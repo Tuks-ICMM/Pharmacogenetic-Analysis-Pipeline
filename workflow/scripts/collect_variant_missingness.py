@@ -72,7 +72,7 @@ try:
         names=["CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER"],
     )
     _logger.info("Variant index data has been imported.")
-    _logger.debug(DATA)
+    _logger.info(DATA)
 
     _logger.info(
         "Beginning population variant-missingness report files from available files found: [%s].",
@@ -83,7 +83,7 @@ try:
 
         # Identify reported population.
         POPULATION = search(
-            f"{snakemake.wildcards.cluster}_{snakemake.wildcards.location}_missingness.([a-zA-Z]+).vmiss.zst",
+            f"{snakemake.wildcards.cluster}/{snakemake.wildcards.location}/missingness_per_cluster/missingness.([a-zA-Z]+).vmiss.zst",
             report,
         ).group(1)
         _logger.info(
@@ -116,8 +116,12 @@ try:
                 "F_MISS": f"{POPULATION}_f_miss",
             }
         )
+        _logger.info("Imported report successfully:")
+        _logger.info(REPORT)
 
-        DATA = merge(DATA, REPORT, on=MULTIINDEX)
+        DATA = merge(DATA, REPORT, on=MULTIINDEX, how="left")
+        
+    DATA.drop(columns=["QUAL", "FILTER"], inplace=True)
 
     DATA.to_csv(snakemake.output.variant_missingness_report, index=False)
 except Exception as E:

@@ -133,6 +133,12 @@ try:
     )
     _logger.info("Extracted Biotype.")
 
+    _logger.info("Extracting REVEL score.")
+    DATA["REVEL_score"] = DATA["result"].apply(
+        lambda result: extractTranscriptConsequenceValue(result, "revel", __name__)
+    )
+    _logger.info("Extracted REVEL score.")
+
     _logger.info("Extracting CADD.")
     DATA["CADD"] = DATA["result"].apply(
         lambda result: extractTranscriptConsequenceValue(result, "cadd_raw", __name__)
@@ -144,7 +150,6 @@ try:
         lambda result: extractTranscriptConsequenceValue(result, "cadd_phred", __name__)
     )
     _logger.info("Extracted CADD_PHRED.")
-
 
     _logger.info("Extracting SIFT 4G score.")
     DATA["SIFT_4G_score"] = DATA["result"].apply(
