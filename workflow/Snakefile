@@ -444,7 +444,7 @@ rule report_fishers_exact_with_corrections:
     output:
         out("tmp/{cluster}/{location}/fishers_exact_with_corrections.csv")
     script:
-        join("scripts", "calculateFishersExactTestWithCorrection.py")
+        join("scripts", "report_fishers_exact_with_corrections.py")
 
 
 rule collect_autosomal_hardy_weinberg:
@@ -524,7 +524,7 @@ rule consolidate_reports:
     output:
         consolidated_data=out("consolidated_reports/{cluster}_{location}.csv")
     script:
-        join("scripts", "consolidateReports.py")
+        join("scripts", "consolidate_reports.py")
 
 
 rule all:
