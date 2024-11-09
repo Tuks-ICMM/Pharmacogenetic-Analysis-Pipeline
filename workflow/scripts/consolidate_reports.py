@@ -85,7 +85,7 @@ try:
         _logger.info("Dataset successfully merged in: '%s'", DATA)
 
     _logger.info("Exporting data to output...")
-    DATA.to_csv(snakemake.output.consolidated_data)
+    DATA.to_csv(snakemake.output.consolidated_data, sep="\t")
     _logger.info("Exported data to output...")
 
 except Exception as E:

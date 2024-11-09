@@ -55,3 +55,21 @@ def extractTranscriptConsequenceValue(vep_result: dict, field_name: str, log_ins
                     return consequence[field_name]
             else:
                 return ""
+            
+def extractMutFuncValues(vep_result: dict, field: str, calculation: str):
+    if "transcript_consequences" in vep_result:
+        for consequence in vep_result["transcript_consequences"]:
+            if "mutfunc" in consequence and field in consequence["mutfunc"]:
+                return vep_result["transcript_consequences"][0]["mutfunc"][field][calculation]
+            else:
+                return None
+
+def extractUTRAnnotatorValues(vep_result: str, field: str):
+    if "transcript_consequences" in vep_result:
+        for consequence in vep_result["transcript_consequences"]:
+            if field in consequence:
+                return consequence[field]
+            else:
+                return None
+    else:
+        return None

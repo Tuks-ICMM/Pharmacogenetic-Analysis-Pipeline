@@ -17,7 +17,7 @@ from typing import Generator
 from time import sleep
 
 import pandas as pd
-from common.common import chunk, generate_notation, generate_params
+from common.common import chunk, generate_notation
 
 # from common.condel_score import condel_weighted_score
 from pandas import DataFrame, Series, read_csv
@@ -84,6 +84,95 @@ def chunk(input_data: DataFrame, size: int) -> Generator:
         input_data[pos : pos + size]["query"] for pos in range(0, len(input_data), size)
     )
 
+VEP_QUERY_PARAMETERS = {
+        # https://www.ensembl.org/info/genome/compara/epo_anchors_info.html
+        # Retrive the ancestral allele at this locus as per the EPO pipeline
+        # "AncestralAllele": True,
+        # Amino Acid conservation score (Blosum62 method)
+        "Blosum62": True,
+        # Request a CADD score for this variant
+        "CADD": True,
+        # Retrive a conservation score from the E! Ensembl Compara database
+        # "Conservation": True,
+        # https://raw.githubusercontent.com/ensembl-variation/VEP_plugins/master/DisGeNET.pm
+        # Retrieves a list of variant-disease PMID associations for meta-analysis
+        # "DisGeNET": True,
+        "Enformer": True,
+        # Retrieve variant classification using evolutionary sequences
+        # "EVE": True,
+        # Retrive Gene-Ontology terms associated with the variant
+        # "GO": True,
+        # Retrive splice sites associated with this variant
+        # "GeneSplicer": True,
+        # Retrive phenotypic profiles for a variant sequence defined using human phenotype ontology terms
+        # "Geno2MP": True,
+        # https://www.ebi.ac.uk/intact/home
+        # Retrive a list of molecular interactions involving this variant asper the IntAct database
+        # "IntAct": True,
+        # Retrive an indicator for Loss-of-function for the given variant.
+        "LoF": True,
+        # https://www.genomenon.com/mastermind/
+        # Retrive a list of associated literature which cites the variant using the MasterMind database
+        "Mastermind": True,
+        # Retrive a score from the MaveDB database based on multiplex assay datasets
+        # "MaveDB": True,
+        # Retrive splice-site consensus predictions based on maximum entropy
+        "MaxEntScan": True,
+        # Predict if a variant allows nonsense-mediated mRNA decay
+        # "NMD": True,
+        # Retrives phenotype records that overlap
+        # "Phenotypes": True,
+        # Retrives pre-calculated SpliceAI to predict splice junctions. I have selected 2 to pull MANE annotations.
+        # "SpliceAI": 2,
+        # Predicts impact of 5' UTR variants (New ORFs, etc)
+        "UTRAnnotator": True,
+        # Retrive APRIS isoform information for the given variant.
+        # "appris": True,
+        # Request that canonical transcripts be flagged
+        "canonical": True,
+        # Retrive a list of CCDS identifiers for recognized protein-coding regions
+        # "ccds": True,
+        # Retrive pathogenicity predictions for the variant from dbNSFP
+        "dbNSFP": "SIFT4G_score,SIFT4G_pred,Polyphen2_HVAR_score,Polyphen2_HVAR_pred,FATHMM_score,FATHMM_pred,PROVEAN_score,PROVEAN_pred,MetaSVM_score,MetaSVM_pred,Aloft_Fraction_transcripts_affected,transcript_match=1",
+        # Retrive rpedictions for splice variants
+        # "dbscSNV": True,
+        # Request a list of overlapping protein domain names
+        "domains": True,
+        # Outputs only the most severe consequence per gene, using the criteria set by 'pick_order'
+        "per_gene": True,
+        # Selects single consequence record based on variant allele and gene combination
+        "pick_allele_gene": True,
+        # Pick one line or block of consequence data per variant, including transcript-specific columns.
+        "pick": True,
+        # Select the criteria order to use when selecting a single consequence using the 'pick' flag
+        "pick_order": "canonical,mane_plus_clinical,mane_select,appris,tsl,biotype,ccds,rank,length",
+        # Requests GA4GH Variation Representation Specification annotations
+        # "ga4gh_vrs": True,
+        # Request HGVS nomenclature
+        "hgvs": True,
+        # Request MANE Select annotations
+        # "mane": True,
+        # Retrive miRNA secondary structure annotations for this variant
+        # "mirna": True,
+        # Retrive predictions for destabilization effect of variant
+        "mutfunc": True,
+        # Retrive number fo affected intron and exon regions in transcript
+        "numbers": True,
+        # Retrive E! Ensembl protein identifiers
+        # "protein": True,
+        # retrive REVEL scores
+        "REVEL": True,
+        # Shift all variants that overlap ith transcripts as far possible in a 3' direction before predicting consequences
+        # "shift_3prime": True,
+        # Retrive transcript version numbers as well
+        # "transcript_version": True,
+        # Retrive transcript support level annotations regarding how well mRNA aligns across splice sites
+        # "tsl": True,
+        # Retrive accessions for the gene from three protein product databases
+        # "uniprot": True,
+        # Retrive variant class annotations based on sequence ontology
+        "variant_class": True,
+    }
 
 # %%
 try:
@@ -125,12 +214,12 @@ try:
         LOGGER.debug(
             f"Attempting to query payload: {dumps(dict(variants=payload.tolist()))}"
         )
-        LOGGER.debug(f"Using the following parameters: {generate_params()}")
+        LOGGER.debug(f"Using the following parameters: {VEP_QUERY_PARAMETERS}")
         # [QUERY] the batch and store the E! Ensemble API response
         response = post(
             ENDPOINT,
             headers=HEADERS,
-            params=generate_params(),
+            params=VEP_QUERY_PARAMETERS,
             data=dumps(dict(variants=payload.tolist())),
         )
         LOGGER.debug("Response received")

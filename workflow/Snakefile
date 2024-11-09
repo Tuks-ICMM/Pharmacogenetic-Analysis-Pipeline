@@ -235,7 +235,7 @@ rule filter_variant_missingness:
     threads: workflow.cores * 0.25
     shell: 
         """
-        plink2 --threads {threads} --pfile {params.input} vzs  --geno 1.0 --make-pgen vzs --out {params.output} >{log} 2>&1
+        plink2 --threads {threads} --pfile {params.input} vzs --geno {config[parameters][variant-missingness-cutoff]} --make-pgen vzs --out {params.output} >{log} 2>&1
         """
 
 
@@ -258,7 +258,7 @@ rule filter_sample_missingness:
     threads: workflow.cores * 0.25
     shell: 
         """
-        plink2 --threads {threads} --pfile {params.input} vzs --mind 1.0 --make-pgen vzs --out {params.output} >{log} 2>&1
+        plink2 --threads {threads} --pfile {params.input} vzs --mind {config[parameters][sample-missingness-cutoff]} --make-pgen vzs --out {params.output} >{log} 2>&1
         """
 
 
@@ -280,7 +280,7 @@ rule calculate_sample_relatedness:
     threads: workflow.cores * 0.25
     shell:
         """
-        plink2 --threads {threads} --pfile {params.input} vzs --king-cutoff 0.354 --out {params.output} >{log} 2>&1
+        plink2 --threads {threads} --pfile {params.input} vzs --king-cutoff {config[parameters][kingship-cutoff]} --out {params.output} >{log} 2>&1
         """
 
 

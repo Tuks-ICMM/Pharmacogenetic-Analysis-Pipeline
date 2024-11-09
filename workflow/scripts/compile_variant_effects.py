@@ -25,6 +25,8 @@ from scripts.common.variant_effect_prediction_parsers import (
     collectConsequenceTypes,
     collectFeatureTypes,
     extractTranscriptConsequenceValue,
+    extractMutFuncValues,
+    extractUTRAnnotatorValues
 )
 
 # from workflow.scripts.entities.VariantConsequence import VariantConsequenceResult
@@ -334,6 +336,240 @@ try:
     )
     _logger.info("Extracted Variant_allele.")
 
+    _logger.info("Extracting MutFunc dG_mt results.")
+    DATA["mutfunc_mod_dG_mt"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "mod", "dG_mt"
+        )
+    )
+    _logger.info("Extracted MutFunc dG_mt results.")
+
+    _logger.info("Extracting MutFunc ddG_sd results.")
+    DATA["mutfunc_mod_ddG_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "mod", "ddG_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc ddG_sd results.")
+
+    _logger.info("Extracting MutFunc dG_wt results.")
+    DATA["mutfunc_mod_dG_wt"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "mod", "dG_wt"
+        )
+    )
+    _logger.info("Extracted MutFunc dG_wt results.")
+
+    _logger.info("Extracting MutFunc dG_mt_sd results.")
+    DATA["mutfunc_mod_dG_mt_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "mod", "dG_mt_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc dG_mt_sd results.")
+
+    _logger.info("Extracting MutFunc dG_wt_sd results.")
+    DATA["mutfunc_mod_dG_wt_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "mod", "dG_wt_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc dG_wt_sd results.")
+
+    _logger.info("Extracting MutFunc ddG results.")
+    DATA["mutfunc_mod_ddG"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "mod", "ddG"
+        )
+    )
+    _logger.info("Extracted MutFunc ddG results.")
+
+    _logger.info("Extracting MutFunc experimental dG_mt results.")
+    DATA["mutfunc_exp_dG_mt"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "exp", "dG_mt"
+        )
+    )
+    _logger.info("Extracted MutFunc experimental dG_mt results.")
+
+    _logger.info("Extracting MutFunc experimental ddG_sd results.")
+    DATA["mutfunc_exp_ddG_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "exp", "ddG_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc experimental ddG_sd results.")
+
+    _logger.info("Extracting MutFunc experimental dG_wt results.")
+    DATA["mutfunc_exp_dG_wt"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "exp", "dG_wt"
+        )
+    )
+    _logger.info("Extracted MutFunc experimental dG_wt results.")
+
+    _logger.info("Extracting MutFunc experimental dG_mt_sd results.")
+    DATA["mutfunc_exp_dG_mt_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "exp", "dG_mt_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc experimental dG_mt_sd results.")
+
+    _logger.info("Extracting MutFunc experimental dG_wt_sd results.")
+    DATA["mutfunc_exp_dG_wt_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "exp", "dG_wt_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc experimental dG_wt_sd results.")
+
+    _logger.info("Extracting MutFunc experimental ddG results.")
+    DATA["mutfunc_exp_ddG"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "exp", "ddG"
+        )
+    )
+    _logger.info("Extracted MutFunc experimental ddG results.")
+
+    _logger.info("Extracting MutFunc intersection dG_mt results.")
+    DATA["mutfunc_int_dG_mt"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "int", "dG_mt"
+        )
+    )
+    _logger.info("Extracted MutFunc intersection dG_mt results.")
+
+    _logger.info("Extracting MutFunc intersection ddG_sd results.")
+    DATA["mutfunc_int_ddG_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "int", "ddG_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc intersection ddG_sd results.")
+
+    _logger.info("Extracting MutFunc intersection dG_wt results.")
+    DATA["mutfunc_int_dG_wt"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "int", "dG_wt"
+        )
+    )
+    _logger.info("Extracted MutFunc intersection dG_wt results.")
+
+    _logger.info("Extracting MutFunc intersection dG_mt_sd results.")
+    DATA["mutfunc_int_dG_mt_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "int", "dG_mt_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc intersection dG_mt_sd results.")
+
+    _logger.info("Extracting MutFunc intersection dG_wt_sd results.")
+    DATA["mutfunc_int_dG_wt_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "int", "dG_wt_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc intersection ddG dG_wt_sd results.")
+
+    _logger.info("Extracting MutFunc intersection results.")
+    DATA["mutfunc_int_ddG"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "int", "ddG"
+        )
+    )
+    _logger.info("Extracted MutFunc intersection ddG results.")
+
+    _logger.info("Extracting MutFunc motif dG_mt results.")
+    DATA["mutfunc_motif_dG_mt"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "motif", "dG_mt"
+        )
+    )
+    _logger.info("Extracted MutFunc motif dG_mt results.")
+
+    _logger.info("Extracting MutFunc motif ddG_sd results.")
+    DATA["mutfunc_motif_ddG_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "motif", "ddG_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc motif ddG_sd results.")
+
+    _logger.info("Extracting MutFunc motif dG_wt results.")
+    DATA["mutfunc_motif_dG_wt"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "motif", "dG_wt"
+        )
+    )
+    _logger.info("Extracted MutFunc motif dG_wt results.")
+
+    _logger.info("Extracting MutFunc motif dG_mt_sd results.")
+    DATA["mutfunc_motif_dG_mt_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "motif", "dG_mt_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc motif dG_mt_sd results.")
+
+    _logger.info("Extracting MutFunc motif dG_wt_sd results.")
+    DATA["mutfunc_motif_dG_wt_sd"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "motif", "dG_wt_sd"
+        )
+    )
+    _logger.info("Extracted MutFunc motif dG_wt_sd results.")
+
+    _logger.info("Extracting MutFunc motif ddG results.")
+    DATA["mutfunc_motif_ddG"] = DATA["result"].apply(
+        lambda result: extractMutFuncValues(
+            result, "motif", "ddG"
+        )
+    )
+    _logger.info("Extracted MutFunc motif ddG results.")
+
+    # START: UTRAnnotator
+    _logger.info("Extracting UTRAnnotator 5UTR_consequence results.")
+    DATA["UTRAnnotator_5UTR_consequence"] = DATA["result"].apply(
+        lambda result: extractUTRAnnotatorValues(
+            result, "5utr_consequence"
+        )
+    )
+    _logger.info("Extracted UTRAnnotator 5UTR_consequence results.")
+
+    _logger.info("Extracting UTRAnnotator 5UTR_annotation results.")
+    DATA["UTRAnnotator_5UTR_annotation"] = DATA["result"].apply(
+        lambda result: extractUTRAnnotatorValues(
+            result, "5utr_annotation"
+        )
+    )
+    _logger.info("Extracted UTRAnnotator 5UTR_annotation results.")
+
+    _logger.info("Extracting UTRAnnotator Existing_uORFs results.")
+    DATA["UTRAnnotator_Existing_uORFs"] = DATA["result"].apply(
+        lambda result: extractUTRAnnotatorValues(
+            result, "existing_uorfs"
+        )
+    )
+    _logger.info("Extracted UTRAnnotator Existing_uORFs results.")
+
+    _logger.info("Extracting UTRAnnotator 5UTR_annotation results.")
+    DATA["UTRAnnotator_Existing_OutOfFrame_oORFs"] = DATA["result"].apply(
+        lambda result: extractUTRAnnotatorValues(
+            result, "existing_outofframe_oorfs"
+        )
+    )
+    _logger.info("Extracted UTRAnnotator Existing_OutOfFrame_oORFs results.")
+
+    _logger.info("Extracting UTRAnnotator Existing_InFrame_oORFs results.")
+    DATA["UTRAnnotator_Existing_InFrame_oORFs"] = DATA["result"].apply(
+        lambda result: extractUTRAnnotatorValues(
+            result, "existing_inframe_oorfs"
+        )
+    )
+    _logger.info("Extracted UTRAnnotator Existing_InFrame_oORFs results.")
+    # END: UTRAnnotator
+
     _logger.info("Dropping unneeded results column.")
     DATA.drop(columns=["result"], inplace=True)
     _logger.info("Extracted Variant_allele.")
@@ -345,6 +581,7 @@ try:
     _logger.info(
         "Saved results to output file: '%s'.", snakemake.output.cleaned_vep_results
     )
+
 
 
 # %%
