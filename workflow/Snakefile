@@ -26,10 +26,10 @@ validate(config, join("..", "config", ".schema", "manifest.schema.json"))
 # SET REPORT TEMPLATE
 # report: "report/template.rst"
 
-locations = read_csv(join("input", "locations.csv"), header=0)
-samples = read_csv(join("input", "samples.csv"), header=0)
-datasets = read_csv(join("input", "datasets.csv"), header=0)
-transcripts = read_csv(join("input", "transcripts.csv"), header=0)
+locations = read_csv(join(*config["input"]["locations"]), header=0)
+samples = read_csv(join(*config["input"]["samples"]), header=0)
+datasets = read_csv(join(*config["input"]["datasets"]), header=0)
+transcripts = read_csv(join(*config["input"]["transcripts"]), header=0)
 
 
 # DEFINE CONTEXT-VARIABLES:
@@ -530,7 +530,7 @@ rule consolidate_reports:
     script:
         join("scripts", "consolidate_reports.py")
 
-
+print(rules.population_structure_all.input)
 rule all:
     default_target: True
     log:
