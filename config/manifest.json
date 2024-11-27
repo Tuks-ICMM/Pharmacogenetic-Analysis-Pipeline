@@ -2,54 +2,51 @@
     "input": {
         "datasets": [
             "/",
-            "mnt",
-            "ICMM_HDD_12TB",
-            "",
-            "input",
-            ""
+            "path",
+            "to",
+            "my",
+            "datasets.csv"
         ],
         "locations": [
             "/",
-            "mnt",
-            "ICMM_HDD_12TB",
-            "",
-            "input",
-            ""
+            "path",
+            "to",
+            "my",
+            "locations.csv"
         ],
         "samples": [
             "/",
-            "mnt",
-            "ICMM_HDD_12TB",
-            "",
-            "input",
-            ""
+            "path",
+            "to",
+            "my",
+            "samples.csv"
         ],
         "transcripts": [
             "/",
-            "mnt",
-            "ICMM_HDD_12TB",
-            "",
-            "input",
-            ""
+            "path",
+            "to",
+            "my",
+            "transcripts.csv"
         ]
     },
     "output": [
         "/",
-        "mnt",
-        "ICMM_HDD_12TB",
-        "Results_25SEP2024"
+        "path",
+        "to",
+        "my",
+        "output",
+        "folder"
     ],
     "resources": {
         "reference_genomes": [
             {
-                "name": "",
+                "name": "reference_genome_a",
                 "path": [
                     "/",
-                    "mnt",
-                    "ICMM_HDD_12TB",
-                    "",
-                    "resources",
-                    ""
+                    "path",
+                    "to",
+                    "my",
+                    "reference_genome.fa"
                 ]
             }
         ]
@@ -57,6 +54,10 @@
     "parameters": {
         "fishers-test": {
             "super-population": "AFR"
-        }
+        },
+        "kingship-cutoff": 0.354,
+        "variant-missingness-cutoff": 1.0,
+        "sample-missingness-cutoff": 1.0,
+        "rare-variant-frequency-cutoff": 0.01
     }
 }
