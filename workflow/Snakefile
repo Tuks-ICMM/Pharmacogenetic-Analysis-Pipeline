@@ -530,7 +530,6 @@ rule consolidate_reports:
     script:
         join("scripts", "consolidate_reports.py")
 
-print(rules.population_structure_all.input)
 rule all:
     default_target: True
     log:
@@ -560,4 +559,5 @@ rule all:
         expand(out("tmp/{cluster}/{location}/cleaned_variant_effect_predictions.csv"), cluster=clusters, location=locations["location_name"]),
         
         expand(out("consolidated_reports/{cluster}_{location}.csv"), cluster=clusters, location=locations["location_name"]),
+        rules.vcf_validation_all.input,
         rules.population_structure_all.input
